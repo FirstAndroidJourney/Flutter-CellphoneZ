@@ -1,0 +1,18 @@
+name: tgx
+
+# . mean melos will manage the current package
+packages:
+  - .
+
+scripts:
+  gen: flutter pub run build_runner build --delete-conflicting-outputs
+  watch: flutter pub run build_runner watch --delete-conflicting-outputs
+  clean: flutter pub run build_runner clean
+  run: flutter run
+  build-apk: flutter build apk --release
+  test: flutter test
+  analyze: flutter analyze
+  format: dart format .
+  # pre-commit setup
+  prcm: flutter pub run flutter_pre_commit
+  prepare-check-lint: flutter pub get && dart format --set-exit-if-changed . && flutter analyze
