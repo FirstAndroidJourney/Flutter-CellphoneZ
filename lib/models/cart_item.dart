@@ -6,7 +6,8 @@ part 'cart_item.g.dart';
 class CartItem with _$CartItem {
   const factory CartItem({
     required String id,
-    required String userId, // Cart của user nào
+    @JsonKey(name: 'user_id') required String userId, // Cart của user nào
+    @JsonKey(name: 'product_id')
     required String productId, // Sản phẩm trong giỏ
     required int quantity,
   }) = _CartItem;

@@ -2,7 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'schema_accessor.dart';
 
 /// Lớp cơ sở cho tất cả các repository
-/// 
+///
 /// Cung cấp các phương thức CRUD cơ bản và truy cập đến database schema
 abstract class BaseRepository with SchemaAccessor {
   final SupabaseClient client = Supabase.instance.client;

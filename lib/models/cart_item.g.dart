@@ -9,15 +9,15 @@ part of 'cart_item.dart';
 _$CartItemImpl _$$CartItemImplFromJson(Map<String, dynamic> json) =>
     _$CartItemImpl(
       id: json['id'] as String,
-      userId: json['userId'] as String,
-      productId: json['productId'] as String,
+      userId: json['user_id'] as String,
+      productId: json['product_id'] as String,
       quantity: (json['quantity'] as num).toInt(),
     );
 
 Map<String, dynamic> _$$CartItemImplToJson(_$CartItemImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'userId': instance.userId,
-      'productId': instance.productId,
+      'user_id': instance.userId,
+      'product_id': instance.productId,
       'quantity': instance.quantity,
     };

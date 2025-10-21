@@ -8,7 +8,7 @@ class Category with _$Category {
   const factory Category({
     required String id,
     required String name,
-    required String? parentId,
+    @JsonKey(name: 'parent_id') String? parentId,
   }) = _Category;
 
   factory Category.fromJson(Map<String, dynamic> json) =>

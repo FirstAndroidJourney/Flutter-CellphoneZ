@@ -29,6 +29,7 @@ dependencies:
   equatable: ^2.0.5
   dotenv: ^4.2.0
   flutter_dotenv: ^6.0.0
+  logger: ^2.6.2
 
 dev_dependencies:
   flutter_test:

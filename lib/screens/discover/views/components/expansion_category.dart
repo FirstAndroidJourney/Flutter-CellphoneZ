@@ -10,9 +10,11 @@ class ExpansionCategory extends StatelessWidget {
     required this.title,
     required this.subCategory,
     required this.svgSrc,
+    this.categoryId,
   });
 
   final String title, svgSrc;
+  final String? categoryId;
   final List subCategory;
 
   @override
@@ -41,7 +43,21 @@ class ExpansionCategory extends StatelessWidget {
           children: [
             ListTile(
               onTap: () {
-                Navigator.pushNamed(context, onSaleScreenRoute);
+                // Use dynamic type checking to see if we're working with the new model
+                String? subcategoryId;
+                try {
+                  subcategoryId = subCategory[index].id as String?;
+                } catch (e) {
+                  // Old model might not have id
+                  subcategoryId = null;
+                }
+
+                if (subcategoryId != null) {
+                  Navigator.pushNamed(context, onSaleScreenRoute,
+                      arguments: {'categoryId': subcategoryId});
+                } else {
+                  Navigator.pushNamed(context, onSaleScreenRoute);
+                }
               },
               title: Text(
                 subCategory[index].title,

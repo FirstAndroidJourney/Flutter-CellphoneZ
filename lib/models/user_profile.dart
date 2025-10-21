@@ -8,7 +8,7 @@ class UserProfile with _$UserProfile {
     required String id,
     required String email,
     String? name,
-    String? avatarUrl,
+    @JsonKey(name: 'avatar_url') String? avatarUrl,
     String? phone,
     String? address,
   }) = _UserProfile;

@@ -1,17 +1,13 @@
 import '../repository/product_repository.dart';
-import '../repository/category_repository.dart';
 import '../models/product.dart';
-import '../models/categories.dart';
 import 'dependency_injection.dart';
 
 class ProductService {
   late final ProductRepository _productRepository;
-  late final CategoryRepository _categoryRepository;
 
   ProductService() {
     try {
       _productRepository = getIt<ProductRepository>();
-      _categoryRepository = getIt<CategoryRepository>();
       print('ProductService: Repositories retrieved successfully');
     } catch (e) {
       print('ProductService: Error getting repositories: $e');
@@ -109,28 +105,6 @@ class ProductService {
     }
   }
 
-  // Get products with category info
-  Future<List<ProductWithCategory>> getProductsWithCategory() async {
-    try {
-      final products = await getAllProducts();
-      final categories = await _categoryRepository.getAllCategories();
-
-      final categoryMap = {
-        for (var category in categories) category.id: category
-      };
-
-      return products.map((product) {
-        final category = categoryMap[product.categoryId];
-        return ProductWithCategory(
-          product: product,
-          category: category,
-        );
-      }).toList();
-    } catch (e) {
-      throw Exception('Failed to fetch products with categories: $e');
-    }
-  }
-
   // Get products by price range
   Future<List<Product>> getProductsByPriceRange({
     double? minPrice,
@@ -195,17 +169,6 @@ class ProductService {
     }
     return products;
   }
-}
-
-// Helper classes and enums
-class ProductWithCategory {
-  final Product product;
-  final Category? category;
-
-  ProductWithCategory({
-    required this.product,
-    this.category,
-  });
 }
 
 enum ProductSortBy {

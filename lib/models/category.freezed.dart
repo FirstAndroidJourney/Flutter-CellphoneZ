@@ -3,7 +3,7 @@
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
-part of 'categories.dart';
+part of 'category.dart';
 
 // **************************************************************************
 // FreezedGenerator
@@ -22,6 +22,7 @@ Category _$CategoryFromJson(Map<String, dynamic> json) {
 mixin _$Category {
   String get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
+  @JsonKey(name: 'parent_id')
   String? get parentId => throw _privateConstructorUsedError;
 
   /// Serializes this Category to a JSON map.
@@ -39,7 +40,8 @@ abstract class $CategoryCopyWith<$Res> {
   factory $CategoryCopyWith(Category value, $Res Function(Category) then) =
       _$CategoryCopyWithImpl<$Res, Category>;
   @useResult
-  $Res call({String id, String name, String? parentId});
+  $Res call(
+      {String id, String name, @JsonKey(name: 'parent_id') String? parentId});
 }
 
 /// @nodoc
@@ -86,7 +88,8 @@ abstract class _$$CategoryImplCopyWith<$Res>
       __$$CategoryImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String id, String name, String? parentId});
+  $Res call(
+      {String id, String name, @JsonKey(name: 'parent_id') String? parentId});
 }
 
 /// @nodoc
@@ -127,7 +130,9 @@ class __$$CategoryImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$CategoryImpl implements _Category {
   const _$CategoryImpl(
-      {required this.id, required this.name, required this.parentId});
+      {required this.id,
+      required this.name,
+      @JsonKey(name: 'parent_id') this.parentId});
 
   factory _$CategoryImpl.fromJson(Map<String, dynamic> json) =>
       _$$CategoryImplFromJson(json);
@@ -137,6 +142,7 @@ class _$CategoryImpl implements _Category {
   @override
   final String name;
   @override
+  @JsonKey(name: 'parent_id')
   final String? parentId;
 
   @override
@@ -179,7 +185,7 @@ abstract class _Category implements Category {
   const factory _Category(
       {required final String id,
       required final String name,
-      required final String? parentId}) = _$CategoryImpl;
+      @JsonKey(name: 'parent_id') final String? parentId}) = _$CategoryImpl;
 
   factory _Category.fromJson(Map<String, dynamic> json) =
       _$CategoryImpl.fromJson;
@@ -189,6 +195,7 @@ abstract class _Category implements Category {
   @override
   String get name;
   @override
+  @JsonKey(name: 'parent_id')
   String? get parentId;
 
   /// Create a copy of Category

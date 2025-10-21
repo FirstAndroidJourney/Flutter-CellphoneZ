@@ -16,11 +16,10 @@ class ProductListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SliverToBoxAdapter(
-      child: Column(
-        children: [
-          const Divider(height: 1),
-          ListTile(
+    return Column(
+      children: [
+        const Divider(height: 1),
+        ListTile(
             onTap: press,
             minLeadingWidth: 24,
             leading: SvgPicture.asset(
@@ -36,7 +35,6 @@ class ProductListTile extends StatelessWidget {
           ),
           if (isShowBottomBorder) const Divider(height: 1),
         ],
-      ),
-    );
+      );
   }
 }

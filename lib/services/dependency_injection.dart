@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import 'package:shop/common/app_logger.dart';
 import '../clients/database_client.dart';
 import '../repository/auth_repository.dart';
 import '../repository/product_repository.dart';
@@ -30,6 +31,9 @@ Future<void> setupDependencies() async {
       anonKey: anonKey,
     );
     print('DatabaseClient initialized successfully');
+
+    // register logger
+    getIt.registerSingleton<AppLogger>(AppLogger.instance);
 
     // Register repositories
     getIt.registerLazySingleton<AuthRepository>(() => AuthRepository());

@@ -1,4 +1,6 @@
-import '../models/categories.dart';
+import 'package:flutter/widgets.dart';
+
+import '../models/category.dart';
 import 'base_repository.dart';
 
 class CategoryRepository extends BaseRepository {
@@ -9,6 +11,7 @@ class CategoryRepository extends BaseRepository {
   Future<List<Category>> getAllCategories() async {
     try {
       final data = await getAll();
+      debugPrint('Fetched categories: ${data.length} items');
       return data.map((json) => Category.fromJson(json)).toList();
     } catch (e) {
       throw Exception('Failed to fetch categories: $e');

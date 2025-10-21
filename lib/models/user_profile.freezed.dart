@@ -23,6 +23,7 @@ mixin _$UserProfile {
   String get id => throw _privateConstructorUsedError;
   String get email => throw _privateConstructorUsedError;
   String? get name => throw _privateConstructorUsedError;
+  @JsonKey(name: 'avatar_url')
   String? get avatarUrl => throw _privateConstructorUsedError;
   String? get phone => throw _privateConstructorUsedError;
   String? get address => throw _privateConstructorUsedError;
@@ -47,7 +48,7 @@ abstract class $UserProfileCopyWith<$Res> {
       {String id,
       String email,
       String? name,
-      String? avatarUrl,
+      @JsonKey(name: 'avatar_url') String? avatarUrl,
       String? phone,
       String? address});
 }
@@ -115,7 +116,7 @@ abstract class _$$UserProfileImplCopyWith<$Res>
       {String id,
       String email,
       String? name,
-      String? avatarUrl,
+      @JsonKey(name: 'avatar_url') String? avatarUrl,
       String? phone,
       String? address});
 }
@@ -176,7 +177,7 @@ class _$UserProfileImpl implements _UserProfile {
       {required this.id,
       required this.email,
       this.name,
-      this.avatarUrl,
+      @JsonKey(name: 'avatar_url') this.avatarUrl,
       this.phone,
       this.address});
 
@@ -190,6 +191,7 @@ class _$UserProfileImpl implements _UserProfile {
   @override
   final String? name;
   @override
+  @JsonKey(name: 'avatar_url')
   final String? avatarUrl;
   @override
   final String? phone;
@@ -241,7 +243,7 @@ abstract class _UserProfile implements UserProfile {
       {required final String id,
       required final String email,
       final String? name,
-      final String? avatarUrl,
+      @JsonKey(name: 'avatar_url') final String? avatarUrl,
       final String? phone,
       final String? address}) = _$UserProfileImpl;
 
@@ -255,6 +257,7 @@ abstract class _UserProfile implements UserProfile {
   @override
   String? get name;
   @override
+  @JsonKey(name: 'avatar_url')
   String? get avatarUrl;
   @override
   String? get phone;

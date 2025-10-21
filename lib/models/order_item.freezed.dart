@@ -21,7 +21,9 @@ OrderItem _$OrderItemFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$OrderItem {
   String get id => throw _privateConstructorUsedError;
+  @JsonKey(name: 'order_id')
   String get orderId => throw _privateConstructorUsedError; // Liên kết Order
+  @JsonKey(name: 'product_id')
   String get productId => throw _privateConstructorUsedError;
   int get quantity => throw _privateConstructorUsedError;
   double get price => throw _privateConstructorUsedError;
@@ -43,8 +45,8 @@ abstract class $OrderItemCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
-      String orderId,
-      String productId,
+      @JsonKey(name: 'order_id') String orderId,
+      @JsonKey(name: 'product_id') String productId,
       int quantity,
       double price});
 }
@@ -105,8 +107,8 @@ abstract class _$$OrderItemImplCopyWith<$Res>
   @useResult
   $Res call(
       {String id,
-      String orderId,
-      String productId,
+      @JsonKey(name: 'order_id') String orderId,
+      @JsonKey(name: 'product_id') String productId,
       int quantity,
       double price});
 }
@@ -160,8 +162,8 @@ class __$$OrderItemImplCopyWithImpl<$Res>
 class _$OrderItemImpl implements _OrderItem {
   const _$OrderItemImpl(
       {required this.id,
-      required this.orderId,
-      required this.productId,
+      @JsonKey(name: 'order_id') required this.orderId,
+      @JsonKey(name: 'product_id') required this.productId,
       required this.quantity,
       required this.price});
 
@@ -171,9 +173,11 @@ class _$OrderItemImpl implements _OrderItem {
   @override
   final String id;
   @override
+  @JsonKey(name: 'order_id')
   final String orderId;
 // Liên kết Order
   @override
+  @JsonKey(name: 'product_id')
   final String productId;
   @override
   final int quantity;
@@ -223,8 +227,8 @@ class _$OrderItemImpl implements _OrderItem {
 abstract class _OrderItem implements OrderItem {
   const factory _OrderItem(
       {required final String id,
-      required final String orderId,
-      required final String productId,
+      @JsonKey(name: 'order_id') required final String orderId,
+      @JsonKey(name: 'product_id') required final String productId,
       required final int quantity,
       required final double price}) = _$OrderItemImpl;
 
@@ -234,8 +238,10 @@ abstract class _OrderItem implements OrderItem {
   @override
   String get id;
   @override
+  @JsonKey(name: 'order_id')
   String get orderId; // Liên kết Order
   @override
+  @JsonKey(name: 'product_id')
   String get productId;
   @override
   int get quantity;

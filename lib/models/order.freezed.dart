@@ -21,8 +21,11 @@ Order _$OrderFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$Order {
   String get id => throw _privateConstructorUsedError;
+  @JsonKey(name: 'user_id')
   String get userId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'total_price')
   double get totalPrice => throw _privateConstructorUsedError;
+  @JsonKey(name: 'created_at')
   DateTime get createdAt => throw _privateConstructorUsedError;
   OrderStatus get status => throw _privateConstructorUsedError;
   List<OrderItem>? get items => throw _privateConstructorUsedError;
@@ -43,9 +46,9 @@ abstract class $OrderCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
-      String userId,
-      double totalPrice,
-      DateTime createdAt,
+      @JsonKey(name: 'user_id') String userId,
+      @JsonKey(name: 'total_price') double totalPrice,
+      @JsonKey(name: 'created_at') DateTime createdAt,
       OrderStatus status,
       List<OrderItem>? items});
 }
@@ -110,9 +113,9 @@ abstract class _$$OrderImplCopyWith<$Res> implements $OrderCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
-      String userId,
-      double totalPrice,
-      DateTime createdAt,
+      @JsonKey(name: 'user_id') String userId,
+      @JsonKey(name: 'total_price') double totalPrice,
+      @JsonKey(name: 'created_at') DateTime createdAt,
       OrderStatus status,
       List<OrderItem>? items});
 }
@@ -171,9 +174,9 @@ class __$$OrderImplCopyWithImpl<$Res>
 class _$OrderImpl implements _Order {
   const _$OrderImpl(
       {required this.id,
-      required this.userId,
-      required this.totalPrice,
-      required this.createdAt,
+      @JsonKey(name: 'user_id') required this.userId,
+      @JsonKey(name: 'total_price') required this.totalPrice,
+      @JsonKey(name: 'created_at') required this.createdAt,
       this.status = OrderStatus.pending,
       final List<OrderItem>? items})
       : _items = items;
@@ -184,10 +187,13 @@ class _$OrderImpl implements _Order {
   @override
   final String id;
   @override
+  @JsonKey(name: 'user_id')
   final String userId;
   @override
+  @JsonKey(name: 'total_price')
   final double totalPrice;
   @override
+  @JsonKey(name: 'created_at')
   final DateTime createdAt;
   @override
   @JsonKey()
@@ -246,9 +252,9 @@ class _$OrderImpl implements _Order {
 abstract class _Order implements Order {
   const factory _Order(
       {required final String id,
-      required final String userId,
-      required final double totalPrice,
-      required final DateTime createdAt,
+      @JsonKey(name: 'user_id') required final String userId,
+      @JsonKey(name: 'total_price') required final double totalPrice,
+      @JsonKey(name: 'created_at') required final DateTime createdAt,
       final OrderStatus status,
       final List<OrderItem>? items}) = _$OrderImpl;
 
@@ -257,10 +263,13 @@ abstract class _Order implements Order {
   @override
   String get id;
   @override
+  @JsonKey(name: 'user_id')
   String get userId;
   @override
+  @JsonKey(name: 'total_price')
   double get totalPrice;
   @override
+  @JsonKey(name: 'created_at')
   DateTime get createdAt;
   @override
   OrderStatus get status;

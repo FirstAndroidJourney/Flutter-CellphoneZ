@@ -20,7 +20,7 @@ import 'product_buy_now_screen.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
   const ProductDetailsScreen({
-    super.key, 
+    super.key,
     this.isProductAvailable = true,
     this.productId,
   });
@@ -54,7 +54,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     });
 
     try {
-      final relatedProducts = await _productService.getRelatedProducts(widget.productId!);
+      final relatedProducts =
+          await _productService.getRelatedProducts(widget.productId!);
       if (mounted) {
         setState(() {
           _relatedProducts = relatedProducts;
@@ -69,44 +70,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       }
     }
   }
-  
+
   Widget _buildRelatedProducts() {
     if (_loadingRelated) {
       return const Center(child: CircularProgressIndicator());
     }
-    
-    // Nếu không có sản phẩm liên quan hoặc productId, hiển thị sản phẩm mẫu
-    if (_relatedProducts.isEmpty || widget.productId == null) {
-      // Tạo danh sách sản phẩm mẫu
-      List<Product> demoProducts = List.generate(
-        5,
-        (index) => Product(
-          id: 'demo-$index',
-          name: "Sleeveless Tiered Dobby Swing Dress",
-          price: 24.65,
-          categoryId: "LIPSY LONDON",
-          imageUrl: productDemoImg2,
-          isAvailable: true,
-        ),
-      );
-      
-      return ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: demoProducts.length,
-        itemBuilder: (context, index) => Padding(
-          padding: EdgeInsets.only(
-              left: defaultPadding,
-              right: index == demoProducts.length - 1 ? defaultPadding : 0),
-          child: ProductCard.fromProduct(
-            product: demoProducts[index],
-            priceAfterDiscount: index.isEven ? 20.99 : null,
-            discountPercent: index.isEven ? 25 : null,
-            onPressed: () {},
-          ),
-        ),
-      );
-    }
-    
+
     // Hiển thị sản phẩm liên quan từ API
     return ListView.builder(
       scrollDirection: Axis.horizontal,

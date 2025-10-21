@@ -13,7 +13,7 @@ class ProductRepository extends BaseRepository {
       final data = await getAll();
       // Use the safer parsing method and filter out nulls
       return data
-          .map((json) => Product.safeFromJson(json))
+          .map((json) => Product.fromJson(json))
           .where((product) => product != null)
           .cast<Product>()
           .toList();
@@ -28,7 +28,10 @@ class ProductRepository extends BaseRepository {
     try {
       final data = await getById(id);
       // Use the safer parsing method
-      return Product.safeFromJson(data);
+      if (data == null) {
+        return null;
+      }
+      return Product.fromJson(data);
     } catch (e) {
       print('Error in getProductById: $e');
       throw Exception('Failed to fetch product: $e');
@@ -41,7 +44,7 @@ class ProductRepository extends BaseRepository {
       final data = await create(product.toJson());
 
       // Use the safe parser to handle potential issues
-      final createdProduct = Product.safeFromJson(data);
+      final createdProduct = Product.fromJson(data);
       if (createdProduct == null) {
         throw Exception('Created product returned invalid data');
       }
@@ -58,7 +61,7 @@ class ProductRepository extends BaseRepository {
       final data = await update(id, product.toJson());
 
       // Use the safe parser to handle potential issues
-      final updatedProduct = Product.safeFromJson(data);
+      final updatedProduct = Product.fromJson(data);
       if (updatedProduct == null) {
         throw Exception('Updated product returned invalid data');
       }
@@ -91,7 +94,7 @@ class ProductRepository extends BaseRepository {
 
       // Use the safer parsing method and filter out nulls
       return data
-          .map((json) => Product.safeFromJson(json))
+          .map((json) => Product.fromJson(json))
           .where((product) => product != null)
           .cast<Product>()
           .toList();
@@ -115,7 +118,7 @@ class ProductRepository extends BaseRepository {
       final data = List<Map<String, dynamic>>.from(response);
       // Use the safer parsing method and filter out nulls
       return data
-          .map((json) => Product.safeFromJson(json))
+          .map((json) => Product.fromJson(json))
           .where((product) => product != null)
           .cast<Product>()
           .toList();
@@ -143,7 +146,7 @@ class ProductRepository extends BaseRepository {
 
       // Use the safer parsing method and filter out nulls
       final products = data
-          .map((json) => Product.safeFromJson(json))
+          .map((json) => Product.fromJson(json))
           .where((product) => product != null)
           .cast<Product>()
           .toList();

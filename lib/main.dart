@@ -8,26 +8,6 @@ import 'package:shop/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // // Load environment variables
-  // await dotenv.load();
-
-  // final String url = dotenv.env['SUPABASE_URL'] ?? '';
-  // final String anonKey = dotenv.env['ANON_KEY'] ?? '';
-
-  // // Debug: Print Supabase config values
-  // print('Supabase URL: $url');
-  // print('Supabase Anon Key: $anonKey');
-
-  // // Initialize Supabase only once here
-  // await Supabase.initialize(
-  //   url: url,
-  //   anonKey: anonKey,
-  //   debug: true, // Debug mode for development
-  // );
-
-  // print('Supabase initialized in main.dart');
-
   // Setup dependency injection
   await setupDependencies();
 

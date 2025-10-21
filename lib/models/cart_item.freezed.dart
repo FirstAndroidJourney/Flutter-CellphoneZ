@@ -21,7 +21,9 @@ CartItem _$CartItemFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$CartItem {
   String get id => throw _privateConstructorUsedError;
+  @JsonKey(name: 'user_id')
   String get userId => throw _privateConstructorUsedError; // Cart của user nào
+  @JsonKey(name: 'product_id')
   String get productId =>
       throw _privateConstructorUsedError; // Sản phẩm trong giỏ
   int get quantity => throw _privateConstructorUsedError;
@@ -41,7 +43,11 @@ abstract class $CartItemCopyWith<$Res> {
   factory $CartItemCopyWith(CartItem value, $Res Function(CartItem) then) =
       _$CartItemCopyWithImpl<$Res, CartItem>;
   @useResult
-  $Res call({String id, String userId, String productId, int quantity});
+  $Res call(
+      {String id,
+      @JsonKey(name: 'user_id') String userId,
+      @JsonKey(name: 'product_id') String productId,
+      int quantity});
 }
 
 /// @nodoc
@@ -93,7 +99,11 @@ abstract class _$$CartItemImplCopyWith<$Res>
       __$$CartItemImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String id, String userId, String productId, int quantity});
+  $Res call(
+      {String id,
+      @JsonKey(name: 'user_id') String userId,
+      @JsonKey(name: 'product_id') String productId,
+      int quantity});
 }
 
 /// @nodoc
@@ -140,8 +150,8 @@ class __$$CartItemImplCopyWithImpl<$Res>
 class _$CartItemImpl implements _CartItem {
   const _$CartItemImpl(
       {required this.id,
-      required this.userId,
-      required this.productId,
+      @JsonKey(name: 'user_id') required this.userId,
+      @JsonKey(name: 'product_id') required this.productId,
       required this.quantity});
 
   factory _$CartItemImpl.fromJson(Map<String, dynamic> json) =>
@@ -150,9 +160,11 @@ class _$CartItemImpl implements _CartItem {
   @override
   final String id;
   @override
+  @JsonKey(name: 'user_id')
   final String userId;
 // Cart của user nào
   @override
+  @JsonKey(name: 'product_id')
   final String productId;
 // Sản phẩm trong giỏ
   @override
@@ -199,8 +211,8 @@ class _$CartItemImpl implements _CartItem {
 abstract class _CartItem implements CartItem {
   const factory _CartItem(
       {required final String id,
-      required final String userId,
-      required final String productId,
+      @JsonKey(name: 'user_id') required final String userId,
+      @JsonKey(name: 'product_id') required final String productId,
       required final int quantity}) = _$CartItemImpl;
 
   factory _CartItem.fromJson(Map<String, dynamic> json) =
@@ -209,8 +221,10 @@ abstract class _CartItem implements CartItem {
   @override
   String get id;
   @override
+  @JsonKey(name: 'user_id')
   String get userId; // Cart của user nào
   @override
+  @JsonKey(name: 'product_id')
   String get productId; // Sản phẩm trong giỏ
   @override
   int get quantity;

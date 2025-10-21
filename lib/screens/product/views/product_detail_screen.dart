@@ -226,31 +226,35 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ),
 
                   // Các mục chi tiết sản phẩm
-                  ProductListTile(
-                    svgSrc: "assets/icons/Product.svg",
-                    title: "Chi tiết sản phẩm",
-                    press: () {
-                      customModalBottomSheet(
-                        context,
-                        height: MediaQuery.of(context).size.height * 0.92,
-                        child: const BuyFullKit(
-                            images: ["assets/screens/Product detail.png"]),
-                      );
-                    },
+                  SliverToBoxAdapter(
+                    child: ProductListTile(
+                      svgSrc: "assets/icons/Product.svg",
+                      title: "Chi tiết sản phẩm",
+                      press: () {
+                        customModalBottomSheet(
+                          context,
+                          height: MediaQuery.of(context).size.height * 0.92,
+                          child: const BuyFullKit(
+                              images: ["assets/screens/Product detail.png"]),
+                        );
+                      },
+                    ),
                   ),
 
                   // Chính sách đổi trả
-                  ProductListTile(
-                    svgSrc: "assets/icons/Return.svg",
-                    title: "Chính sách đổi trả",
-                    isShowBottomBorder: true,
-                    press: () {
-                      customModalBottomSheet(
-                        context,
-                        height: MediaQuery.of(context).size.height * 0.92,
-                        child: const ProductReturnsScreen(),
-                      );
-                    },
+                  SliverToBoxAdapter(
+                    child: ProductListTile(
+                      svgSrc: "assets/icons/Return.svg",
+                      title: "Chính sách đổi trả",
+                      isShowBottomBorder: true,
+                      press: () {
+                        customModalBottomSheet(
+                          context,
+                          height: MediaQuery.of(context).size.height * 0.92,
+                          child: const ProductReturnsScreen(),
+                        );
+                      },
+                    ),
                   ),
 
                   // Đánh giá sản phẩm
@@ -270,19 +274,21 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ),
 
                   // Link đến trang đánh giá chi tiết
-                  ProductListTile(
-                    svgSrc: "assets/icons/Chat.svg",
-                    title: "Đánh giá",
-                    isShowBottomBorder: true,
-                    press: () {
-                      Navigator.pushNamed(context, productReviewsScreenRoute);
-                    },
+                  SliverToBoxAdapter(
+                    child: ProductListTile(
+                      svgSrc: "assets/icons/Chat.svg",
+                      title: "Đánh giá",
+                      isShowBottomBorder: true,
+                      press: () {
+                        Navigator.pushNamed(context, productReviewsScreenRoute);
+                      },
+                    ),
                   ),
 
                   // Sản phẩm liên quan
-                  SliverPadding(
-                    padding: const EdgeInsets.all(defaultPadding),
-                    sliver: SliverToBoxAdapter(
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(defaultPadding),
                       child: Text(
                         "Có thể bạn cũng thích",
                         style: Theme.of(context).textTheme.titleSmall!,

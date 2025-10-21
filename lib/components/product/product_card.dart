@@ -12,10 +12,10 @@ class ProductCard extends StatelessWidget {
     this.discountPercent,
     this.priceAfterDiscount,
   });
-  
+
   /// Factory constructor để tạo ProductCard từ Product model
   factory ProductCard.fromProduct({
-    required Product product, 
+    required Product product,
     required VoidCallback onPressed,
     int? discountPercent,
     double? priceAfterDiscount,
@@ -27,7 +27,7 @@ class ProductCard extends StatelessWidget {
       priceAfterDiscount: priceAfterDiscount,
     );
   }
-  
+
   final Product product;
   final VoidCallback press;
   final int? discountPercent;
@@ -36,12 +36,10 @@ class ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Sử dụng các giá trị từ Product model
-    final String imageUrl = product.imageUrl ?? "https://placehold.co/600x400?text=No+Image";
+    final String imageUrl =
+        product.imageUrl ?? "https://placehold.co/600x400?text=No+Image";
     final String name = product.name;
     final double productPrice = product.price;
-    
-    // Trích xuất categoryId để làm brandName tạm thời
-    final String brandName = product.categoryId; 
 
     return OutlinedButton(
       onPressed: press,
@@ -88,13 +86,6 @@ class ProductCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    brandName.toUpperCase(),
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyMedium!
-                        .copyWith(fontSize: 10),
-                  ),
                   const SizedBox(height: defaultPadding / 2),
                   Text(
                     name,

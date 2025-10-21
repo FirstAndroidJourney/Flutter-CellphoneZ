@@ -10,9 +10,9 @@ enum OrderStatus { pending, paid, shipping, completed, cancelled }
 class Order with _$Order {
   const factory Order({
     required String id,
-    required String userId,
-    required double totalPrice,
-    required DateTime createdAt,
+    @JsonKey(name: 'user_id') required String userId,
+    @JsonKey(name: 'total_price') required double totalPrice,
+    @JsonKey(name: 'created_at') required DateTime createdAt,
     @Default(OrderStatus.pending) OrderStatus status,
     List<OrderItem>? items, // Danh sách sản phẩm trong order
   }) = _Order;
