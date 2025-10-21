@@ -3,7 +3,7 @@ import 'base_repository.dart';
 
 class CategoryRepository extends BaseRepository {
   @override
-  String get tableName => 'categories';
+  String get tableName => categoriesSchema.table;
 
   // Get all categories as Category objects
   Future<List<Category>> getAllCategories() async {

@@ -13,7 +13,7 @@ class DatabaseClient {
     return _instance!;
   }
 
-  // Initialize Supabase
+  // Initialize Supabase - use existing instance if already initialized
   Future<void> initialize({
     required String url,
     required String anonKey,

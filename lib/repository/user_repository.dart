@@ -3,7 +3,7 @@ import 'base_repository.dart';
 
 class UserRepository extends BaseRepository {
   @override
-  String get tableName => 'user_profiles';
+  String get tableName => usersSchema.table;
 
   // Get all user profiles as UserProfile objects
   Future<List<UserProfile>> getAllUsers() async {
@@ -29,7 +29,7 @@ class UserRepository extends BaseRepository {
   Future<UserProfile?> getUserByEmail(String email) async {
     try {
       final response =
-          await queryBuilder.select().eq('email', email).maybeSingle();
+          await queryBuilder.select().eq(usersSchema.email, email).maybeSingle();
       return response != null ? UserProfile.fromJson(response) : null;
     } catch (e) {
       throw Exception('Failed to fetch user profile by email: $e');

@@ -1,27 +1,48 @@
 import 'package:flutter/material.dart';
 
 import '../../constants.dart';
+import '../../models/product.dart';
 import '../network_image_with_loader.dart';
 
 class ProductCard extends StatelessWidget {
   const ProductCard({
     super.key,
-    required this.image,
-    required this.brandName,
-    required this.title,
-    required this.price,
-    this.priceAfetDiscount,
-    this.dicountpercent,
+    required this.product,
     required this.press,
+    this.discountPercent,
+    this.priceAfterDiscount,
   });
-  final String image, brandName, title;
-  final double price;
-  final double? priceAfetDiscount;
-  final int? dicountpercent;
+  
+  /// Factory constructor để tạo ProductCard từ Product model
+  factory ProductCard.fromProduct({
+    required Product product, 
+    required VoidCallback onPressed,
+    int? discountPercent,
+    double? priceAfterDiscount,
+  }) {
+    return ProductCard(
+      product: product,
+      press: onPressed,
+      discountPercent: discountPercent,
+      priceAfterDiscount: priceAfterDiscount,
+    );
+  }
+  
+  final Product product;
   final VoidCallback press;
+  final int? discountPercent;
+  final double? priceAfterDiscount;
 
   @override
   Widget build(BuildContext context) {
+    // Sử dụng các giá trị từ Product model
+    final String imageUrl = product.imageUrl ?? "https://placehold.co/600x400?text=No+Image";
+    final String name = product.name;
+    final double productPrice = product.price;
+    
+    // Trích xuất categoryId để làm brandName tạm thời
+    final String brandName = product.categoryId; 
+
     return OutlinedButton(
       onPressed: press,
       style: OutlinedButton.styleFrom(
@@ -34,8 +55,8 @@ class ProductCard extends StatelessWidget {
             aspectRatio: 1.15,
             child: Stack(
               children: [
-                NetworkImageWithLoader(image, radius: defaultBorderRadious),
-                if (dicountpercent != null)
+                NetworkImageWithLoader(imageUrl, radius: defaultBorderRadious),
+                if (discountPercent != null)
                   Positioned(
                     right: defaultPadding / 2,
                     top: defaultPadding / 2,
@@ -49,7 +70,7 @@ class ProductCard extends StatelessWidget {
                             Radius.circular(defaultBorderRadious)),
                       ),
                       child: Text(
-                        "$dicountpercent% off",
+                        "$discountPercent% off",
                         style: const TextStyle(
                             color: Colors.white,
                             fontSize: 10,
@@ -76,7 +97,7 @@ class ProductCard extends StatelessWidget {
                   ),
                   const SizedBox(height: defaultPadding / 2),
                   Text(
-                    title,
+                    name,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context)
@@ -85,11 +106,11 @@ class ProductCard extends StatelessWidget {
                         .copyWith(fontSize: 12),
                   ),
                   const Spacer(),
-                  priceAfetDiscount != null
+                  priceAfterDiscount != null
                       ? Row(
                           children: [
                             Text(
-                              "\$$priceAfetDiscount",
+                              "\$$priceAfterDiscount",
                               style: const TextStyle(
                                 color: Color(0xFF31B0D8),
                                 fontWeight: FontWeight.w500,
@@ -98,7 +119,7 @@ class ProductCard extends StatelessWidget {
                             ),
                             const SizedBox(width: defaultPadding / 4),
                             Text(
-                              "\$$price",
+                              "\$$productPrice",
                               style: TextStyle(
                                 color: Theme.of(context)
                                     .textTheme
@@ -111,7 +132,7 @@ class ProductCard extends StatelessWidget {
                           ],
                         )
                       : Text(
-                          "\$$price",
+                          "\$$productPrice",
                           style: const TextStyle(
                             color: Color(0xFF31B0D8),
                             fontWeight: FontWeight.w500,

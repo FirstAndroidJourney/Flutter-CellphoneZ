@@ -24,8 +24,11 @@ mixin _$Product {
   String get name => throw _privateConstructorUsedError;
   double get price => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
+  @JsonKey(name: 'image_url')
   String? get imageUrl => throw _privateConstructorUsedError;
+  @JsonKey(name: 'category_id')
   String get categoryId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_available')
   bool get isAvailable => throw _privateConstructorUsedError;
 
   /// Serializes this Product to a JSON map.
@@ -47,9 +50,9 @@ abstract class $ProductCopyWith<$Res> {
       String name,
       double price,
       String? description,
-      String? imageUrl,
-      String categoryId,
-      bool isAvailable});
+      @JsonKey(name: 'image_url') String? imageUrl,
+      @JsonKey(name: 'category_id') String categoryId,
+      @JsonKey(name: 'is_available') bool isAvailable});
 }
 
 /// @nodoc
@@ -120,9 +123,9 @@ abstract class _$$ProductImplCopyWith<$Res> implements $ProductCopyWith<$Res> {
       String name,
       double price,
       String? description,
-      String? imageUrl,
-      String categoryId,
-      bool isAvailable});
+      @JsonKey(name: 'image_url') String? imageUrl,
+      @JsonKey(name: 'category_id') String categoryId,
+      @JsonKey(name: 'is_available') bool isAvailable});
 }
 
 /// @nodoc
@@ -187,9 +190,9 @@ class _$ProductImpl implements _Product {
       required this.name,
       required this.price,
       this.description,
-      this.imageUrl,
-      required this.categoryId,
-      this.isAvailable = true});
+      @JsonKey(name: 'image_url') this.imageUrl,
+      @JsonKey(name: 'category_id') required this.categoryId,
+      @JsonKey(name: 'is_available') this.isAvailable = true});
 
   factory _$ProductImpl.fromJson(Map<String, dynamic> json) =>
       _$$ProductImplFromJson(json);
@@ -203,11 +206,13 @@ class _$ProductImpl implements _Product {
   @override
   final String? description;
   @override
+  @JsonKey(name: 'image_url')
   final String? imageUrl;
   @override
+  @JsonKey(name: 'category_id')
   final String categoryId;
   @override
-  @JsonKey()
+  @JsonKey(name: 'is_available')
   final bool isAvailable;
 
   @override
@@ -260,9 +265,9 @@ abstract class _Product implements Product {
       required final String name,
       required final double price,
       final String? description,
-      final String? imageUrl,
-      required final String categoryId,
-      final bool isAvailable}) = _$ProductImpl;
+      @JsonKey(name: 'image_url') final String? imageUrl,
+      @JsonKey(name: 'category_id') required final String categoryId,
+      @JsonKey(name: 'is_available') final bool isAvailable}) = _$ProductImpl;
 
   factory _Product.fromJson(Map<String, dynamic> json) = _$ProductImpl.fromJson;
 
@@ -275,10 +280,13 @@ abstract class _Product implements Product {
   @override
   String? get description;
   @override
+  @JsonKey(name: 'image_url')
   String? get imageUrl;
   @override
+  @JsonKey(name: 'category_id')
   String get categoryId;
   @override
+  @JsonKey(name: 'is_available')
   bool get isAvailable;
 
   /// Create a copy of Product

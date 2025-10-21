@@ -1,16 +1,24 @@
+import 'package:flutter/widgets.dart';
+
 import '../models/product.dart';
 import 'base_repository.dart';
 
 class ProductRepository extends BaseRepository {
   @override
-  String get tableName => 'products';
+  String get tableName => productsSchema.table;
 
   // Get all products as Product objects
   Future<List<Product>> getAllProducts() async {
     try {
       final data = await getAll();
-      return data.map((json) => Product.fromJson(json)).toList();
+      // Use the safer parsing method and filter out nulls
+      return data
+          .map((json) => Product.safeFromJson(json))
+          .where((product) => product != null)
+          .cast<Product>()
+          .toList();
     } catch (e) {
+      print('Error in getAllProducts: $e');
       throw Exception('Failed to fetch products: $e');
     }
   }
@@ -19,8 +27,10 @@ class ProductRepository extends BaseRepository {
   Future<Product?> getProductById(String id) async {
     try {
       final data = await getById(id);
-      return data != null ? Product.fromJson(data) : null;
+      // Use the safer parsing method
+      return Product.safeFromJson(data);
     } catch (e) {
+      print('Error in getProductById: $e');
       throw Exception('Failed to fetch product: $e');
     }
   }
@@ -29,8 +39,15 @@ class ProductRepository extends BaseRepository {
   Future<Product> createProduct(Product product) async {
     try {
       final data = await create(product.toJson());
-      return Product.fromJson(data);
+
+      // Use the safe parser to handle potential issues
+      final createdProduct = Product.safeFromJson(data);
+      if (createdProduct == null) {
+        throw Exception('Created product returned invalid data');
+      }
+      return createdProduct;
     } catch (e) {
+      print('Error in createProduct: $e');
       throw Exception('Failed to create product: $e');
     }
   }
@@ -39,8 +56,15 @@ class ProductRepository extends BaseRepository {
   Future<Product> updateProduct(String id, Product product) async {
     try {
       final data = await update(id, product.toJson());
-      return Product.fromJson(data);
+
+      // Use the safe parser to handle potential issues
+      final updatedProduct = Product.safeFromJson(data);
+      if (updatedProduct == null) {
+        throw Exception('Updated product returned invalid data');
+      }
+      return updatedProduct;
     } catch (e) {
+      print('Error in updateProduct: $e');
       throw Exception('Failed to update product: $e');
     }
   }
@@ -50,6 +74,7 @@ class ProductRepository extends BaseRepository {
     try {
       await delete(id);
     } catch (e) {
+      print('Error in deleteProduct: $e');
       throw Exception('Failed to delete product: $e');
     }
   }
@@ -59,11 +84,19 @@ class ProductRepository extends BaseRepository {
     try {
       final response = await queryBuilder
           .select()
-          .eq('categoryId', categoryId)
-          .eq('isAvailable', true);
+          .eq(productsSchema.categoryId, categoryId)
+          .eq(productsSchema.isAvailable, true);
+
       final data = List<Map<String, dynamic>>.from(response);
-      return data.map((json) => Product.fromJson(json)).toList();
+
+      // Use the safer parsing method and filter out nulls
+      return data
+          .map((json) => Product.safeFromJson(json))
+          .where((product) => product != null)
+          .cast<Product>()
+          .toList();
     } catch (e) {
+      print('Error in getProductsByCategory: $e');
       throw Exception('Failed to fetch products by category: $e');
     }
   }
@@ -71,13 +104,23 @@ class ProductRepository extends BaseRepository {
   // Search products by name
   Future<List<Product>> searchProducts(String query) async {
     try {
+      // Sử dụng productsSchema để truy cập tên trường
+      String searchQuery =
+          '${productsSchema.name}.ilike.%$query%,${productsSchema.description}.ilike.%$query%';
       final response = await queryBuilder
           .select()
-          .or('name.ilike.%$query%,description.ilike.%$query%')
-          .eq('isAvailable', true);
+          .or(searchQuery)
+          .eq(productsSchema.isAvailable, true);
+
       final data = List<Map<String, dynamic>>.from(response);
-      return data.map((json) => Product.fromJson(json)).toList();
+      // Use the safer parsing method and filter out nulls
+      return data
+          .map((json) => Product.safeFromJson(json))
+          .where((product) => product != null)
+          .cast<Product>()
+          .toList();
     } catch (e) {
+      print('Error in searchProducts: $e');
       throw Exception('Failed to search products: $e');
     }
   }
@@ -85,14 +128,30 @@ class ProductRepository extends BaseRepository {
   // Get featured products (example: top 10 by price)
   Future<List<Product>> getFeaturedProducts({int limit = 10}) async {
     try {
+      debugPrint('Fetching featured products with limit: $limit');
       final response = await queryBuilder
           .select()
-          .eq('isAvailable', true)
-          .order('price', ascending: false)
+          .eq(productsSchema.isAvailable, true)
+          .order(productsSchema.price, ascending: false)
           .limit(limit);
+
+      // Print the raw response for debugging
+      debugPrint('Featured products raw response: $response');
+
       final data = List<Map<String, dynamic>>.from(response);
-      return data.map((json) => Product.fromJson(json)).toList();
+      debugPrint('Fetched ${data.length} featured products.');
+
+      // Use the safer parsing method and filter out nulls
+      final products = data
+          .map((json) => Product.safeFromJson(json))
+          .where((product) => product != null)
+          .cast<Product>()
+          .toList();
+
+      debugPrint('Successfully parsed ${products.length} valid products');
+      return products;
     } catch (e) {
+      debugPrint('Error in getFeaturedProducts: $e');
       throw Exception('Failed to fetch featured products: $e');
     }
   }

@@ -3,7 +3,7 @@ import 'base_repository.dart';
 
 class CartRepository extends BaseRepository {
   @override
-  String get tableName => 'cart_items';
+  String get tableName => cartItemsSchema.table;
 
   // Get all cart items as CartItem objects
   Future<List<CartItem>> getAllCartItems() async {
@@ -18,7 +18,7 @@ class CartRepository extends BaseRepository {
   // Get cart items for specific user
   Future<List<CartItem>> getUserCartItems(String userId) async {
     try {
-      final response = await queryBuilder.select().eq('userId', userId);
+      final response = await queryBuilder.select().eq(cartItemsSchema.userId, userId);
       final data = List<Map<String, dynamic>>.from(response);
       return data.map((json) => CartItem.fromJson(json)).toList();
     } catch (e) {

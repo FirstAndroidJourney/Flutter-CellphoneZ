@@ -5,8 +5,19 @@ import '../models/categories.dart';
 import 'dependency_injection.dart';
 
 class ProductService {
-  final ProductRepository _productRepository = getIt<ProductRepository>();
-  final CategoryRepository _categoryRepository = getIt<CategoryRepository>();
+  late final ProductRepository _productRepository;
+  late final CategoryRepository _categoryRepository;
+
+  ProductService() {
+    try {
+      _productRepository = getIt<ProductRepository>();
+      _categoryRepository = getIt<CategoryRepository>();
+      print('ProductService: Repositories retrieved successfully');
+    } catch (e) {
+      print('ProductService: Error getting repositories: $e');
+      rethrow;
+    }
+  }
 
   // Get all products
   Future<List<Product>> getAllProducts() async {
@@ -135,6 +146,34 @@ class ProductService {
       }).toList();
     } catch (e) {
       throw Exception('Failed to filter products by price: $e');
+    }
+  }
+
+  // Get related products (products in same category)
+  Future<List<Product>> getRelatedProducts(String productId,
+      {int limit = 5}) async {
+    try {
+      final product = await getProductById(productId);
+      if (product == null) {
+        return [];
+      }
+
+      // Get products from same category
+      final categoryProducts =
+          await _productRepository.getProductsByCategory(product.categoryId);
+
+      // Filter out the current product
+      final relatedProducts =
+          categoryProducts.where((p) => p.id != productId).toList();
+
+      // Limit the number of products
+      if (relatedProducts.length > limit) {
+        return relatedProducts.sublist(0, limit);
+      }
+
+      return relatedProducts;
+    } catch (e) {
+      throw Exception('Failed to fetch related products: $e');
     }
   }
 

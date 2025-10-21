@@ -5,6 +5,8 @@ import 'package:shop/components/cart_button.dart';
 import 'package:shop/components/custom_modal_bottom_sheet.dart';
 import 'package:shop/components/product/product_card.dart';
 import 'package:shop/constants.dart';
+import 'package:shop/models/product.dart';
+import 'package:shop/services/product_service.dart';
 import 'package:shop/screens/product/views/product_returns_screen.dart';
 
 import 'package:shop/route/screen_export.dart';
@@ -16,15 +18,125 @@ import 'components/product_list_tile.dart';
 import '../../../components/review_card.dart';
 import 'product_buy_now_screen.dart';
 
-class ProductDetailsScreen extends StatelessWidget {
-  const ProductDetailsScreen({super.key, this.isProductAvailable = true});
+class ProductDetailsScreen extends StatefulWidget {
+  const ProductDetailsScreen({
+    super.key, 
+    this.isProductAvailable = true,
+    this.productId,
+  });
 
   final bool isProductAvailable;
+  final String? productId;
+
+  @override
+  State<ProductDetailsScreen> createState() => _ProductDetailsScreenState();
+}
+
+class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
+  final ProductService _productService = ProductService();
+  List<Product> _relatedProducts = [];
+  bool _loadingRelated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRelatedProducts();
+  }
+
+  Future<void> _loadRelatedProducts() async {
+    // Nếu không có productId, sử dụng sản phẩm mẫu
+    if (widget.productId == null) {
+      return;
+    }
+
+    setState(() {
+      _loadingRelated = true;
+    });
+
+    try {
+      final relatedProducts = await _productService.getRelatedProducts(widget.productId!);
+      if (mounted) {
+        setState(() {
+          _relatedProducts = relatedProducts;
+          _loadingRelated = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _loadingRelated = false;
+        });
+      }
+    }
+  }
+  
+  Widget _buildRelatedProducts() {
+    if (_loadingRelated) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    
+    // Nếu không có sản phẩm liên quan hoặc productId, hiển thị sản phẩm mẫu
+    if (_relatedProducts.isEmpty || widget.productId == null) {
+      // Tạo danh sách sản phẩm mẫu
+      List<Product> demoProducts = List.generate(
+        5,
+        (index) => Product(
+          id: 'demo-$index',
+          name: "Sleeveless Tiered Dobby Swing Dress",
+          price: 24.65,
+          categoryId: "LIPSY LONDON",
+          imageUrl: productDemoImg2,
+          isAvailable: true,
+        ),
+      );
+      
+      return ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: demoProducts.length,
+        itemBuilder: (context, index) => Padding(
+          padding: EdgeInsets.only(
+              left: defaultPadding,
+              right: index == demoProducts.length - 1 ? defaultPadding : 0),
+          child: ProductCard.fromProduct(
+            product: demoProducts[index],
+            priceAfterDiscount: index.isEven ? 20.99 : null,
+            discountPercent: index.isEven ? 25 : null,
+            onPressed: () {},
+          ),
+        ),
+      );
+    }
+    
+    // Hiển thị sản phẩm liên quan từ API
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      itemCount: _relatedProducts.length,
+      itemBuilder: (context, index) => Padding(
+        padding: EdgeInsets.only(
+            left: defaultPadding,
+            right: index == _relatedProducts.length - 1 ? defaultPadding : 0),
+        child: ProductCard.fromProduct(
+          product: _relatedProducts[index],
+          onPressed: () {
+            // Điều hướng đến chi tiết sản phẩm
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProductDetailsScreen(
+                  productId: _relatedProducts[index].id,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: isProductAvailable
+      bottomNavigationBar: widget.isProductAvailable
           ? CartButton(
               price: 140,
               press: () {
@@ -37,7 +149,7 @@ class ProductDetailsScreen extends StatelessWidget {
             )
           :
 
-          /// If profuct is not available then show [NotifyMeCard]
+          /// If product is not available then show [NotifyMeCard]
           NotifyMeCard(
               isNotify: false,
               onChanged: (value) {},
@@ -62,9 +174,9 @@ class ProductDetailsScreen extends StatelessWidget {
             ProductInfo(
               brand: "LIPSY LONDON",
               title: "Sleeveless Ruffle",
-              isAvailable: isProductAvailable,
+              isAvailable: widget.isProductAvailable,
               description:
-                  "A cool gray cap in soft corduroy. Watch me.' By buying cotton products from Lindex, you’re supporting more responsibly...",
+                  "A cool gray cap in soft corduroy. Watch me.' By buying cotton products from Lindex, you're supporting more responsibly...",
               rating: 4.4,
               numOfReviews: 126,
             ),
@@ -139,24 +251,7 @@ class ProductDetailsScreen extends StatelessWidget {
             SliverToBoxAdapter(
               child: SizedBox(
                 height: 220,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: 5,
-                  itemBuilder: (context, index) => Padding(
-                    padding: EdgeInsets.only(
-                        left: defaultPadding,
-                        right: index == 4 ? defaultPadding : 0),
-                    child: ProductCard(
-                      image: productDemoImg2,
-                      title: "Sleeveless Tiered Dobby Swing Dress",
-                      brandName: "LIPSY LONDON",
-                      price: 24.65,
-                      priceAfetDiscount: index.isEven ? 20.99 : null,
-                      dicountpercent: index.isEven ? 25 : null,
-                      press: () {},
-                    ),
-                  ),
-                ),
+                child: _buildRelatedProducts(),
               ),
             ),
             const SliverToBoxAdapter(

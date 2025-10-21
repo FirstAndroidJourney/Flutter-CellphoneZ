@@ -3,7 +3,7 @@ import 'base_repository.dart';
 
 class OrderItemRepository extends BaseRepository {
   @override
-  String get tableName => 'order_items';
+  String get tableName => orderItemsSchema.table;
 
   // Get all order items as OrderItem objects
   Future<List<OrderItem>> getAllOrderItems() async {
@@ -18,7 +18,7 @@ class OrderItemRepository extends BaseRepository {
   // Get order items for specific order
   Future<List<OrderItem>> getOrderItems(String orderId) async {
     try {
-      final response = await queryBuilder.select().eq('orderId', orderId);
+      final response = await queryBuilder.select().eq(orderItemsSchema.orderId, orderId);
       final data = List<Map<String, dynamic>>.from(response);
       return data.map((json) => OrderItem.fromJson(json)).toList();
     } catch (e) {

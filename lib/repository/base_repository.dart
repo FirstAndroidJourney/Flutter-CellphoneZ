@@ -1,8 +1,13 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'schema_accessor.dart';
 
-abstract class BaseRepository {
+/// Lớp cơ sở cho tất cả các repository
+/// 
+/// Cung cấp các phương thức CRUD cơ bản và truy cập đến database schema
+abstract class BaseRepository with SchemaAccessor {
   final SupabaseClient client = Supabase.instance.client;
 
+  @override
   String get tableName;
 
   // Common CRUD operations
@@ -18,7 +23,7 @@ abstract class BaseRepository {
   Future<Map<String, dynamic>?> getById(String id) async {
     try {
       final response =
-          await client.from(tableName).select().eq('id', id).maybeSingle();
+          await client.from(tableName).select().eq(idColumn, id).maybeSingle();
       return response;
     } catch (e) {
       throw Exception('Failed to fetch item with id $id from $tableName: $e');
@@ -41,7 +46,7 @@ abstract class BaseRepository {
       final response = await client
           .from(tableName)
           .update(data)
-          .eq('id', id)
+          .eq(idColumn, id)
           .select()
           .single();
       return response;
@@ -52,7 +57,7 @@ abstract class BaseRepository {
 
   Future<void> delete(String id) async {
     try {
-      await client.from(tableName).delete().eq('id', id);
+      await client.from(tableName).delete().eq(idColumn, id);
     } catch (e) {
       throw Exception('Failed to delete item with id $id from $tableName: $e');
     }

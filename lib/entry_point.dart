@@ -15,7 +15,6 @@ class _EntryPointState extends State<EntryPoint> {
   final List _pages = const [
     HomeScreen(),
     DiscoverScreen(),
-    BookmarkScreen(),
     // EmptyCartScreen(), // if Cart is empty
     CartScreen(),
     ProfileScreen(),
@@ -124,12 +123,6 @@ class _EntryPointState extends State<EntryPoint> {
               activeIcon:
                   svgIcon("assets/icons/Category.svg", color: primaryColor),
               label: "Discover",
-            ),
-            BottomNavigationBarItem(
-              icon: svgIcon("assets/icons/Bookmark.svg"),
-              activeIcon:
-                  svgIcon("assets/icons/Bookmark.svg", color: primaryColor),
-              label: "Bookmark",
             ),
             BottomNavigationBarItem(
               icon: svgIcon("assets/icons/Bag.svg"),

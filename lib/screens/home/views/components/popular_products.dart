@@ -1,14 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:shop/components/product/product_card.dart';
-import 'package:shop/models/product_model.dart';
-import 'package:shop/route/screen_export.dart';
+import 'package:shop/components/skleton/product/products_skelton.dart';
+import 'package:shop/models/product.dart';
+import 'package:shop/route/route_constants.dart';
+import 'package:shop/services/product_service.dart';
 
 import '../../../../constants.dart';
 
-class PopularProducts extends StatelessWidget {
+class PopularProducts extends StatefulWidget {
   const PopularProducts({
     super.key,
   });
+
+  @override
+  State<PopularProducts> createState() => _PopularProductsState();
+}
+
+class _PopularProductsState extends State<PopularProducts> {
+  final ProductService _productService = ProductService();
+  late Future<List<Product>> _popularProductsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _popularProductsFuture = _loadPopularProducts();
+  }
+
+  Future<List<Product>> _loadPopularProducts() async {
+    try {
+      debugPrint('Loading popular products...');
+      // Lấy danh sách sản phẩm nổi bật từ ProductService
+      var popularProducts =
+          await _productService.getFeaturedProducts(limit: 10);
+      debugPrint('Loaded ${popularProducts.length} popular products.');
+      return popularProducts;
+    } catch (e) {
+      // Xử lý lỗi và hiển thị thông báo
+      debugPrint('Error loading popular products: $e');
+      return [];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,36 +54,48 @@ class PopularProducts extends StatelessWidget {
             style: Theme.of(context).textTheme.titleSmall,
           ),
         ),
-        // While loading use 👇
-        // const ProductsSkelton(),
-        SizedBox(
-          height: 220,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            // Find demoPopularProducts on models/ProductModel.dart
-            itemCount: demoPopularProducts.length,
-            itemBuilder: (context, index) => Padding(
-              padding: EdgeInsets.only(
-                left: defaultPadding,
-                right: index == demoPopularProducts.length - 1
-                    ? defaultPadding
-                    : 0,
+        FutureBuilder<List<Product>>(
+          future: _popularProductsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              // Hiển thị skeleton loader khi đang tải
+              return const ProductsSkelton();
+            } else if (snapshot.hasError) {
+              // Hiển thị thông báo lỗi
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              // Hiển thị thông báo khi không có dữ liệu
+              return const Center(child: Text('No products available'));
+            }
+
+            // Lấy danh sách sản phẩm từ kết quả
+            final products = snapshot.data!;
+
+            return SizedBox(
+              height: 220,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: products.length,
+                itemBuilder: (context, index) => Padding(
+                  padding: EdgeInsets.only(
+                    left: defaultPadding,
+                    right: index == products.length - 1 ? defaultPadding : 0,
+                  ),
+                  child: ProductCard.fromProduct(
+                    product: products[index],
+                    onPressed: () {
+                      Navigator.pushNamed(
+                        context,
+                        productDetailScreenRoute,
+                        arguments: products[index].id,
+                      );
+                    },
+                  ),
+                ),
               ),
-              child: ProductCard(
-                image: demoPopularProducts[index].image,
-                brandName: demoPopularProducts[index].brandName,
-                title: demoPopularProducts[index].title,
-                price: demoPopularProducts[index].price,
-                priceAfetDiscount: demoPopularProducts[index].priceAfetDiscount,
-                dicountpercent: demoPopularProducts[index].dicountpercent,
-                press: () {
-                  Navigator.pushNamed(context, productDetailsScreenRoute,
-                      arguments: index.isEven);
-                },
-              ),
-            ),
-          ),
-        )
+            );
+          },
+        ),
       ],
     );
   }

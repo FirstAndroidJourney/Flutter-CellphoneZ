@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shop/entry_point.dart';
+import 'package:shop/screens/product/views/product_detail_screen.dart';
 
 import 'screen_export.dart';
 
@@ -21,11 +22,11 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder: (context) => const PasswordRecoveryScreen(),
       );
-    case productDetailsScreenRoute:
+    case productDetailScreenRoute:
       return MaterialPageRoute(
         builder: (context) {
-          bool isProductAvailable = settings.arguments as bool? ?? true;
-          return ProductDetailsScreen(isProductAvailable: isProductAvailable);
+          final String productId = settings.arguments as String;
+          return ProductDetailScreen(productId: productId);
         },
       );
     case productReviewsScreenRoute:
@@ -51,10 +52,6 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case searchScreenRoute:
       return MaterialPageRoute(
         builder: (context) => const SearchScreen(),
-      );
-    case bookmarkScreenRoute:
-      return MaterialPageRoute(
-        builder: (context) => const BookmarkScreen(),
       );
     case entryPointScreenRoute:
       return MaterialPageRoute(

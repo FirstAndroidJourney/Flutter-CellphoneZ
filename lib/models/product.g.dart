@@ -12,9 +12,9 @@ _$ProductImpl _$$ProductImplFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String,
       price: (json['price'] as num).toDouble(),
       description: json['description'] as String?,
-      imageUrl: json['imageUrl'] as String?,
-      categoryId: json['categoryId'] as String,
-      isAvailable: json['isAvailable'] as bool? ?? true,
+      imageUrl: json['image_url'] as String?,
+      categoryId: json['category_id'] as String,
+      isAvailable: json['is_available'] as bool? ?? true,
     );
 
 Map<String, dynamic> _$$ProductImplToJson(_$ProductImpl instance) =>
@@ -23,7 +23,7 @@ Map<String, dynamic> _$$ProductImplToJson(_$ProductImpl instance) =>
       'name': instance.name,
       'price': instance.price,
       'description': instance.description,
-      'imageUrl': instance.imageUrl,
-      'categoryId': instance.categoryId,
-      'isAvailable': instance.isAvailable,
+      'image_url': instance.imageUrl,
+      'category_id': instance.categoryId,
+      'is_available': instance.isAvailable,
     };
