@@ -105,6 +105,23 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder: (context) => const CartScreen(),
       );
+    case paymentScreenRoute:
+      return MaterialPageRoute(
+        builder: (context) => const PaymentScreen(),
+      );
+    case paymentResultScreenRoute:
+      final args = settings.arguments
+          as Map<String, dynamic>?; // nhận tham số truyền từ deeplink
+      final orderId = args?['orderId'] ?? 'unknown';
+      final status = args?['status'] ?? 'pending';
+
+      return MaterialPageRoute(
+        builder: (context) => PaymentResultScreen(
+          orderId: orderId,
+          status: status,
+        ),
+      );
+
     default:
       return MaterialPageRoute(
         // Make a screen for undefine
