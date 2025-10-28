@@ -16,6 +16,7 @@ class DatabaseSchema {
   static const CartItemsTable cartItems = CartItemsTable();
   static const OrdersTable orders = OrdersTable();
   static const OrderItemsTable orderItems = OrderItemsTable();
+  static const PaymentsTable payments = PaymentsTable();
 }
 
 /// Tên các bảng trong database
@@ -136,4 +137,18 @@ class StorageBuckets {
 
   final String productImages = 'product-images';
   final String userAvatars = 'user-avatars';
+}
+
+class PaymentsTable {
+  const PaymentsTable();
+
+  final String table = 'payments';
+  final String id = 'id';
+  final String orderId = 'order_id';
+  final String userId = 'user_id';
+  final String amount = 'amount';
+  final String status = 'status';
+  final String method = 'method';
+  final String transactionId = 'transaction_id';
+  final String createdAt = 'created_at';
 }

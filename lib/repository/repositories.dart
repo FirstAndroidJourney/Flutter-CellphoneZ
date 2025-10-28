@@ -8,3 +8,4 @@ export 'order_repository.dart';
 export 'order_item_repository.dart';
 export 'user_repository.dart';
 export 'schema_accessor.dart';
+export 'payment_repository.dart';
