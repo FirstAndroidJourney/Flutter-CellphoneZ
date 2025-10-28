@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:shop/components/Banner/S/banner_s_style_1.dart';
-import 'package:shop/components/Banner/S/banner_s_style_5.dart';
 import 'package:shop/constants.dart';
+import 'package:shop/route/route_constants.dart';
 import 'package:shop/route/screen_export.dart';
-import 'components/most_popular.dart';
-import 'components/offer_carousel_and_categories.dart';
+import 'components/category_chips.dart';
+import 'components/flash_sale_section.dart';
+import 'components/flagship_highlights.dart';
+import 'components/hero_carousel.dart';
+import 'components/news_and_services.dart';
 import 'components/popular_products.dart';
+import 'components/quick_actions.dart';
+import 'components/recommendations_section.dart';
+import 'components/support_footer.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -13,50 +18,61 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey.shade50,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            const SliverToBoxAdapter(child: OffersCarouselAndCategories()),
+            SliverAppBar(
+              pinned: true,
+              backgroundColor: Colors.white,
+              automaticallyImplyLeading: false,
+              titleSpacing: defaultPadding,
+              title: Row(
+                children: [
+                  Text(
+                    "CellphoneZ",
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: cellphoneZRed,
+                        ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.qr_code_scanner),
+                    onPressed: () {},
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.search),
+                    onPressed: () {},
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.shopping_bag_outlined),
+                    onPressed: () {
+                      Navigator.pushNamed(context, cartScreenRoute);
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
+            const SliverToBoxAdapter(child: CellphoneZHeroCarousel()),
+            SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
+            SliverToBoxAdapter(child: CellphoneZQuickActions()),
+            SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
+            const SliverToBoxAdapter(child: CellphoneZCategoryChips()),
+            SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
+            const SliverToBoxAdapter(child: FlashSaleSection()),
+            SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
             const SliverToBoxAdapter(child: PopularProducts()),
-            SliverToBoxAdapter(
-              child: Column(
-                children: [
-                  // While loading use 👇
-                  // const BannerMSkelton(),‚
-                  BannerSStyle1(
-                    title: "New \narrival",
-                    subtitle: "SPECIAL OFFER",
-                    discountParcent: 50,
-                    press: () {
-                      Navigator.pushNamed(context, onSaleScreenRoute);
-                    },
-                  ),
-                  const SizedBox(height: defaultPadding / 4),
-                  // We have 4 banner styles, all in the pro version
-                ],
-              ),
-            ),
-            const SliverToBoxAdapter(child: MostPopular()),
-            SliverToBoxAdapter(
-              child: Column(
-                children: [
-                  const SizedBox(height: defaultPadding * 1.5),
-
-                  const SizedBox(height: defaultPadding / 4),
-                  // While loading use 👇
-                  // const BannerSSkelton(),
-                  BannerSStyle5(
-                    title: "Black \nfriday",
-                    subtitle: "50% Off",
-                    bottomText: "Collection".toUpperCase(),
-                    press: () {
-                      Navigator.pushNamed(context, onSaleScreenRoute);
-                    },
-                  ),
-                  const SizedBox(height: defaultPadding / 4),
-                ],
-              ),
-            ),
+            SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
+            SliverToBoxAdapter(child: FlagshipHighlightsSection()),
+            SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
+            SliverToBoxAdapter(child: RecommendationSection()),
+            SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
+            SliverToBoxAdapter(child: NewsAndServicesSection()),
+            SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
+            const SliverToBoxAdapter(child: SupportFooter()),
+            const SliverToBoxAdapter(child: SizedBox(height: defaultPadding * 2)),
           ],
         ),
       ),
