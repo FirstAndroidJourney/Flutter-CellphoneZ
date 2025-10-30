@@ -233,3 +233,210 @@ abstract class _Category implements Category {
   _$$CategoryImplCopyWith<_$CategoryImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
+
+CategoryCreateRequest _$CategoryCreateRequestFromJson(
+    Map<String, dynamic> json) {
+  return _CategoryCreateRequest.fromJson(json);
+}
+
+/// @nodoc
+mixin _$CategoryCreateRequest {
+  String get name => throw _privateConstructorUsedError;
+  @JsonKey(name: 'parent_id')
+  String? get parentId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_popular')
+  bool get isPopular => throw _privateConstructorUsedError;
+
+  /// Serializes this CategoryCreateRequest to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of CategoryCreateRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $CategoryCreateRequestCopyWith<CategoryCreateRequest> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $CategoryCreateRequestCopyWith<$Res> {
+  factory $CategoryCreateRequestCopyWith(CategoryCreateRequest value,
+          $Res Function(CategoryCreateRequest) then) =
+      _$CategoryCreateRequestCopyWithImpl<$Res, CategoryCreateRequest>;
+  @useResult
+  $Res call(
+      {String name,
+      @JsonKey(name: 'parent_id') String? parentId,
+      @JsonKey(name: 'is_popular') bool isPopular});
+}
+
+/// @nodoc
+class _$CategoryCreateRequestCopyWithImpl<$Res,
+        $Val extends CategoryCreateRequest>
+    implements $CategoryCreateRequestCopyWith<$Res> {
+  _$CategoryCreateRequestCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of CategoryCreateRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? name = null,
+    Object? parentId = freezed,
+    Object? isPopular = null,
+  }) {
+    return _then(_value.copyWith(
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      parentId: freezed == parentId
+          ? _value.parentId
+          : parentId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isPopular: null == isPopular
+          ? _value.isPopular
+          : isPopular // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$CategoryCreateRequestImplCopyWith<$Res>
+    implements $CategoryCreateRequestCopyWith<$Res> {
+  factory _$$CategoryCreateRequestImplCopyWith(
+          _$CategoryCreateRequestImpl value,
+          $Res Function(_$CategoryCreateRequestImpl) then) =
+      __$$CategoryCreateRequestImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String name,
+      @JsonKey(name: 'parent_id') String? parentId,
+      @JsonKey(name: 'is_popular') bool isPopular});
+}
+
+/// @nodoc
+class __$$CategoryCreateRequestImplCopyWithImpl<$Res>
+    extends _$CategoryCreateRequestCopyWithImpl<$Res,
+        _$CategoryCreateRequestImpl>
+    implements _$$CategoryCreateRequestImplCopyWith<$Res> {
+  __$$CategoryCreateRequestImplCopyWithImpl(_$CategoryCreateRequestImpl _value,
+      $Res Function(_$CategoryCreateRequestImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of CategoryCreateRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? name = null,
+    Object? parentId = freezed,
+    Object? isPopular = null,
+  }) {
+    return _then(_$CategoryCreateRequestImpl(
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      parentId: freezed == parentId
+          ? _value.parentId
+          : parentId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isPopular: null == isPopular
+          ? _value.isPopular
+          : isPopular // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$CategoryCreateRequestImpl implements _CategoryCreateRequest {
+  const _$CategoryCreateRequestImpl(
+      {required this.name,
+      @JsonKey(name: 'parent_id') this.parentId,
+      @JsonKey(name: 'is_popular') this.isPopular = false});
+
+  factory _$CategoryCreateRequestImpl.fromJson(Map<String, dynamic> json) =>
+      _$$CategoryCreateRequestImplFromJson(json);
+
+  @override
+  final String name;
+  @override
+  @JsonKey(name: 'parent_id')
+  final String? parentId;
+  @override
+  @JsonKey(name: 'is_popular')
+  final bool isPopular;
+
+  @override
+  String toString() {
+    return 'CategoryCreateRequest(name: $name, parentId: $parentId, isPopular: $isPopular)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$CategoryCreateRequestImpl &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.parentId, parentId) ||
+                other.parentId == parentId) &&
+            (identical(other.isPopular, isPopular) ||
+                other.isPopular == isPopular));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, name, parentId, isPopular);
+
+  /// Create a copy of CategoryCreateRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$CategoryCreateRequestImplCopyWith<_$CategoryCreateRequestImpl>
+      get copyWith => __$$CategoryCreateRequestImplCopyWithImpl<
+          _$CategoryCreateRequestImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$CategoryCreateRequestImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _CategoryCreateRequest implements CategoryCreateRequest {
+  const factory _CategoryCreateRequest(
+          {required final String name,
+          @JsonKey(name: 'parent_id') final String? parentId,
+          @JsonKey(name: 'is_popular') final bool isPopular}) =
+      _$CategoryCreateRequestImpl;
+
+  factory _CategoryCreateRequest.fromJson(Map<String, dynamic> json) =
+      _$CategoryCreateRequestImpl.fromJson;
+
+  @override
+  String get name;
+  @override
+  @JsonKey(name: 'parent_id')
+  String? get parentId;
+  @override
+  @JsonKey(name: 'is_popular')
+  bool get isPopular;
+
+  /// Create a copy of CategoryCreateRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$CategoryCreateRequestImplCopyWith<_$CategoryCreateRequestImpl>
+      get copyWith => throw _privateConstructorUsedError;
+}

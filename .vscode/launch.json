@@ -2,11 +2,10 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Flutter run (68bda28d)",
+      "name": "Flutter run",
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
-      "deviceId": "68bda28d"
     }
   ]
 }
