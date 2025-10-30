@@ -1,187 +1,338 @@
-import '../repository/product_repository.dart';
+import 'dart:typed_data';
+
+import 'package:equatable/equatable.dart';
+import 'package:image/image.dart' as img;
+
+import '../common/app_logger.dart';
 import '../models/product.dart';
+import '../repository/product_repository.dart';
+import 'database_schema.dart';
 import 'dependency_injection.dart';
+import 'storage_service.dart';
 
 class ProductService {
-  late final ProductRepository _productRepository;
+  ProductService({
+    ProductRepository? productRepository,
+    StorageService? storageService,
+    AppLogger? logger,
+  })  : _productRepository =
+            productRepository ?? getIt<ProductRepository>(),
+        _storageService = storageService ?? getIt<StorageService>(),
+        _logger = logger ?? AppLogger.instance;
 
-  ProductService() {
+  final ProductRepository _productRepository;
+  final StorageService _storageService;
+  final AppLogger _logger;
+  final StorageBuckets _storageBuckets = const StorageBuckets();
+
+  // region: Admin CRUD
+
+  Future<Product> createProduct({
+    required String name,
+    required double price,
+    required bool isAvailable,
+    String? description,
+    String? categoryId,
+    ProductImagePayload? image,
+  }) async {
+    _validateName(name);
+    _validatePrice(price);
+
+    StorageUploadResult? uploadResult;
+
     try {
-      _productRepository = getIt<ProductRepository>();
-      print('ProductService: Repositories retrieved successfully');
-    } catch (e) {
-      print('ProductService: Error getting repositories: $e');
-      rethrow;
+      if (image != null) {
+        final prepared = await _prepareImage(image);
+        uploadResult = await _storageService.uploadProductImage(
+          prepared.bytes,
+          extension: prepared.extension,
+        );
+      }
+
+      final draft = ProductDraft(
+        name: name,
+        price: price,
+        description: description?.trim(),
+        imageUrl: uploadResult?.publicUrl,
+        imageStoragePath: uploadResult?.storagePath,
+        categoryId: categoryId,
+        isAvailable: isAvailable,
+      );
+
+      final product = await _productRepository.createProduct(draft);
+      return product;
+    } catch (error, stackTrace) {
+      _logger.e('Create product failed', error, stackTrace);
+
+      if (uploadResult != null) {
+        await _safeRemoveImage(uploadResult.storagePath);
+      }
+
+      throw Exception('Failed to create product: $error');
     }
   }
 
-  // Get all products
+  Future<Product> updateProduct({
+    required Product current,
+    required String name,
+    required double price,
+    required bool isAvailable,
+    String? description,
+    String? categoryId,
+    ProductImagePayload? newImage,
+  }) async {
+    _validateName(name);
+    _validatePrice(price);
+
+    StorageUploadResult? uploadResult;
+    final String? previousStoragePath =
+        _extractStoragePath(current.imageUrl ?? '');
+
+    try {
+      if (newImage != null) {
+        final prepared = await _prepareImage(newImage);
+        uploadResult = await _storageService.uploadProductImage(
+          prepared.bytes,
+          productId: current.id,
+          extension: prepared.extension,
+        );
+      }
+
+      final draft = ProductDraft(
+        name: name,
+        price: price,
+        description: description?.trim(),
+        imageUrl: newImage != null ? uploadResult?.publicUrl : null,
+        imageStoragePath: uploadResult?.storagePath,
+        categoryId: categoryId,
+        isAvailable: isAvailable,
+      );
+
+      final result =
+          await _productRepository.updateProduct(current.id, draft);
+
+      if (uploadResult != null && previousStoragePath != null) {
+        await _safeRemoveImage(previousStoragePath);
+      }
+
+      return result;
+    } catch (error, stackTrace) {
+      _logger.e('Update product ${current.id} failed', error, stackTrace);
+
+      if (uploadResult != null) {
+        await _safeRemoveImage(uploadResult.storagePath);
+      }
+
+      throw Exception('Failed to update product: $error');
+    }
+  }
+
+  Future<void> deleteProduct(Product product) async {
+    final storagePath = _extractStoragePath(product.imageUrl ?? '');
+
+    try {
+      await _productRepository.deleteProduct(product.id);
+
+      if (storagePath != null) {
+        await _safeRemoveImage(storagePath);
+      }
+    } catch (error, stackTrace) {
+      _logger.e('Delete product ${product.id} failed', error, stackTrace);
+      throw Exception('Failed to delete product: $error');
+    }
+  }
+
+  // endregion
+
+  // region: Public product APIs
+
   Future<List<Product>> getAllProducts() async {
     try {
       return await _productRepository.getAllProducts();
-    } catch (e) {
-      throw Exception('Failed to fetch products: $e');
+    } catch (error) {
+      throw Exception('Failed to fetch products: $error');
     }
   }
 
-  // Get product by ID
   Future<Product?> getProductById(String id) async {
     try {
       return await _productRepository.getProductById(id);
-    } catch (e) {
-      throw Exception('Failed to fetch product: $e');
+    } catch (error) {
+      throw Exception('Failed to fetch product: $error');
     }
   }
 
-  // Get products by category
   Future<List<Product>> getProductsByCategory(String categoryId) async {
     try {
       return await _productRepository.getProductsByCategory(categoryId);
-    } catch (e) {
-      throw Exception('Failed to fetch products by category: $e');
+    } catch (error) {
+      throw Exception('Failed to fetch products by category: $error');
     }
   }
 
   Future<List<Product>> getProductsByParentCategory(String parentId) async {
     try {
       return await _productRepository.getProductsByParentCategory(parentId);
-    } catch (e) {
-      throw Exception('Failed to fetch products by category: $e');
+    } catch (error) {
+      throw Exception('Failed to fetch products by category: $error');
     }
   }
 
-  // Search products
   Future<List<Product>> searchProducts(String query) async {
     try {
-      if (query.trim().isEmpty) {
-        return await getAllProducts();
-      }
       return await _productRepository.searchProducts(query);
-    } catch (e) {
-      throw Exception('Failed to search products: $e');
+    } catch (error) {
+      throw Exception('Failed to search products: $error');
     }
   }
 
-  // Get featured products
   Future<List<Product>> getFeaturedProducts({int limit = 10}) async {
     try {
       return await _productRepository.getFeaturedProducts(limit: limit);
-    } catch (e) {
-      throw Exception('Failed to fetch featured products: $e');
+    } catch (error) {
+      throw Exception('Failed to fetch featured products: $error');
     }
   }
 
-  // Create product (admin function)
-  Future<Product> createProduct({
-    required String name,
-    required double price,
-    required String categoryId,
-    String? description,
-    String? imageUrl,
-  }) async {
-    try {
-      final product = Product(
-        id: '', // Will be generated by Supabase
-        name: name,
-        price: price,
-        categoryId: categoryId,
-        description: description,
-        imageUrl: imageUrl,
-      );
-
-      return await _productRepository.createProduct(product);
-    } catch (e) {
-      throw Exception('Failed to create product: $e');
-    }
-  }
-
-  // Update product (admin function)
-  Future<Product> updateProduct(String id, Product product) async {
-    try {
-      return await _productRepository.updateProduct(id, product);
-    } catch (e) {
-      throw Exception('Failed to update product: $e');
-    }
-  }
-
-  // Delete product (admin function)
-  Future<void> deleteProduct(String id) async {
-    try {
-      await _productRepository.deleteProduct(id);
-    } catch (e) {
-      throw Exception('Failed to delete product: $e');
-    }
-  }
-
-  // Get products by price range
   Future<List<Product>> getProductsByPriceRange({
     double? minPrice,
     double? maxPrice,
   }) async {
-    try {
-      final products = await getAllProducts();
+    final products = await getAllProducts();
 
-      return products.where((product) {
-        if (minPrice != null && product.price < minPrice) return false;
-        if (maxPrice != null && product.price > maxPrice) return false;
-        return true;
-      }).toList();
-    } catch (e) {
-      throw Exception('Failed to filter products by price: $e');
+    return products.where((product) {
+      if (minPrice != null && product.price < minPrice) {
+        return false;
+      }
+      if (maxPrice != null && product.price > maxPrice) {
+        return false;
+      }
+      return true;
+    }).toList();
+  }
+
+  Future<List<Product>> getRelatedProducts(
+    String productId, {
+    int limit = 5,
+  }) async {
+    final product = await getProductById(productId);
+    if (product == null) {
+      return [];
+    }
+
+    final categoryProducts =
+        await _productRepository.getProductsByCategory(product.categoryId);
+
+    final related =
+        categoryProducts.where((p) => p.id != productId).toList();
+
+    return related.length > limit
+        ? related.sublist(0, limit)
+        : related;
+  }
+
+  // endregion
+
+  // region: Helpers
+
+  void _validateName(String name) {
+    if (name.trim().isEmpty) {
+      throw ArgumentError('Product name must not be empty');
     }
   }
 
-  // Get related products (products in same category)
-  Future<List<Product>> getRelatedProducts(String productId,
-      {int limit = 5}) async {
+  void _validatePrice(double price) {
+    if (price <= 0) {
+      throw ArgumentError('Product price must be greater than zero');
+    }
+  }
+
+  Future<_PreparedImage> _prepareImage(ProductImagePayload image) async {
     try {
-      final product = await getProductById(productId);
-      if (product == null) {
-        return [];
+      final decoded = img.decodeImage(image.bytes);
+      if (decoded == null) {
+        return _PreparedImage(bytes: image.bytes, extension: image.extension);
       }
 
-      // Get products from same category
-      final categoryProducts =
-          await _productRepository.getProductsByCategory(product.categoryId);
+      const maxDimension = 1280;
+      img.Image processed = decoded;
 
-      // Filter out the current product
-      final relatedProducts =
-          categoryProducts.where((p) => p.id != productId).toList();
-
-      // Limit the number of products
-      if (relatedProducts.length > limit) {
-        return relatedProducts.sublist(0, limit);
+      if (decoded.width > maxDimension || decoded.height > maxDimension) {
+        processed = img.copyResize(
+          decoded,
+          width: decoded.width >= decoded.height ? maxDimension : null,
+          height: decoded.height > decoded.width ? maxDimension : null,
+        );
       }
 
-      return relatedProducts;
-    } catch (e) {
-      throw Exception('Failed to fetch related products: $e');
+      late final List<int> encoded;
+      final ext = image.extension.toLowerCase();
+      if (ext == 'png') {
+        encoded = img.encodePng(processed);
+      } else {
+        encoded = img.encodeJpg(processed, quality: 85);
+      }
+
+      return _PreparedImage(
+        bytes: Uint8List.fromList(encoded),
+        extension: ext == 'png' ? 'png' : 'jpg',
+      );
+    } catch (error, stackTrace) {
+      _logger.w('Image compression failed, using original bytes',
+          error, stackTrace);
+      return _PreparedImage(bytes: image.bytes, extension: image.extension);
     }
   }
 
-  // Sort products
-  List<Product> sortProducts(List<Product> products, ProductSortBy sortBy) {
-    switch (sortBy) {
-      case ProductSortBy.nameAsc:
-        products.sort((a, b) => a.name.compareTo(b.name));
-        break;
-      case ProductSortBy.nameDesc:
-        products.sort((a, b) => b.name.compareTo(a.name));
-        break;
-      case ProductSortBy.priceAsc:
-        products.sort((a, b) => a.price.compareTo(b.price));
-        break;
-      case ProductSortBy.priceDesc:
-        products.sort((a, b) => b.price.compareTo(a.price));
-        break;
+  String? _extractStoragePath(String? publicUrl) {
+    if (publicUrl == null || publicUrl.isEmpty) {
+      return null;
     }
-    return products;
+
+    final marker = '/object/public/${_storageBuckets.productImages}/';
+    final index = publicUrl.indexOf(marker);
+
+    if (index == -1) {
+      return null;
+    }
+
+    return publicUrl.substring(index + marker.length);
   }
+
+  Future<void> _safeRemoveImage(String storagePath) async {
+    try {
+      await _storageService.removeProductImage(storagePath);
+    } catch (error, stackTrace) {
+      _logger.w(
+        'Failed to clean up image at $storagePath',
+        error,
+        stackTrace,
+      );
+    }
+  }
+
+  // endregion
 }
 
-enum ProductSortBy {
-  nameAsc,
-  nameDesc,
-  priceAsc,
-  priceDesc,
+class ProductImagePayload extends Equatable {
+  ProductImagePayload({
+    required this.bytes,
+    required String extension,
+  }) : extension = extension.replaceAll('.', '').toLowerCase();
+
+  final Uint8List bytes;
+  final String extension;
+
+  @override
+  List<Object?> get props => [bytes, extension];
+}
+
+class _PreparedImage {
+  _PreparedImage({
+    required this.bytes,
+    required this.extension,
+  });
+
+  final Uint8List bytes;
+  final String extension;
 }
