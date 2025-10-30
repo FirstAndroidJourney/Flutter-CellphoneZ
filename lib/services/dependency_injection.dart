@@ -9,6 +9,7 @@ import '../repository/order_repository.dart';
 import '../repository/order_item_repository.dart';
 import '../repository/user_repository.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'storage_service.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -44,6 +45,7 @@ Future<void> setupDependencies() async {
     getIt.registerLazySingleton<OrderItemRepository>(
         () => OrderItemRepository());
     getIt.registerLazySingleton<UserRepository>(() => UserRepository());
+    getIt.registerLazySingleton<StorageService>(() => StorageService());
 
     print('All repositories registered successfully');
   } catch (e) {
