@@ -213,16 +213,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ),
 
                   // Thông tin sản phẩm
-                  SliverToBoxAdapter(
-                    child: ProductInfo(
-                      brand: product.categoryId,
-                      title: product.name,
-                      isAvailable: isAvailable,
-                      description: product.description ??
-                          "Không có mô tả chi tiết cho sản phẩm này.",
-                      rating: 4.5,
-                      numOfReviews: 120,
-                    ),
+                  ProductInfo(
+                    brand: product.categoryId,
+                    title: product.name,
+                    isAvailable: isAvailable,
+                    description: product.description ??
+                        "Không có mô tả chi tiết cho sản phẩm này.",
+                    rating: 4.5,
+                    numOfReviews: 120,
                   ),
 
                   // Các mục chi tiết sản phẩm

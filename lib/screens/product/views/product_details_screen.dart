@@ -137,8 +137,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 ),
               ],
             ),
-            const ProductImages(
-              images: [productDemoImg1, productDemoImg2, productDemoImg3],
+            SliverToBoxAdapter(
+              child: const ProductImages(
+                images: [productDemoImg1, productDemoImg2, productDemoImg3],
+              ),
             ),
             ProductInfo(
               brand: "LIPSY LONDON",
@@ -149,42 +151,48 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               rating: 4.4,
               numOfReviews: 126,
             ),
-            ProductListTile(
-              svgSrc: "assets/icons/Product.svg",
-              title: "Product Details",
-              press: () {
-                customModalBottomSheet(
-                  context,
-                  height: MediaQuery.of(context).size.height * 0.92,
-                  child: const BuyFullKit(
-                      images: ["assets/screens/Product detail.png"]),
-                );
-              },
+            SliverToBoxAdapter(
+              child: ProductListTile(
+                svgSrc: "assets/icons/Product.svg",
+                title: "Product Details",
+                press: () {
+                  customModalBottomSheet(
+                    context,
+                    height: MediaQuery.of(context).size.height * 0.92,
+                    child: const BuyFullKit(
+                        images: ["assets/screens/Product detail.png"]),
+                  );
+                },
+              ),
             ),
-            ProductListTile(
-              svgSrc: "assets/icons/Delivery.svg",
-              title: "Shipping Information",
-              press: () {
-                customModalBottomSheet(
-                  context,
-                  height: MediaQuery.of(context).size.height * 0.92,
-                  child: const BuyFullKit(
-                    images: ["assets/screens/Shipping information.png"],
-                  ),
-                );
-              },
+            SliverToBoxAdapter(
+              child: ProductListTile(
+                svgSrc: "assets/icons/Delivery.svg",
+                title: "Shipping Information",
+                press: () {
+                  customModalBottomSheet(
+                    context,
+                    height: MediaQuery.of(context).size.height * 0.92,
+                    child: const BuyFullKit(
+                      images: ["assets/screens/Shipping information.png"],
+                    ),
+                  );
+                },
+              ),
             ),
-            ProductListTile(
-              svgSrc: "assets/icons/Return.svg",
-              title: "Returns",
-              isShowBottomBorder: true,
-              press: () {
-                customModalBottomSheet(
-                  context,
-                  height: MediaQuery.of(context).size.height * 0.92,
-                  child: const ProductReturnsScreen(),
-                );
-              },
+            SliverToBoxAdapter(
+              child: ProductListTile(
+                svgSrc: "assets/icons/Return.svg",
+                title: "Returns",
+                isShowBottomBorder: true,
+                press: () {
+                  customModalBottomSheet(
+                    context,
+                    height: MediaQuery.of(context).size.height * 0.92,
+                    child: const ProductReturnsScreen(),
+                  );
+                },
+              ),
             ),
             const SliverToBoxAdapter(
               child: Padding(
@@ -200,13 +208,15 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 ),
               ),
             ),
-            ProductListTile(
-              svgSrc: "assets/icons/Chat.svg",
-              title: "Reviews",
-              isShowBottomBorder: true,
-              press: () {
-                Navigator.pushNamed(context, productReviewsScreenRoute);
-              },
+            SliverToBoxAdapter(
+              child: ProductListTile(
+                svgSrc: "assets/icons/Chat.svg",
+                title: "Reviews",
+                isShowBottomBorder: true,
+                press: () {
+                  Navigator.pushNamed(context, productReviewsScreenRoute);
+                },
+              ),
             ),
             SliverPadding(
               padding: const EdgeInsets.all(defaultPadding),
