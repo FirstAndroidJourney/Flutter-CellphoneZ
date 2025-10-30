@@ -4,6 +4,17 @@ import 'package:shop/repository/category_repository.dart';
 class CategoryService {
   final CategoryRepository _repository = CategoryRepository();
 
+  // Get featured/popular categories
+  Future<List<Category>> getFeaturedCategories() async {
+    try {
+      final categories = await _repository.getFeaturedCategories();
+      return categories;
+    } catch (e) {
+      print('Error in getFeaturedCategories: $e');
+      throw Exception('Failed to fetch featured categories: $e');
+    }
+  }
+
   // Get all categories
   Future<List<Category>> getAllCategories() async {
     return await _repository.getAllCategories();
@@ -11,12 +22,30 @@ class CategoryService {
 
   // Get root categories
   Future<List<Category>> getRootCategories() async {
-    return await _repository.getRootCategories();
+    try {
+      print('📞 CategoryService: calling getRootCategories...');
+      final result = await _repository.getRootCategories();
+      print('✅ CategoryService: got ${result.length} root categories');
+      return result;
+    } catch (e, stackTrace) {
+      print('❌ CategoryService error: $e');
+      print('Stack: $stackTrace');
+      rethrow;
+    }
   }
 
   // Get subcategories by parent ID
   Future<List<Category>> getSubcategories(String parentId) async {
-    return await _repository.getSubcategories(parentId);
+    try {
+      print('📞 CategoryService: calling getSubcategories for $parentId...');
+      final result = await _repository.getSubcategories(parentId);
+      print('✅ CategoryService: got ${result.length} subcategories');
+      return result;
+    } catch (e, stackTrace) {
+      print('❌ CategoryService error: $e');
+      print('Stack: $stackTrace');
+      rethrow;
+    }
   }
 
   // Get category tree with root categories and their children

@@ -82,24 +82,88 @@ class ProductRepository extends BaseRepository {
     }
   }
 
+  Future<List<Product>> getProductsByParentCategory(String parentId) async {
+    try {
+      debugPrint('🔄 Fetching products by parent category: $parentId');
+
+      // 1️⃣ Lấy tất cả category con
+      final subCategories = await client
+          .from('categories')
+          .select('id')
+          .eq('parent_id', parentId);
+
+      if (subCategories == null || (subCategories as List).isEmpty) {
+        debugPrint('⚠️ No subcategories found, trying direct products');
+        // Nếu không có danh mục con, lấy sản phẩm trực tiếp trong danh mục gốc
+        return await getProductsByCategory(parentId);
+      }
+
+      final ids = subCategories.map((e) => e['id']).toList();
+      debugPrint('📂 Found ${ids.length} subcategories under parent $parentId');
+
+      // 2️⃣ Lấy toàn bộ sản phẩm có category_id nằm trong danh mục con
+      final response = await client
+          .from('products')
+          .select()
+          .inFilter('category_id', ids)
+          .eq('is_available', true);
+
+      if (response == null || (response as List).isEmpty) {
+        debugPrint('⚠️ No products found in subcategories of $parentId');
+        return [];
+      }
+
+      final List<Map<String, dynamic>> data =
+          List<Map<String, dynamic>>.from(response);
+
+      final products = data.map((json) => Product.fromJson(json)).toList();
+      debugPrint('✅ Loaded ${products.length} products for parent $parentId');
+      return products;
+    } catch (e, stack) {
+      debugPrint('❌ Error in getProductsByParentCategory: $e');
+      debugPrint('$stack');
+      return [];
+    }
+  }
+
   // Get products by category
   Future<List<Product>> getProductsByCategory(String categoryId) async {
     try {
-      final response = await queryBuilder
+      debugPrint('🔄 Fetching products for category: $categoryId');
+
+      final response = await client
+          .from(tableName)
           .select()
-          .eq(productsSchema.categoryId, categoryId)
-          .eq(productsSchema.isAvailable, true);
+          .eq('category_id', categoryId)
+          .eq('is_available', true);
 
-      final data = List<Map<String, dynamic>>.from(response);
+      // Nếu không có dữ liệu
+      if (response == null || (response as List).isEmpty) {
+        debugPrint('⚠️ No products found for category $categoryId');
+        return [];
+      }
 
-      // Use the safer parsing method and filter out nulls
-      return data
-          .map((json) => Product.fromJson(json))
-          .where((product) => product != null)
-          .cast<Product>()
+      final List<Map<String, dynamic>> data =
+          List<Map<String, dynamic>>.from(response);
+
+      final products = data
+          .map((json) {
+            try {
+              return Product.fromJson(json);
+            } catch (e) {
+              debugPrint('⚠️ Parse error for product: $json\n$e');
+              return null;
+            }
+          })
+          .whereType<Product>() // loại bỏ null
           .toList();
-    } catch (e) {
-      print('Error in getProductsByCategory: $e');
+
+      debugPrint(
+          '✅ Loaded ${products.length} products for category $categoryId');
+      return products;
+    } catch (e, stackTrace) {
+      debugPrint('❌ Error in getProductsByCategory: $e');
+      debugPrint('$stackTrace');
       throw Exception('Failed to fetch products by category: $e');
     }
   }

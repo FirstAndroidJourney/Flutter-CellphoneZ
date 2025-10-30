@@ -9,6 +9,7 @@ class Category with _$Category {
     required String id,
     required String name,
     @JsonKey(name: 'parent_id') String? parentId,
+    @JsonKey(name: 'is_popular') @Default(false) bool isPopular,
   }) = _Category;
 
   factory Category.fromJson(Map<String, dynamic> json) =>

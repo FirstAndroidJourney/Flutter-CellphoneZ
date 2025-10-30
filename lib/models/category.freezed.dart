@@ -24,6 +24,8 @@ mixin _$Category {
   String get name => throw _privateConstructorUsedError;
   @JsonKey(name: 'parent_id')
   String? get parentId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_popular')
+  bool get isPopular => throw _privateConstructorUsedError;
 
   /// Serializes this Category to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -41,7 +43,10 @@ abstract class $CategoryCopyWith<$Res> {
       _$CategoryCopyWithImpl<$Res, Category>;
   @useResult
   $Res call(
-      {String id, String name, @JsonKey(name: 'parent_id') String? parentId});
+      {String id,
+      String name,
+      @JsonKey(name: 'parent_id') String? parentId,
+      @JsonKey(name: 'is_popular') bool isPopular});
 }
 
 /// @nodoc
@@ -62,6 +67,7 @@ class _$CategoryCopyWithImpl<$Res, $Val extends Category>
     Object? id = null,
     Object? name = null,
     Object? parentId = freezed,
+    Object? isPopular = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -76,6 +82,10 @@ class _$CategoryCopyWithImpl<$Res, $Val extends Category>
           ? _value.parentId
           : parentId // ignore: cast_nullable_to_non_nullable
               as String?,
+      isPopular: null == isPopular
+          ? _value.isPopular
+          : isPopular // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -89,7 +99,10 @@ abstract class _$$CategoryImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String id, String name, @JsonKey(name: 'parent_id') String? parentId});
+      {String id,
+      String name,
+      @JsonKey(name: 'parent_id') String? parentId,
+      @JsonKey(name: 'is_popular') bool isPopular});
 }
 
 /// @nodoc
@@ -108,6 +121,7 @@ class __$$CategoryImplCopyWithImpl<$Res>
     Object? id = null,
     Object? name = null,
     Object? parentId = freezed,
+    Object? isPopular = null,
   }) {
     return _then(_$CategoryImpl(
       id: null == id
@@ -122,6 +136,10 @@ class __$$CategoryImplCopyWithImpl<$Res>
           ? _value.parentId
           : parentId // ignore: cast_nullable_to_non_nullable
               as String?,
+      isPopular: null == isPopular
+          ? _value.isPopular
+          : isPopular // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -132,7 +150,8 @@ class _$CategoryImpl implements _Category {
   const _$CategoryImpl(
       {required this.id,
       required this.name,
-      @JsonKey(name: 'parent_id') this.parentId});
+      @JsonKey(name: 'parent_id') this.parentId,
+      @JsonKey(name: 'is_popular') this.isPopular = false});
 
   factory _$CategoryImpl.fromJson(Map<String, dynamic> json) =>
       _$$CategoryImplFromJson(json);
@@ -144,10 +163,13 @@ class _$CategoryImpl implements _Category {
   @override
   @JsonKey(name: 'parent_id')
   final String? parentId;
+  @override
+  @JsonKey(name: 'is_popular')
+  final bool isPopular;
 
   @override
   String toString() {
-    return 'Category(id: $id, name: $name, parentId: $parentId)';
+    return 'Category(id: $id, name: $name, parentId: $parentId, isPopular: $isPopular)';
   }
 
   @override
@@ -158,12 +180,14 @@ class _$CategoryImpl implements _Category {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.parentId, parentId) ||
-                other.parentId == parentId));
+                other.parentId == parentId) &&
+            (identical(other.isPopular, isPopular) ||
+                other.isPopular == isPopular));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name, parentId);
+  int get hashCode => Object.hash(runtimeType, id, name, parentId, isPopular);
 
   /// Create a copy of Category
   /// with the given fields replaced by the non-null parameter values.
@@ -185,7 +209,8 @@ abstract class _Category implements Category {
   const factory _Category(
       {required final String id,
       required final String name,
-      @JsonKey(name: 'parent_id') final String? parentId}) = _$CategoryImpl;
+      @JsonKey(name: 'parent_id') final String? parentId,
+      @JsonKey(name: 'is_popular') final bool isPopular}) = _$CategoryImpl;
 
   factory _Category.fromJson(Map<String, dynamic> json) =
       _$CategoryImpl.fromJson;
@@ -197,6 +222,9 @@ abstract class _Category implements Category {
   @override
   @JsonKey(name: 'parent_id')
   String? get parentId;
+  @override
+  @JsonKey(name: 'is_popular')
+  bool get isPopular;
 
   /// Create a copy of Category
   /// with the given fields replaced by the non-null parameter values.

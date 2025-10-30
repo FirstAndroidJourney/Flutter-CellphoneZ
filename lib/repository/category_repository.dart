@@ -7,6 +7,20 @@ class CategoryRepository extends BaseRepository {
   @override
   String get tableName => categoriesSchema.table;
 
+  // Get featured categories (is_popular = true)
+  Future<List<Category>> getFeaturedCategories() async {
+    try {
+      final response =
+          await client.from(tableName).select().eq('is_popular', true);
+
+      debugPrint('Fetched featured categories: $response');
+      return (response as List).map((json) => Category.fromJson(json)).toList();
+    } catch (e) {
+      debugPrint('Error fetching featured categories: $e');
+      throw Exception('Failed to fetch featured categories: $e');
+    }
+  }
+
   // Get all categories as Category objects
   Future<List<Category>> getAllCategories() async {
     try {
@@ -60,10 +74,21 @@ class CategoryRepository extends BaseRepository {
   // Get root categories (parentId is null)
   Future<List<Category>> getRootCategories() async {
     try {
-      final response = await queryBuilder.select().isFilter('parentId', null);
-      final data = List<Map<String, dynamic>>.from(response);
+      debugPrint('🔄 Fetching root categories (parent_id = null)...');
+
+      // Gọi trực tiếp từ Supabase thay vì getAll() nếu muốn hiệu năng cao hơn
+      final response = await client
+          .from(tableName)
+          .select()
+          .isFilter('parent_id', null); // 🔥 lọc trực tiếp ở DB
+
+      final List data = response as List;
+      debugPrint('📊 Found ${data.length} root categories');
+
       return data.map((json) => Category.fromJson(json)).toList();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('❌ Error in getRootCategories: $e');
+      debugPrint('$stackTrace');
       throw Exception('Failed to fetch root categories: $e');
     }
   }
@@ -71,10 +96,17 @@ class CategoryRepository extends BaseRepository {
   // Get subcategories by parent ID
   Future<List<Category>> getSubcategories(String parentId) async {
     try {
-      final response = await queryBuilder.select().eq('parentId', parentId);
+      debugPrint('🔄 Querying subcategories for parent: $parentId');
+      final response =
+          await client.from(tableName).select().eq('parent_id', parentId);
+
+      debugPrint('✅ Subcategories response: $response');
       final data = List<Map<String, dynamic>>.from(response);
+      debugPrint('📊 Found ${data.length} subcategories');
       return data.map((json) => Category.fromJson(json)).toList();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('❌ Error in getSubcategories: $e');
+      debugPrint('Stack trace: $stackTrace');
       throw Exception('Failed to fetch subcategories: $e');
     }
   }
