@@ -43,8 +43,9 @@ class CategoryRepository extends BaseRepository {
   }
 
   // Create new category
-  Future<Category> createCategory(Category category) async {
+  Future<Category> createCategory(CategoryCreateRequest category) async {
     try {
+      debugPrint('Creating category: ${category.toJson()}');
       final data = await create(category.toJson());
       return Category.fromJson(data);
     } catch (e) {
