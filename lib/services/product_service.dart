@@ -42,6 +42,14 @@ class ProductService {
     }
   }
 
+  Future<List<Product>> getProductsByParentCategory(String parentId) async {
+    try {
+      return await _productRepository.getProductsByParentCategory(parentId);
+    } catch (e) {
+      throw Exception('Failed to fetch products by category: $e');
+    }
+  }
+
   // Search products
   Future<List<Product>> searchProducts(String query) async {
     try {

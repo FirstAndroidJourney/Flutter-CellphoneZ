@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 import 'schema_accessor.dart';
 
 /// Lớp cơ sở cho tất cả các repository
@@ -32,6 +33,7 @@ abstract class BaseRepository with SchemaAccessor {
 
   Future<Map<String, dynamic>> create(Map<String, dynamic> data) async {
     try {
+      debugPrint('🔄 Creating new item in $tableName');
       final response =
           await client.from(tableName).insert(data).select().single();
       return response;
@@ -43,6 +45,7 @@ abstract class BaseRepository with SchemaAccessor {
   Future<Map<String, dynamic>> update(
       String id, Map<String, dynamic> data) async {
     try {
+      debugPrint('🔄 Updating item with id $id in $tableName');
       final response = await client
           .from(tableName)
           .update(data)
@@ -57,6 +60,7 @@ abstract class BaseRepository with SchemaAccessor {
 
   Future<void> delete(String id) async {
     try {
+      debugPrint('🔄 Deleting item with id $id from $tableName');
       await client.from(tableName).delete().eq(idColumn, id);
     } catch (e) {
       throw Exception('Failed to delete item with id $id from $tableName: $e');
