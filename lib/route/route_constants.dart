@@ -60,3 +60,4 @@ const String thanksForOrderScreenRoute = "thanks_order";
 const String paymentScreenRoute = "payment";
 const String paymentResultScreenRoute = "payment_result";
 const String adminProductListScreenRoute = "admin_product_list";
+const String categoryManagementScreenRoute = "category_management";

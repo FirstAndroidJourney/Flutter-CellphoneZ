@@ -29,7 +29,8 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.lightTheme(context),
       themeMode: ThemeMode.light,
       onGenerateRoute: router.generateRoute,
-      home: const ProductListScreen(),
+      home: const MainScreen(),
+      initialRoute: categoryManagementScreenRoute,
     );
   }
 }
