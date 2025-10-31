@@ -39,16 +39,11 @@ class ProductRepository extends BaseRepository {
   }
 
   // Create new product
-  Future<Product> createProduct(Product product) async {
+  Future<Product> createProduct(ProductCreateRequest request) async {
     try {
-      final data = await create(product.toJson());
-
-      // Use the safe parser to handle potential issues
-      final createdProduct = Product.fromJson(data);
-      if (createdProduct == null) {
-        throw Exception('Created product returned invalid data');
-      }
-      return createdProduct;
+      final payload = request.toJson();
+      final data = await create(payload);
+      return Product.fromJson(data);
     } catch (e) {
       print('Error in createProduct: $e');
       throw Exception('Failed to create product: $e');
@@ -56,16 +51,14 @@ class ProductRepository extends BaseRepository {
   }
 
   // Update product
-  Future<Product> updateProduct(String id, Product product) async {
+  Future<Product> updateProduct(String id, ProductUpdateRequest request) async {
     try {
-      final data = await update(id, product.toJson());
-
-      // Use the safe parser to handle potential issues
-      final updatedProduct = Product.fromJson(data);
-      if (updatedProduct == null) {
-        throw Exception('Updated product returned invalid data');
+      final payload = request.toJson();
+      if (payload.isEmpty) {
+        throw Exception('No fields provided for update');
       }
-      return updatedProduct;
+      final data = await update(id, payload);
+      return Product.fromJson(data);
     } catch (e) {
       print('Error in updateProduct: $e');
       throw Exception('Failed to update product: $e');

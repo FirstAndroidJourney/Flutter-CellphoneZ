@@ -20,6 +20,37 @@ class Product with _$Product {
 }
 
 @freezed
+class ProductCreateRequest with _$ProductCreateRequest {
+  const factory ProductCreateRequest({
+    required String name,
+    required double price,
+    String? description,
+    @JsonKey(name: 'image_url') String? imageUrl,
+    @JsonKey(name: 'category_id') required String categoryId,
+    @JsonKey(name: 'is_available') @Default(true) bool isAvailable,
+  }) = _ProductCreateRequest;
+
+  factory ProductCreateRequest.fromJson(Map<String, dynamic> json) =>
+      _$ProductCreateRequestFromJson(json);
+}
+
+@freezed
+class ProductUpdateRequest with _$ProductUpdateRequest {
+  @JsonSerializable(includeIfNull: false)
+  const factory ProductUpdateRequest({
+    String? name,
+    double? price,
+    String? description,
+    @JsonKey(name: 'image_url') String? imageUrl,
+    @JsonKey(name: 'category_id') String? categoryId,
+    @JsonKey(name: 'is_available') bool? isAvailable,
+  }) = _ProductUpdateRequest;
+
+  factory ProductUpdateRequest.fromJson(Map<String, dynamic> json) =>
+      _$ProductUpdateRequestFromJson(json);
+}
+
+@freezed
 class ProductWithCategory with _$ProductWithCategory {
   const factory ProductWithCategory({
     required String id,

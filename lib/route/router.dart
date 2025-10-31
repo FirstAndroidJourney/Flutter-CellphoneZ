@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shop/admin/views/category_management.dart';
+import 'package:shop/admin/views/product_management.dart';
 import 'package:shop/entry_point.dart';
 import 'package:shop/screens/product/views/product_detail_screen.dart';
 
@@ -126,6 +127,10 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case categoryManagementScreenRoute:
       return MaterialPageRoute(
         builder: (context) => const CategoryManagement(),
+      );
+    case productManagementScreenRoute:
+      return MaterialPageRoute(
+        builder: (context) => const ProductManagement(),
       );
 
     default:

@@ -297,6 +297,549 @@ abstract class _Product implements Product {
       throw _privateConstructorUsedError;
 }
 
+ProductCreateRequest _$ProductCreateRequestFromJson(Map<String, dynamic> json) {
+  return _ProductCreateRequest.fromJson(json);
+}
+
+/// @nodoc
+mixin _$ProductCreateRequest {
+  String get name => throw _privateConstructorUsedError;
+  double get price => throw _privateConstructorUsedError;
+  String? get description => throw _privateConstructorUsedError;
+  @JsonKey(name: 'image_url')
+  String? get imageUrl => throw _privateConstructorUsedError;
+  @JsonKey(name: 'category_id')
+  String get categoryId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_available')
+  bool get isAvailable => throw _privateConstructorUsedError;
+
+  /// Serializes this ProductCreateRequest to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of ProductCreateRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $ProductCreateRequestCopyWith<ProductCreateRequest> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ProductCreateRequestCopyWith<$Res> {
+  factory $ProductCreateRequestCopyWith(ProductCreateRequest value,
+          $Res Function(ProductCreateRequest) then) =
+      _$ProductCreateRequestCopyWithImpl<$Res, ProductCreateRequest>;
+  @useResult
+  $Res call(
+      {String name,
+      double price,
+      String? description,
+      @JsonKey(name: 'image_url') String? imageUrl,
+      @JsonKey(name: 'category_id') String categoryId,
+      @JsonKey(name: 'is_available') bool isAvailable});
+}
+
+/// @nodoc
+class _$ProductCreateRequestCopyWithImpl<$Res,
+        $Val extends ProductCreateRequest>
+    implements $ProductCreateRequestCopyWith<$Res> {
+  _$ProductCreateRequestCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of ProductCreateRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? name = null,
+    Object? price = null,
+    Object? description = freezed,
+    Object? imageUrl = freezed,
+    Object? categoryId = null,
+    Object? isAvailable = null,
+  }) {
+    return _then(_value.copyWith(
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      price: null == price
+          ? _value.price
+          : price // ignore: cast_nullable_to_non_nullable
+              as double,
+      description: freezed == description
+          ? _value.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String?,
+      imageUrl: freezed == imageUrl
+          ? _value.imageUrl
+          : imageUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      categoryId: null == categoryId
+          ? _value.categoryId
+          : categoryId // ignore: cast_nullable_to_non_nullable
+              as String,
+      isAvailable: null == isAvailable
+          ? _value.isAvailable
+          : isAvailable // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$ProductCreateRequestImplCopyWith<$Res>
+    implements $ProductCreateRequestCopyWith<$Res> {
+  factory _$$ProductCreateRequestImplCopyWith(_$ProductCreateRequestImpl value,
+          $Res Function(_$ProductCreateRequestImpl) then) =
+      __$$ProductCreateRequestImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String name,
+      double price,
+      String? description,
+      @JsonKey(name: 'image_url') String? imageUrl,
+      @JsonKey(name: 'category_id') String categoryId,
+      @JsonKey(name: 'is_available') bool isAvailable});
+}
+
+/// @nodoc
+class __$$ProductCreateRequestImplCopyWithImpl<$Res>
+    extends _$ProductCreateRequestCopyWithImpl<$Res, _$ProductCreateRequestImpl>
+    implements _$$ProductCreateRequestImplCopyWith<$Res> {
+  __$$ProductCreateRequestImplCopyWithImpl(_$ProductCreateRequestImpl _value,
+      $Res Function(_$ProductCreateRequestImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of ProductCreateRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? name = null,
+    Object? price = null,
+    Object? description = freezed,
+    Object? imageUrl = freezed,
+    Object? categoryId = null,
+    Object? isAvailable = null,
+  }) {
+    return _then(_$ProductCreateRequestImpl(
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      price: null == price
+          ? _value.price
+          : price // ignore: cast_nullable_to_non_nullable
+              as double,
+      description: freezed == description
+          ? _value.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String?,
+      imageUrl: freezed == imageUrl
+          ? _value.imageUrl
+          : imageUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      categoryId: null == categoryId
+          ? _value.categoryId
+          : categoryId // ignore: cast_nullable_to_non_nullable
+              as String,
+      isAvailable: null == isAvailable
+          ? _value.isAvailable
+          : isAvailable // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$ProductCreateRequestImpl implements _ProductCreateRequest {
+  const _$ProductCreateRequestImpl(
+      {required this.name,
+      required this.price,
+      this.description,
+      @JsonKey(name: 'image_url') this.imageUrl,
+      @JsonKey(name: 'category_id') required this.categoryId,
+      @JsonKey(name: 'is_available') this.isAvailable = true});
+
+  factory _$ProductCreateRequestImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ProductCreateRequestImplFromJson(json);
+
+  @override
+  final String name;
+  @override
+  final double price;
+  @override
+  final String? description;
+  @override
+  @JsonKey(name: 'image_url')
+  final String? imageUrl;
+  @override
+  @JsonKey(name: 'category_id')
+  final String categoryId;
+  @override
+  @JsonKey(name: 'is_available')
+  final bool isAvailable;
+
+  @override
+  String toString() {
+    return 'ProductCreateRequest(name: $name, price: $price, description: $description, imageUrl: $imageUrl, categoryId: $categoryId, isAvailable: $isAvailable)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ProductCreateRequestImpl &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.price, price) || other.price == price) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
+            (identical(other.imageUrl, imageUrl) ||
+                other.imageUrl == imageUrl) &&
+            (identical(other.categoryId, categoryId) ||
+                other.categoryId == categoryId) &&
+            (identical(other.isAvailable, isAvailable) ||
+                other.isAvailable == isAvailable));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType, name, price, description, imageUrl, categoryId, isAvailable);
+
+  /// Create a copy of ProductCreateRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ProductCreateRequestImplCopyWith<_$ProductCreateRequestImpl>
+      get copyWith =>
+          __$$ProductCreateRequestImplCopyWithImpl<_$ProductCreateRequestImpl>(
+              this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$ProductCreateRequestImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _ProductCreateRequest implements ProductCreateRequest {
+  const factory _ProductCreateRequest(
+          {required final String name,
+          required final double price,
+          final String? description,
+          @JsonKey(name: 'image_url') final String? imageUrl,
+          @JsonKey(name: 'category_id') required final String categoryId,
+          @JsonKey(name: 'is_available') final bool isAvailable}) =
+      _$ProductCreateRequestImpl;
+
+  factory _ProductCreateRequest.fromJson(Map<String, dynamic> json) =
+      _$ProductCreateRequestImpl.fromJson;
+
+  @override
+  String get name;
+  @override
+  double get price;
+  @override
+  String? get description;
+  @override
+  @JsonKey(name: 'image_url')
+  String? get imageUrl;
+  @override
+  @JsonKey(name: 'category_id')
+  String get categoryId;
+  @override
+  @JsonKey(name: 'is_available')
+  bool get isAvailable;
+
+  /// Create a copy of ProductCreateRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ProductCreateRequestImplCopyWith<_$ProductCreateRequestImpl>
+      get copyWith => throw _privateConstructorUsedError;
+}
+
+ProductUpdateRequest _$ProductUpdateRequestFromJson(Map<String, dynamic> json) {
+  return _ProductUpdateRequest.fromJson(json);
+}
+
+/// @nodoc
+mixin _$ProductUpdateRequest {
+  String? get name => throw _privateConstructorUsedError;
+  double? get price => throw _privateConstructorUsedError;
+  String? get description => throw _privateConstructorUsedError;
+  @JsonKey(name: 'image_url')
+  String? get imageUrl => throw _privateConstructorUsedError;
+  @JsonKey(name: 'category_id')
+  String? get categoryId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_available')
+  bool? get isAvailable => throw _privateConstructorUsedError;
+
+  /// Serializes this ProductUpdateRequest to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of ProductUpdateRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $ProductUpdateRequestCopyWith<ProductUpdateRequest> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ProductUpdateRequestCopyWith<$Res> {
+  factory $ProductUpdateRequestCopyWith(ProductUpdateRequest value,
+          $Res Function(ProductUpdateRequest) then) =
+      _$ProductUpdateRequestCopyWithImpl<$Res, ProductUpdateRequest>;
+  @useResult
+  $Res call(
+      {String? name,
+      double? price,
+      String? description,
+      @JsonKey(name: 'image_url') String? imageUrl,
+      @JsonKey(name: 'category_id') String? categoryId,
+      @JsonKey(name: 'is_available') bool? isAvailable});
+}
+
+/// @nodoc
+class _$ProductUpdateRequestCopyWithImpl<$Res,
+        $Val extends ProductUpdateRequest>
+    implements $ProductUpdateRequestCopyWith<$Res> {
+  _$ProductUpdateRequestCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of ProductUpdateRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? name = freezed,
+    Object? price = freezed,
+    Object? description = freezed,
+    Object? imageUrl = freezed,
+    Object? categoryId = freezed,
+    Object? isAvailable = freezed,
+  }) {
+    return _then(_value.copyWith(
+      name: freezed == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String?,
+      price: freezed == price
+          ? _value.price
+          : price // ignore: cast_nullable_to_non_nullable
+              as double?,
+      description: freezed == description
+          ? _value.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String?,
+      imageUrl: freezed == imageUrl
+          ? _value.imageUrl
+          : imageUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      categoryId: freezed == categoryId
+          ? _value.categoryId
+          : categoryId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isAvailable: freezed == isAvailable
+          ? _value.isAvailable
+          : isAvailable // ignore: cast_nullable_to_non_nullable
+              as bool?,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$ProductUpdateRequestImplCopyWith<$Res>
+    implements $ProductUpdateRequestCopyWith<$Res> {
+  factory _$$ProductUpdateRequestImplCopyWith(_$ProductUpdateRequestImpl value,
+          $Res Function(_$ProductUpdateRequestImpl) then) =
+      __$$ProductUpdateRequestImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String? name,
+      double? price,
+      String? description,
+      @JsonKey(name: 'image_url') String? imageUrl,
+      @JsonKey(name: 'category_id') String? categoryId,
+      @JsonKey(name: 'is_available') bool? isAvailable});
+}
+
+/// @nodoc
+class __$$ProductUpdateRequestImplCopyWithImpl<$Res>
+    extends _$ProductUpdateRequestCopyWithImpl<$Res, _$ProductUpdateRequestImpl>
+    implements _$$ProductUpdateRequestImplCopyWith<$Res> {
+  __$$ProductUpdateRequestImplCopyWithImpl(_$ProductUpdateRequestImpl _value,
+      $Res Function(_$ProductUpdateRequestImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of ProductUpdateRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? name = freezed,
+    Object? price = freezed,
+    Object? description = freezed,
+    Object? imageUrl = freezed,
+    Object? categoryId = freezed,
+    Object? isAvailable = freezed,
+  }) {
+    return _then(_$ProductUpdateRequestImpl(
+      name: freezed == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String?,
+      price: freezed == price
+          ? _value.price
+          : price // ignore: cast_nullable_to_non_nullable
+              as double?,
+      description: freezed == description
+          ? _value.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String?,
+      imageUrl: freezed == imageUrl
+          ? _value.imageUrl
+          : imageUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      categoryId: freezed == categoryId
+          ? _value.categoryId
+          : categoryId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isAvailable: freezed == isAvailable
+          ? _value.isAvailable
+          : isAvailable // ignore: cast_nullable_to_non_nullable
+              as bool?,
+    ));
+  }
+}
+
+/// @nodoc
+
+@JsonSerializable(includeIfNull: false)
+class _$ProductUpdateRequestImpl implements _ProductUpdateRequest {
+  const _$ProductUpdateRequestImpl(
+      {this.name,
+      this.price,
+      this.description,
+      @JsonKey(name: 'image_url') this.imageUrl,
+      @JsonKey(name: 'category_id') this.categoryId,
+      @JsonKey(name: 'is_available') this.isAvailable});
+
+  factory _$ProductUpdateRequestImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ProductUpdateRequestImplFromJson(json);
+
+  @override
+  final String? name;
+  @override
+  final double? price;
+  @override
+  final String? description;
+  @override
+  @JsonKey(name: 'image_url')
+  final String? imageUrl;
+  @override
+  @JsonKey(name: 'category_id')
+  final String? categoryId;
+  @override
+  @JsonKey(name: 'is_available')
+  final bool? isAvailable;
+
+  @override
+  String toString() {
+    return 'ProductUpdateRequest(name: $name, price: $price, description: $description, imageUrl: $imageUrl, categoryId: $categoryId, isAvailable: $isAvailable)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ProductUpdateRequestImpl &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.price, price) || other.price == price) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
+            (identical(other.imageUrl, imageUrl) ||
+                other.imageUrl == imageUrl) &&
+            (identical(other.categoryId, categoryId) ||
+                other.categoryId == categoryId) &&
+            (identical(other.isAvailable, isAvailable) ||
+                other.isAvailable == isAvailable));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType, name, price, description, imageUrl, categoryId, isAvailable);
+
+  /// Create a copy of ProductUpdateRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ProductUpdateRequestImplCopyWith<_$ProductUpdateRequestImpl>
+      get copyWith =>
+          __$$ProductUpdateRequestImplCopyWithImpl<_$ProductUpdateRequestImpl>(
+              this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$ProductUpdateRequestImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _ProductUpdateRequest implements ProductUpdateRequest {
+  const factory _ProductUpdateRequest(
+          {final String? name,
+          final double? price,
+          final String? description,
+          @JsonKey(name: 'image_url') final String? imageUrl,
+          @JsonKey(name: 'category_id') final String? categoryId,
+          @JsonKey(name: 'is_available') final bool? isAvailable}) =
+      _$ProductUpdateRequestImpl;
+
+  factory _ProductUpdateRequest.fromJson(Map<String, dynamic> json) =
+      _$ProductUpdateRequestImpl.fromJson;
+
+  @override
+  String? get name;
+  @override
+  double? get price;
+  @override
+  String? get description;
+  @override
+  @JsonKey(name: 'image_url')
+  String? get imageUrl;
+  @override
+  @JsonKey(name: 'category_id')
+  String? get categoryId;
+  @override
+  @JsonKey(name: 'is_available')
+  bool? get isAvailable;
+
+  /// Create a copy of ProductUpdateRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ProductUpdateRequestImplCopyWith<_$ProductUpdateRequestImpl>
+      get copyWith => throw _privateConstructorUsedError;
+}
+
 ProductWithCategory _$ProductWithCategoryFromJson(Map<String, dynamic> json) {
   return _ProductWithCategory.fromJson(json);
 }
