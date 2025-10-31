@@ -127,18 +127,22 @@ class ProductService {
     }
   }
 
-  Future<void> deleteProduct(Product product) async {
-    final storagePath = _extractStoragePath(product.imageUrl ?? '');
-
+  Future<void> updateProductAvailability(
+    Product product,
+    bool isAvailable,
+  ) async {
     try {
-      await _productRepository.deleteProduct(product.id);
-
-      if (storagePath != null) {
-        await _safeRemoveImage(storagePath);
-      }
+      await _productRepository.updateProductAvailability(
+        product.id,
+        isAvailable,
+      );
     } catch (error, stackTrace) {
-      _logger.e('Delete product ${product.id} failed', error, stackTrace);
-      throw Exception('Failed to delete product: $error');
+      _logger.e(
+        'Update availability for product ${product.id} failed',
+        error,
+        stackTrace,
+      );
+      throw Exception('Failed to change product availability: $error');
     }
   }
 

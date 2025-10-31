@@ -82,21 +82,27 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       itemCount: _relatedProducts.length,
       itemBuilder: (context, index) => Padding(
         padding: EdgeInsets.only(
-            left: defaultPadding,
-            right: index == _relatedProducts.length - 1 ? defaultPadding : 0),
-        child: ProductCard.fromProduct(
-          product: _relatedProducts[index],
-          onPressed: () {
-            // Điều hướng đến chi tiết sản phẩm
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ProductDetailsScreen(
-                  productId: _relatedProducts[index].id,
+          left: defaultPadding,
+          right: index == _relatedProducts.length - 1
+              ? defaultPadding
+              : 0,
+        ),
+        child: SizedBox(
+          width: 160,
+          child: ProductCard.fromProduct(
+            product: _relatedProducts[index],
+            onPressed: () {
+              // Điều hướng đến chi tiết sản phẩm
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProductDetailsScreen(
+                    productId: _relatedProducts[index].id,
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

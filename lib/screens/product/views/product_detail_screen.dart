@@ -97,13 +97,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         itemCount: demoProducts.length,
         itemBuilder: (context, index) => Padding(
           padding: EdgeInsets.only(
-              left: defaultPadding,
-              right: index == demoProducts.length - 1 ? defaultPadding : 0),
-          child: ProductCard.fromProduct(
-            product: demoProducts[index],
-            priceAfterDiscount: index.isEven ? 20.99 : null,
-            discountPercent: index.isEven ? 25 : null,
-            onPressed: () {},
+            left: defaultPadding,
+            right: index == demoProducts.length - 1 ? defaultPadding : 0,
+          ),
+          child: SizedBox(
+            width: 160,
+            child: ProductCard.fromProduct(
+              product: demoProducts[index],
+              priceAfterDiscount: index.isEven ? 20.99 : null,
+              discountPercent: index.isEven ? 25 : null,
+              onPressed: () {},
+            ),
           ),
         ),
       );
@@ -115,21 +119,26 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       itemCount: _relatedProducts.length,
       itemBuilder: (context, index) => Padding(
         padding: EdgeInsets.only(
-            left: defaultPadding,
-            right: index == _relatedProducts.length - 1 ? defaultPadding : 0),
-        child: ProductCard.fromProduct(
-          product: _relatedProducts[index],
-          onPressed: () {
-            // Điều hướng đến chi tiết sản phẩm
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ProductDetailScreen(
-                  productId: _relatedProducts[index].id,
+          left: defaultPadding,
+          right:
+              index == _relatedProducts.length - 1 ? defaultPadding : 0,
+        ),
+        child: SizedBox(
+          width: 160,
+          child: ProductCard.fromProduct(
+            product: _relatedProducts[index],
+            onPressed: () {
+              // Điều hướng đến chi tiết sản phẩm
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProductDetailScreen(
+                    productId: _relatedProducts[index].id,
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

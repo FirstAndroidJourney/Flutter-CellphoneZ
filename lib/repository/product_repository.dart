@@ -57,6 +57,22 @@ class ProductRepository extends BaseRepository {
     }
   }
 
+  Future<Product> updateProductAvailability(String id, bool isAvailable) async {
+    try {
+      final data = await update(id, {
+        productsSchema.isAvailable: isAvailable,
+      });
+      return Product.fromJson(data);
+    } catch (error, stackTrace) {
+      _logger.e(
+        'Failed to update availability for product $id',
+        error,
+        stackTrace,
+      );
+      throw Exception('Failed to update product availability: $error');
+    }
+  }
+
   Future<void> deleteProduct(String id) async {
     try {
       await delete(id);

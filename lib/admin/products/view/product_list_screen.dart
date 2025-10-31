@@ -131,12 +131,19 @@ class _ProductListViewState extends State<_ProductListView> {
 
   Future<void> _confirmDelete(Product product) async {
     final bloc = context.read<ProductAdminBloc>();
+    final isAvailable = product.isAvailable;
+    final title =
+        isAvailable ? 'Ngừng bán sản phẩm' : 'Mở bán lại sản phẩm';
+    final content = isAvailable
+        ? 'Bạn có chắc muốn ngừng bán "${product.name}" không?'
+        : 'Bạn có muốn mở bán lại "${product.name}" không?';
+    final confirmLabel = isAvailable ? 'Ngừng bán' : 'Mở bán lại';
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Xoá sản phẩm'),
-        content: Text('Bạn có chắc muốn xoá "${product.name}" không?'),
+        title: Text(title),
+        content: Text(content),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -145,9 +152,11 @@ class _ProductListViewState extends State<_ProductListView> {
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
+              backgroundColor: isAvailable
+                  ? Theme.of(context).colorScheme.error
+                  : Theme.of(context).colorScheme.primary,
             ),
-            child: const Text('Xoá'),
+            child: Text(confirmLabel),
           ),
         ],
       ),
@@ -249,8 +258,13 @@ class _ProductTile extends StatelessWidget {
             onPressed: onEdit,
           ),
           IconButton(
-            tooltip: 'Xoá',
-            icon: const Icon(Icons.delete_outline),
+            tooltip: isAvailable ? 'Ngừng bán' : 'Mở bán lại',
+            icon: Icon(
+              isAvailable ? Icons.delete_outline : Icons.restore,
+              color: isAvailable
+                  ? Theme.of(context).colorScheme.error
+                  : Theme.of(context).colorScheme.primary,
+            ),
             onPressed: onDelete,
           ),
         ],

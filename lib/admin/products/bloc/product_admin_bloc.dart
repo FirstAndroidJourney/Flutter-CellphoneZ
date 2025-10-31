@@ -107,14 +107,21 @@ class ProductAdminBloc extends Bloc<ProductAdminEvent, ProductAdminState> {
     );
 
     try {
-      await _productService.deleteProduct(event.product);
+      final shouldEnable = !event.product.isAvailable;
+
+      await _productService.updateProductAvailability(
+        event.product,
+        shouldEnable,
+      );
       final products = await _productService.getAllProducts();
       emit(
         state.copyWith(
           status: ProductAdminStatus.success,
           products: products,
           formStatus: ProductAdminFormStatus.success,
-          successMessage: 'Đã xóa sản phẩm',
+          successMessage: shouldEnable
+              ? 'Đã mở bán lại sản phẩm'
+              : 'Đã ngừng bán sản phẩm',
         ),
       );
     } catch (error) {
