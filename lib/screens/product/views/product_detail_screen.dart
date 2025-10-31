@@ -187,7 +187,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       customModalBottomSheet(
                         context,
                         height: MediaQuery.of(context).size.height * 0.92,
-                        child: const ProductBuyNowScreen(),
+                        child: ProductBuyNowScreen(
+                          productId: product.id,
+                          price: product.price,
+                          title: product.name,
+                          imageUrl: product.imageUrl,
+                        ),
                       );
                     },
                   )

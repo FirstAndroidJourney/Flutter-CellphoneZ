@@ -6,6 +6,8 @@ import 'package:shop/components/custom_modal_bottom_sheet.dart';
 import 'package:shop/components/product/product_card.dart';
 import 'package:shop/constants.dart';
 import 'package:shop/models/product.dart';
+import 'package:shop/screens/product/views/location_permission_store_availability_screen.dart';
+import 'package:shop/screens/product/views/size_guide_screen.dart';
 import 'package:shop/services/product_service.dart';
 import 'package:shop/screens/product/views/product_returns_screen.dart';
 
@@ -112,7 +114,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 customModalBottomSheet(
                   context,
                   height: MediaQuery.of(context).size.height * 0.92,
-                  child: const ProductBuyNowScreen(),
+                  child: ProductBuyNowScreen(
+                    productId: widget.productId ?? '',
+                    price: 140,
+                  ),
                 );
               },
             )
@@ -207,6 +212,40 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               press: () {
                 Navigator.pushNamed(context, productReviewsScreenRoute);
               },
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(vertical: defaultPadding),
+              sliver: SliverToBoxAdapter(
+                child: ProductListTile(
+                  title: "Size guide",
+                  svgSrc: "assets/icons/Sizeguid.svg",
+                  isShowBottomBorder: true,
+                  press: () {
+                    customModalBottomSheet(
+                      context,
+                      height: MediaQuery.of(context).size.height * 0.9,
+                      child: const SizeGuideScreen(),
+                    );
+                  },
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(vertical: defaultPadding),
+              sliver: SliverToBoxAdapter(
+                child: ProductListTile(
+                  title: "Check stores",
+                  svgSrc: "assets/icons/Stores.svg",
+                  isShowBottomBorder: true,
+                  press: () {
+                    customModalBottomSheet(
+                      context,
+                      height: MediaQuery.of(context).size.height * 0.92,
+                      child: const LocationPermissonStoreAvailabilityScreen(),
+                    );
+                  },
+                ),
+              ),
             ),
             SliverPadding(
               padding: const EdgeInsets.all(defaultPadding),

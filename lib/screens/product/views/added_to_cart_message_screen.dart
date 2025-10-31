@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart'; // <-- THÊM
 import 'package:shop/constants.dart';
-import 'package:shop/route/screen_export.dart';
+// import 'package:shop/route/screen_export.dart'; // Không cần nữa
+import 'package:shop/providers/tab_provider.dart'; // <-- THÊM
 
 class AddedToCartMessageScreen extends StatelessWidget {
   const AddedToCartMessageScreen({super.key});
@@ -36,13 +38,25 @@ class AddedToCartMessageScreen extends StatelessWidget {
               const Spacer(flex: 2),
               OutlinedButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, entryPointScreenRoute);
+                  // SỬA LẠI:
+                  // 1. Đóng tất cả các màn hình/modal cho đến khi về EntryPoint
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+
+                  // 2. Chuyển về tab "Shop" (index 0)
+                  context.read<TabProvider>().changeTab(0);
                 },
                 child: const Text("Continue shopping"),
               ),
               const SizedBox(height: defaultPadding),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  // SỬA LẠI:
+                  // 1. Đóng tất cả các màn hình/modal cho đến khi về EntryPoint
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+
+                  // 2. Chuyển sang tab "Cart" (index 2)
+                  context.read<TabProvider>().changeTab(2);
+                },
                 child: const Text("Checkout"),
               ),
               const Spacer(),
