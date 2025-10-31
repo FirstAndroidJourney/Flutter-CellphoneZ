@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import 'package:shop/admin/products/bloc/product_selection_cubit.dart';
 import 'package:shop/common/app_logger.dart';
 import '../clients/database_client.dart';
 import '../repository/auth_repository.dart';
@@ -46,6 +47,9 @@ Future<void> setupDependencies() async {
         () => OrderItemRepository());
     getIt.registerLazySingleton<UserRepository>(() => UserRepository());
     getIt.registerLazySingleton<StorageService>(() => StorageService());
+    getIt.registerLazySingleton<ProductSelectionCubit>(
+      () => ProductSelectionCubit(),
+    );
 
     print('All repositories registered successfully');
   } catch (e) {

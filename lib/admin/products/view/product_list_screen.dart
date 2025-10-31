@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../models/product.dart';
+import '../../../services/dependency_injection.dart';
 import '../../../services/product_service.dart';
 import '../../products/bloc/product_admin_bloc.dart';
+import '../../products/bloc/product_selection_cubit.dart';
 import 'product_form_screen.dart';
 
 class ProductListScreen extends StatelessWidget {
@@ -12,9 +14,16 @@ class ProductListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) =>
-          ProductAdminBloc(ProductService())..add(const ProductAdminStarted()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => ProductAdminBloc(ProductService())
+            ..add(const ProductAdminStarted()),
+        ),
+        BlocProvider<ProductSelectionCubit>.value(
+          value: getIt<ProductSelectionCubit>(),
+        ),
+      ],
       child: const _ProductListView(),
     );
   }
@@ -112,18 +121,29 @@ class _ProductListViewState extends State<_ProductListView> {
     debugPrint(
       '[ProductList] _openForm start | productId=${product?.id ?? 'new'}',
     );
-    final bloc = context.read<ProductAdminBloc>();
-    final navigator = Navigator.of(context);
+    final listBloc = context.read<ProductAdminBloc>();
+    final selectionCubit = context.read<ProductSelectionCubit>();
     final messenger = ScaffoldMessenger.of(context);
 
-    final result = await navigator.push<String?>(
+    selectionCubit.select(product?.id);
+
+    final result = await Navigator.of(context).push<String?>(
       MaterialPageRoute(
-        builder: (_) => BlocProvider.value(
-          value: bloc,
-          child: ProductFormScreen(product: product),
+        builder: (_) => MultiBlocProvider(
+          providers: [
+            BlocProvider<ProductSelectionCubit>.value(
+              value: selectionCubit,
+            ),
+            BlocProvider(
+              create: (_) => ProductAdminBloc(ProductService()),
+            ),
+          ],
+          child: const ProductFormScreen(),
         ),
       ),
     );
+
+    selectionCubit.clear();
 
     if (!mounted) return;
 
@@ -133,7 +153,8 @@ class _ProductListViewState extends State<_ProductListView> {
 
     if (result != null && result.isNotEmpty) {
       messenger.showSnackBar(SnackBar(content: Text(result)));
-      bloc.add(const ProductAdminFormReset());
+      listBloc.add(const ProductAdminRefreshed());
+      listBloc.add(const ProductAdminFormReset());
     }
   }
 

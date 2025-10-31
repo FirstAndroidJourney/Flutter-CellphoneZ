@@ -144,12 +144,10 @@ class _ProductFormState extends State<ProductForm> {
           absorbing: isSubmitting,
           child: Form(
             key: _formKey,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: _buildFormContents(isSubmitting),
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: _buildFormContents(isSubmitting),
             ),
           ),
         );
