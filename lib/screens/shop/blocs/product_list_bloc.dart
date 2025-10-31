@@ -7,7 +7,6 @@ import 'product_list_state.dart';
 
 class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
   final ProductRepository _productRepository;
-  Timer? _debounceTimer;
 
   ProductListBloc({ProductRepository? productRepository})
       : _productRepository = productRepository ?? GetIt.I<ProductRepository>(),
@@ -66,41 +65,35 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
     }
   }
 
-  /// Handle searching products with debounce
+  /// Handle searching products (debounce is handled in UI)
   Future<void> _onSearchProducts(
     SearchProducts event,
     Emitter<ProductListState> emit,
   ) async {
-    // Cancel previous timer if exists
-    _debounceTimer?.cancel();
-
     // If query is empty, load all products
     if (event.query.trim().isEmpty) {
       add(const LoadProducts());
       return;
     }
 
-    // Create a debounce timer
-    _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
-      emit(const ProductListLoading());
-      try {
-        final products = await _productRepository.searchProducts(event.query);
+    emit(const ProductListLoading());
+    try {
+      final products = await _productRepository.searchProducts(event.query);
 
-        if (products.isEmpty) {
-          emit(ProductListEmpty(
-            message: 'Không tìm thấy sản phẩm với từ khóa "${event.query}"',
-          ));
-        } else {
-          emit(ProductListLoaded(
-            products: products,
-            searchQuery: event.query,
-            isFiltered: true,
-          ));
-        }
-      } catch (e) {
-        emit(ProductListError('Không thể tìm kiếm sản phẩm: ${e.toString()}'));
+      if (products.isEmpty) {
+        emit(ProductListEmpty(
+          message: 'Không tìm thấy sản phẩm với từ khóa "${event.query}"',
+        ));
+      } else {
+        emit(ProductListLoaded(
+          products: products,
+          searchQuery: event.query,
+          isFiltered: true,
+        ));
       }
-    });
+    } catch (e) {
+      emit(ProductListError('Không thể tìm kiếm sản phẩm: ${e.toString()}'));
+    }
   }
 
   /// Handle refreshing products
@@ -137,11 +130,5 @@ class ProductListBloc extends Bloc<ProductListEvent, ProductListState> {
     Emitter<ProductListState> emit,
   ) async {
     add(const LoadProducts());
-  }
-
-  @override
-  Future<void> close() {
-    _debounceTimer?.cancel();
-    return super.close();
   }
 }

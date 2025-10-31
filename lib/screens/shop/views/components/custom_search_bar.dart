@@ -117,18 +117,25 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
   }
 
   void _onSearchChanged(String query) {
+    // Update UI immediately
+    setState(() {});
+    
     // Cancel previous timer
     _debounceTimer?.cancel();
 
-    // Create new debounce timer
+    // If empty, clear immediately
+    if (query.trim().isEmpty) {
+      widget.onSearch('');
+      return;
+    }
+
+    // Create new debounce timer for non-empty queries
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      if (query.trim().isNotEmpty) {
-        _saveSearchHistory(query);
-        widget.onSearch(query);
-        setState(() {
-          _showHistory = false;
-        });
-      }
+      _saveSearchHistory(query);
+      widget.onSearch(query);
+      setState(() {
+        _showHistory = false;
+      });
     });
   }
 
