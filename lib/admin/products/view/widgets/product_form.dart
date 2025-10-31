@@ -144,17 +144,11 @@ class _ProductFormState extends State<ProductForm> {
           absorbing: isSubmitting,
           child: Form(
             key: _formKey,
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 480),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: _buildFormContents(isSubmitting),
-                  ),
-                ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: _buildFormContents(isSubmitting),
               ),
             ),
           ),
@@ -272,7 +266,6 @@ class _ProductFormState extends State<ProductForm> {
       decoration: const InputDecoration(
         labelText: 'Danh mục',
       ),
-      isExpanded: true,
       onChanged: (value) {
         setState(() {
           _selectedCategoryId = value;
