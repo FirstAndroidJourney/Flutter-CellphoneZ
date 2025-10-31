@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -7,7 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../models/category.dart';
 import '../../../../models/product.dart';
 import '../../../../services/category_service.dart';
-import '../../../../services/product_service.dart';
+import '../../../../services/product_service.dart' show ProductImagePayload;
 import '../../bloc/product_admin_bloc.dart';
 
 class ProductForm extends StatefulWidget {
@@ -39,6 +40,9 @@ class _ProductFormState extends State<ProductForm> {
   void initState() {
     super.initState();
     final product = widget.product;
+    debugPrint(
+      '[ProductForm] initState | productId=${product?.id ?? 'new'} | hasImage=${product?.imageUrl != null}',
+    );
     _nameController = TextEditingController(text: product?.name ?? '');
     _priceController = TextEditingController(
       text: product != null ? product.price.toStringAsFixed(2) : '',
@@ -53,6 +57,9 @@ class _ProductFormState extends State<ProductForm> {
 
   @override
   void dispose() {
+    debugPrint(
+      '[ProductForm] dispose | productId=${widget.product?.id ?? 'new'}',
+    );
     _nameController.dispose();
     _priceController.dispose();
     _descriptionController.dispose();
@@ -60,6 +67,7 @@ class _ProductFormState extends State<ProductForm> {
   }
 
   Future<void> _loadCategories() async {
+    debugPrint('[ProductForm] _loadCategories start');
     setState(() {
       _loadingCategories = true;
     });
@@ -77,7 +85,11 @@ class _ProductFormState extends State<ProductForm> {
           }
         });
       }
-    } catch (_) {
+      debugPrint(
+        '[ProductForm] _loadCategories success | count=${categories.length}',
+      );
+    } catch (error) {
+      debugPrint('[ProductForm] _loadCategories error: $error');
       if (mounted) {
         setState(() {
           _categories = const [];
@@ -88,8 +100,12 @@ class _ProductFormState extends State<ProductForm> {
   }
 
   Future<void> _pickImage() async {
+    debugPrint('[ProductForm] _pickImage start');
     final file = await _picker.pickImage(source: ImageSource.gallery);
-    if (file == null) return;
+    if (file == null) {
+      debugPrint('[ProductForm] _pickImage cancelled');
+      return;
+    }
 
     final bytes = await file.readAsBytes();
     if (!mounted) return;
@@ -100,9 +116,13 @@ class _ProductFormState extends State<ProductForm> {
           file.path.split('.').last.toLowerCase();
       _existingImageUrl = null;
     });
+    debugPrint(
+      '[ProductForm] _pickImage success | extension=$_pickedImageExtension | bytes=${bytes.length}',
+    );
   }
 
   void _clearSelectedImage() {
+    debugPrint('[ProductForm] _clearSelectedImage');
     setState(() {
       _pickedImageBytes = null;
       _pickedImageExtension = null;
@@ -112,6 +132,9 @@ class _ProductFormState extends State<ProductForm> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint(
+      '[ProductForm] build | productId=${widget.product?.id ?? 'new'} | categoriesLoaded=${_categories.isNotEmpty}',
+    );
     return BlocBuilder<ProductAdminBloc, ProductAdminState>(
       builder: (context, state) {
         final isSubmitting =
@@ -121,94 +144,98 @@ class _ProductFormState extends State<ProductForm> {
           absorbing: isSubmitting,
           child: Form(
             key: _formKey,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 480),
-                    child: ListView(
-                      shrinkWrap: true,
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(16),
-                      children: [
-                        if (isSubmitting) const LinearProgressIndicator(),
-                        TextFormField(
-                          controller: _nameController,
-                          decoration: const InputDecoration(
-                            labelText: 'Tên sản phẩm',
-                          ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Tên sản phẩm không được để trống';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _priceController,
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          decoration: const InputDecoration(
-                            labelText: 'Giá bán',
-                            suffixText: 'đ',
-                          ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Vui lòng nhập giá bán';
-                            }
-                            final parsed =
-                                double.tryParse(value.replaceAll(',', '.'));
-                            if (parsed == null || parsed <= 0) {
-                              return 'Giá bán phải lớn hơn 0';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        _buildCategoryDropdown(),
-                        const SizedBox(height: 16),
-                        SwitchListTile(
-                          value: _isAvailable,
-                          title: const Text('Trạng thái bán'),
-                          subtitle: Text(
-                            _isAvailable ? 'Đang bán' : 'Ngừng bán',
-                          ),
-                          onChanged: (value) {
-                            setState(() {
-                              _isAvailable = value;
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _descriptionController,
-                          decoration: const InputDecoration(
-                            labelText: 'Mô tả',
-                            alignLabelWithHint: true,
-                          ),
-                          maxLines: 4,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildImageSection(),
-                        const SizedBox(height: 24),
-                        FilledButton(
-                          onPressed: isSubmitting ? null : _handleSubmit,
-                          child: Text(
-                            widget.product == null ? 'Tạo sản phẩm' : 'Cập nhật',
-                          ),
-                        ),
-                      ],
-                    ),
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 480),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: _buildFormContents(isSubmitting),
                   ),
-                );
-              },
+                ),
+              ),
             ),
           ),
         );
       },
     );
+  }
+
+  List<Widget> _buildFormContents(bool isSubmitting) {
+    return [
+      if (isSubmitting) const LinearProgressIndicator(),
+      TextFormField(
+        controller: _nameController,
+        decoration: const InputDecoration(
+          labelText: 'Tên sản phẩm',
+        ),
+        validator: (value) {
+          if (value == null || value.trim().isEmpty) {
+            return 'Tên sản phẩm không được để trống';
+          }
+          return null;
+        },
+      ),
+      const SizedBox(height: 16),
+      TextFormField(
+        controller: _priceController,
+        keyboardType: const TextInputType.numberWithOptions(
+          decimal: true,
+        ),
+        decoration: const InputDecoration(
+          labelText: 'Giá bán',
+          suffixText: 'đ',
+        ),
+        validator: (value) {
+          if (value == null || value.trim().isEmpty) {
+            return 'Vui lòng nhập giá bán';
+          }
+          final parsed = double.tryParse(value.replaceAll(',', '.'));
+          if (parsed == null || parsed <= 0) {
+            return 'Giá bán phải lớn hơn 0';
+          }
+          return null;
+        },
+      ),
+      const SizedBox(height: 16),
+      _buildCategoryDropdown(),
+      const SizedBox(height: 16),
+      SwitchListTile(
+        value: _isAvailable,
+        title: const Text('Trạng thái bán'),
+        subtitle: Text(
+          _isAvailable ? 'Đang bán' : 'Ngừng bán',
+        ),
+        onChanged: (value) {
+          setState(() {
+            _isAvailable = value;
+          });
+          debugPrint(
+            '[ProductForm] availabilityChanged | isAvailable=$value',
+          );
+        },
+      ),
+      const SizedBox(height: 16),
+      TextFormField(
+        controller: _descriptionController,
+        decoration: const InputDecoration(
+          labelText: 'Mô tả',
+          alignLabelWithHint: true,
+        ),
+        maxLines: 4,
+      ),
+      const SizedBox(height: 16),
+      _buildImageSection(),
+      const SizedBox(height: 24),
+      FilledButton(
+        onPressed: isSubmitting ? null : _handleSubmit,
+        child: Text(
+          widget.product == null ? 'Tạo sản phẩm' : 'Cập nhật',
+        ),
+      ),
+    ];
   }
 
   Widget _buildCategoryDropdown() {
@@ -250,6 +277,9 @@ class _ProductFormState extends State<ProductForm> {
         setState(() {
           _selectedCategoryId = value;
         });
+        debugPrint(
+          '[ProductForm] categoryChanged | selected=${value ?? 'none'}',
+        );
       },
     );
   }
@@ -258,29 +288,50 @@ class _ProductFormState extends State<ProductForm> {
     final theme = Theme.of(context);
 
     Widget preview;
+    final placeholder = Container(
+      height: 180,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Center(
+        child: Icon(Icons.image_outlined, size: 40),
+      ),
+    );
+
     if (_pickedImageBytes != null) {
-      preview = Image.memory(
-        _pickedImageBytes!,
+      preview = SizedBox(
         height: 180,
-        fit: BoxFit.cover,
+        width: double.infinity,
+        child: Image.memory(
+          _pickedImageBytes!,
+          fit: BoxFit.cover,
+        ),
       );
     } else if (_existingImageUrl != null && _existingImageUrl!.isNotEmpty) {
-      preview = Image.network(
-        _existingImageUrl!,
+      preview = SizedBox(
         height: 180,
-        fit: BoxFit.cover,
+        width: double.infinity,
+        child: Image.network(
+          _existingImageUrl!,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) {
+              return child;
+            }
+            final expected = loadingProgress.expectedTotalBytes;
+            final progress = expected != null && expected > 0
+                ? loadingProgress.cumulativeBytesLoaded / expected
+                : null;
+            return Center(
+              child: CircularProgressIndicator(value: progress),
+            );
+          },
+          errorBuilder: (_, __, ___) => placeholder,
+        ),
       );
     } else {
-      preview = Container(
-        height: 180,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Center(
-          child: Icon(Icons.image_outlined, size: 40),
-        ),
-      );
+      preview = placeholder;
     }
 
     return Column(
@@ -316,14 +367,19 @@ class _ProductFormState extends State<ProductForm> {
   }
 
   void _handleSubmit() {
+    debugPrint('[ProductForm] _handleSubmit start');
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid) {
+      debugPrint('[ProductForm] _handleSubmit validation failed');
       return;
     }
 
     final parsedPrice =
         double.tryParse(_priceController.text.replaceAll(',', '.'));
     if (parsedPrice == null || parsedPrice <= 0) {
+      debugPrint(
+        '[ProductForm] _handleSubmit invalid price="${_priceController.text}"',
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Giá bán không hợp lệ')),
       );
@@ -352,5 +408,8 @@ class _ProductFormState extends State<ProductForm> {
             ),
           ),
         );
+    debugPrint(
+      '[ProductForm] _handleSubmit dispatched | productId=${widget.product?.id ?? 'new'}',
+    );
   }
 }

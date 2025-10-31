@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -108,20 +111,48 @@ class _ProductListViewState extends State<_ProductListView> {
   }
 
   Future<void> _openForm(BuildContext context, {Product? product}) async {
+    debugPrint(
+      '[ProductList] _openForm start | productId=${product?.id ?? 'new'}',
+    );
     final bloc = context.read<ProductAdminBloc>();
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
 
     final result = await navigator.push<String?>(
       MaterialPageRoute(
-        builder: (_) => BlocProvider.value(
-          value: bloc,
-          child: ProductFormScreen(product: product),
+        builder: (_) => LayoutBuilder(
+          builder: (context, constraints) {
+            const maxFormWidth = 480.0;
+            debugPrint(
+              '[ProductList] form route constraints=$constraints',
+            );
+            final hasBoundedWidth = constraints.hasBoundedWidth;
+            final availableWidth =
+                hasBoundedWidth ? constraints.maxWidth : double.infinity;
+            final width = availableWidth.isFinite && availableWidth > 0
+                ? math.min(availableWidth, maxFormWidth)
+                : maxFormWidth;
+
+            return Align(
+              alignment: Alignment.topCenter,
+              child: SizedBox(
+                width: width,
+                child: BlocProvider.value(
+                  value: bloc,
+                  child: ProductFormScreen(product: product),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
 
     if (!mounted) return;
+
+    debugPrint(
+      '[ProductList] _openForm result | productId=${product?.id ?? 'new'} | result="$result"',
+    );
 
     if (result != null && result.isNotEmpty) {
       messenger.showSnackBar(SnackBar(content: Text(result)));
@@ -255,7 +286,12 @@ class _ProductTile extends StatelessWidget {
           IconButton(
             tooltip: 'Chỉnh sửa',
             icon: const Icon(Icons.edit),
-            onPressed: onEdit,
+            onPressed: () {
+              debugPrint(
+                '[ProductList] Edit tapped | productId=${product.id}',
+              );
+              onEdit();
+            },
           ),
           IconButton(
             tooltip: isAvailable ? 'Ngừng bán' : 'Mở bán lại',

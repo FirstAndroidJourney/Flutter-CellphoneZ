@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../models/product.dart';
 import '../../../services/product_service.dart';
@@ -36,6 +37,9 @@ class ProductAdminBloc extends Bloc<ProductAdminEvent, ProductAdminState> {
     ProductAdminSubmitted event,
     Emitter<ProductAdminState> emit,
   ) async {
+    debugPrint(
+      '[ProductAdminBloc] _onSubmitted start | existingId=${event.existing?.id ?? 'new'}',
+    );
     emit(
       state.copyWith(
         formStatus: ProductAdminFormStatus.submitting,
@@ -46,6 +50,7 @@ class ProductAdminBloc extends Bloc<ProductAdminEvent, ProductAdminState> {
 
     try {
       if (event.existing == null) {
+        debugPrint('[ProductAdminBloc] _onSubmitted creating product');
         await _productService.createProduct(
           name: event.input.name,
           price: event.input.price,
@@ -55,6 +60,9 @@ class ProductAdminBloc extends Bloc<ProductAdminEvent, ProductAdminState> {
           image: event.input.image,
         );
       } else {
+        debugPrint(
+          '[ProductAdminBloc] _onSubmitted updating product ${event.existing!.id}',
+        );
         await _productService.updateProduct(
           current: event.existing!,
           name: event.input.name,
@@ -67,6 +75,9 @@ class ProductAdminBloc extends Bloc<ProductAdminEvent, ProductAdminState> {
       }
 
       final products = await _productService.getAllProducts();
+      debugPrint(
+        '[ProductAdminBloc] _onSubmitted success | totalProducts=${products.length}',
+      );
       emit(
         state.copyWith(
           status: ProductAdminStatus.success,
@@ -78,6 +89,7 @@ class ProductAdminBloc extends Bloc<ProductAdminEvent, ProductAdminState> {
         ),
       );
     } on ArgumentError catch (error) {
+      debugPrint('[ProductAdminBloc] _onSubmitted argument error: $error');
       emit(
         state.copyWith(
           formStatus: ProductAdminFormStatus.failure,
@@ -85,6 +97,7 @@ class ProductAdminBloc extends Bloc<ProductAdminEvent, ProductAdminState> {
         ),
       );
     } catch (error) {
+      debugPrint('[ProductAdminBloc] _onSubmitted error: $error');
       emit(
         state.copyWith(
           formStatus: ProductAdminFormStatus.failure,
@@ -98,6 +111,9 @@ class ProductAdminBloc extends Bloc<ProductAdminEvent, ProductAdminState> {
     ProductAdminDeleteRequested event,
     Emitter<ProductAdminState> emit,
   ) async {
+    debugPrint(
+      '[ProductAdminBloc] _onDeleteRequested start | productId=${event.product.id}',
+    );
     emit(
       state.copyWith(
         formStatus: ProductAdminFormStatus.submitting,
@@ -114,6 +130,9 @@ class ProductAdminBloc extends Bloc<ProductAdminEvent, ProductAdminState> {
         shouldEnable,
       );
       final products = await _productService.getAllProducts();
+      debugPrint(
+        '[ProductAdminBloc] _onDeleteRequested success | shouldEnable=$shouldEnable | totalProducts=${products.length}',
+      );
       emit(
         state.copyWith(
           status: ProductAdminStatus.success,
@@ -125,6 +144,7 @@ class ProductAdminBloc extends Bloc<ProductAdminEvent, ProductAdminState> {
         ),
       );
     } catch (error) {
+      debugPrint('[ProductAdminBloc] _onDeleteRequested error: $error');
       emit(
         state.copyWith(
           formStatus: ProductAdminFormStatus.failure,
@@ -151,6 +171,9 @@ class ProductAdminBloc extends Bloc<ProductAdminEvent, ProductAdminState> {
     Emitter<ProductAdminState> emit, {
     required bool showLoading,
   }) async {
+    debugPrint(
+      '[ProductAdminBloc] _loadProducts start | showLoading=$showLoading',
+    );
     if (showLoading) {
       emit(
         state.copyWith(
@@ -163,6 +186,9 @@ class ProductAdminBloc extends Bloc<ProductAdminEvent, ProductAdminState> {
 
     try {
       final products = await _productService.getAllProducts();
+      debugPrint(
+        '[ProductAdminBloc] _loadProducts success | totalProducts=${products.length}',
+      );
       emit(
         state.copyWith(
           status: ProductAdminStatus.success,
@@ -171,6 +197,7 @@ class ProductAdminBloc extends Bloc<ProductAdminEvent, ProductAdminState> {
         ),
       );
     } catch (error) {
+      debugPrint('[ProductAdminBloc] _loadProducts error: $error');
       emit(
         state.copyWith(
           status: ProductAdminStatus.failure,
