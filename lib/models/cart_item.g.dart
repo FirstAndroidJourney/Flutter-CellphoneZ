@@ -12,6 +12,10 @@ _$CartItemImpl _$$CartItemImplFromJson(Map<String, dynamic> json) =>
       userId: json['user_id'] as String,
       productId: json['product_id'] as String,
       quantity: (json['quantity'] as num).toInt(),
+      unitPrice: (json['unit_price'] as num).toDouble(),
+      productName: json['product_name'] as String,
+      productImage: json['product_image'] as String?,
+      isSelected: json['isSelected'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$CartItemImplToJson(_$CartItemImpl instance) =>
@@ -20,4 +24,8 @@ Map<String, dynamic> _$$CartItemImplToJson(_$CartItemImpl instance) =>
       'user_id': instance.userId,
       'product_id': instance.productId,
       'quantity': instance.quantity,
+      'unit_price': instance.unitPrice,
+      'product_name': instance.productName,
+      'product_image': instance.productImage,
+      'isSelected': instance.isSelected,
     };

@@ -24,6 +24,31 @@ class CartService {
     }
   }
 
+  // Update cart item quantity
+  Future<void> updateCartItemQuantity({
+    required String productId,
+    required int quantity,
+  }) async {
+    try {
+      if (!_authService.isAuthenticated) {
+        throw Exception('User not authenticated');
+      }
+
+      if (quantity <= 0) {
+        throw Exception('Quantity must be greater than 0');
+      }
+
+      final userId = _authService.currentUser!.id;
+      await _cartRepository.updateCartItemQuantity(
+        userId: userId,
+        productId: productId,
+        quantity: quantity,
+      );
+    } catch (e) {
+      throw Exception('Failed to update cart item: $e');
+    }
+  }
+
   // Add item to cart
   Future<CartItem> addToCart({
     required String productId,
@@ -54,6 +79,9 @@ class CartService {
         userId: userId,
         productId: productId,
         quantity: quantity,
+        unitPrice: product.price.toDouble(),
+        productName: product.name,
+        productImage: product.imageUrl,
       );
 
       return await _cartRepository.addToCart(cartItem);

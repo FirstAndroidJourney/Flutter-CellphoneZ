@@ -6,12 +6,20 @@ part 'cart_item.g.dart';
 class CartItem with _$CartItem {
   const factory CartItem({
     required String id,
-    @JsonKey(name: 'user_id') required String userId, // Cart của user nào
-    @JsonKey(name: 'product_id')
-    required String productId, // Sản phẩm trong giỏ
+    @JsonKey(name: 'user_id') required String userId,
+    @JsonKey(name: 'product_id') required String productId,
     required int quantity,
+    @JsonKey(name: 'unit_price') required double unitPrice,
+    @JsonKey(name: 'product_name') required String productName,
+    @JsonKey(name: 'product_image') String? productImage,
+    @Default(false) bool isSelected,
   }) = _CartItem;
+
+  const CartItem._();
 
   factory CartItem.fromJson(Map<String, dynamic> json) =>
       _$CartItemFromJson(json);
+
+  double get totalPrice => quantity * unitPrice;
+      
 }
