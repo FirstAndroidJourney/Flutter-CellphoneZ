@@ -22,11 +22,17 @@ CartItem _$CartItemFromJson(Map<String, dynamic> json) {
 mixin _$CartItem {
   String get id => throw _privateConstructorUsedError;
   @JsonKey(name: 'user_id')
-  String get userId => throw _privateConstructorUsedError; // Cart của user nào
+  String get userId => throw _privateConstructorUsedError;
   @JsonKey(name: 'product_id')
-  String get productId =>
-      throw _privateConstructorUsedError; // Sản phẩm trong giỏ
+  String get productId => throw _privateConstructorUsedError;
   int get quantity => throw _privateConstructorUsedError;
+  @JsonKey(name: 'unit_price')
+  double get unitPrice => throw _privateConstructorUsedError;
+  @JsonKey(name: 'product_name')
+  String get productName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'product_image')
+  String? get productImage => throw _privateConstructorUsedError;
+  bool get isSelected => throw _privateConstructorUsedError;
 
   /// Serializes this CartItem to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -47,7 +53,11 @@ abstract class $CartItemCopyWith<$Res> {
       {String id,
       @JsonKey(name: 'user_id') String userId,
       @JsonKey(name: 'product_id') String productId,
-      int quantity});
+      int quantity,
+      @JsonKey(name: 'unit_price') double unitPrice,
+      @JsonKey(name: 'product_name') String productName,
+      @JsonKey(name: 'product_image') String? productImage,
+      bool isSelected});
 }
 
 /// @nodoc
@@ -69,6 +79,10 @@ class _$CartItemCopyWithImpl<$Res, $Val extends CartItem>
     Object? userId = null,
     Object? productId = null,
     Object? quantity = null,
+    Object? unitPrice = null,
+    Object? productName = null,
+    Object? productImage = freezed,
+    Object? isSelected = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -87,6 +101,22 @@ class _$CartItemCopyWithImpl<$Res, $Val extends CartItem>
           ? _value.quantity
           : quantity // ignore: cast_nullable_to_non_nullable
               as int,
+      unitPrice: null == unitPrice
+          ? _value.unitPrice
+          : unitPrice // ignore: cast_nullable_to_non_nullable
+              as double,
+      productName: null == productName
+          ? _value.productName
+          : productName // ignore: cast_nullable_to_non_nullable
+              as String,
+      productImage: freezed == productImage
+          ? _value.productImage
+          : productImage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isSelected: null == isSelected
+          ? _value.isSelected
+          : isSelected // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -103,7 +133,11 @@ abstract class _$$CartItemImplCopyWith<$Res>
       {String id,
       @JsonKey(name: 'user_id') String userId,
       @JsonKey(name: 'product_id') String productId,
-      int quantity});
+      int quantity,
+      @JsonKey(name: 'unit_price') double unitPrice,
+      @JsonKey(name: 'product_name') String productName,
+      @JsonKey(name: 'product_image') String? productImage,
+      bool isSelected});
 }
 
 /// @nodoc
@@ -123,6 +157,10 @@ class __$$CartItemImplCopyWithImpl<$Res>
     Object? userId = null,
     Object? productId = null,
     Object? quantity = null,
+    Object? unitPrice = null,
+    Object? productName = null,
+    Object? productImage = freezed,
+    Object? isSelected = null,
   }) {
     return _then(_$CartItemImpl(
       id: null == id
@@ -141,18 +179,39 @@ class __$$CartItemImplCopyWithImpl<$Res>
           ? _value.quantity
           : quantity // ignore: cast_nullable_to_non_nullable
               as int,
+      unitPrice: null == unitPrice
+          ? _value.unitPrice
+          : unitPrice // ignore: cast_nullable_to_non_nullable
+              as double,
+      productName: null == productName
+          ? _value.productName
+          : productName // ignore: cast_nullable_to_non_nullable
+              as String,
+      productImage: freezed == productImage
+          ? _value.productImage
+          : productImage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isSelected: null == isSelected
+          ? _value.isSelected
+          : isSelected // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$CartItemImpl implements _CartItem {
+class _$CartItemImpl extends _CartItem {
   const _$CartItemImpl(
       {required this.id,
       @JsonKey(name: 'user_id') required this.userId,
       @JsonKey(name: 'product_id') required this.productId,
-      required this.quantity});
+      required this.quantity,
+      @JsonKey(name: 'unit_price') required this.unitPrice,
+      @JsonKey(name: 'product_name') required this.productName,
+      @JsonKey(name: 'product_image') this.productImage,
+      this.isSelected = false})
+      : super._();
 
   factory _$CartItemImpl.fromJson(Map<String, dynamic> json) =>
       _$$CartItemImplFromJson(json);
@@ -162,17 +221,27 @@ class _$CartItemImpl implements _CartItem {
   @override
   @JsonKey(name: 'user_id')
   final String userId;
-// Cart của user nào
   @override
   @JsonKey(name: 'product_id')
   final String productId;
-// Sản phẩm trong giỏ
   @override
   final int quantity;
+  @override
+  @JsonKey(name: 'unit_price')
+  final double unitPrice;
+  @override
+  @JsonKey(name: 'product_name')
+  final String productName;
+  @override
+  @JsonKey(name: 'product_image')
+  final String? productImage;
+  @override
+  @JsonKey()
+  final bool isSelected;
 
   @override
   String toString() {
-    return 'CartItem(id: $id, userId: $userId, productId: $productId, quantity: $quantity)';
+    return 'CartItem(id: $id, userId: $userId, productId: $productId, quantity: $quantity, unitPrice: $unitPrice, productName: $productName, productImage: $productImage, isSelected: $isSelected)';
   }
 
   @override
@@ -185,12 +254,21 @@ class _$CartItemImpl implements _CartItem {
             (identical(other.productId, productId) ||
                 other.productId == productId) &&
             (identical(other.quantity, quantity) ||
-                other.quantity == quantity));
+                other.quantity == quantity) &&
+            (identical(other.unitPrice, unitPrice) ||
+                other.unitPrice == unitPrice) &&
+            (identical(other.productName, productName) ||
+                other.productName == productName) &&
+            (identical(other.productImage, productImage) ||
+                other.productImage == productImage) &&
+            (identical(other.isSelected, isSelected) ||
+                other.isSelected == isSelected));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, userId, productId, quantity);
+  int get hashCode => Object.hash(runtimeType, id, userId, productId, quantity,
+      unitPrice, productName, productImage, isSelected);
 
   /// Create a copy of CartItem
   /// with the given fields replaced by the non-null parameter values.
@@ -208,12 +286,17 @@ class _$CartItemImpl implements _CartItem {
   }
 }
 
-abstract class _CartItem implements CartItem {
+abstract class _CartItem extends CartItem {
   const factory _CartItem(
       {required final String id,
       @JsonKey(name: 'user_id') required final String userId,
       @JsonKey(name: 'product_id') required final String productId,
-      required final int quantity}) = _$CartItemImpl;
+      required final int quantity,
+      @JsonKey(name: 'unit_price') required final double unitPrice,
+      @JsonKey(name: 'product_name') required final String productName,
+      @JsonKey(name: 'product_image') final String? productImage,
+      final bool isSelected}) = _$CartItemImpl;
+  const _CartItem._() : super._();
 
   factory _CartItem.fromJson(Map<String, dynamic> json) =
       _$CartItemImpl.fromJson;
@@ -222,12 +305,23 @@ abstract class _CartItem implements CartItem {
   String get id;
   @override
   @JsonKey(name: 'user_id')
-  String get userId; // Cart của user nào
+  String get userId;
   @override
   @JsonKey(name: 'product_id')
-  String get productId; // Sản phẩm trong giỏ
+  String get productId;
   @override
   int get quantity;
+  @override
+  @JsonKey(name: 'unit_price')
+  double get unitPrice;
+  @override
+  @JsonKey(name: 'product_name')
+  String get productName;
+  @override
+  @JsonKey(name: 'product_image')
+  String? get productImage;
+  @override
+  bool get isSelected;
 
   /// Create a copy of CartItem
   /// with the given fields replaced by the non-null parameter values.

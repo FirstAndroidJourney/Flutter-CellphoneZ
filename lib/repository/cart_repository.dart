@@ -29,6 +29,35 @@ class CartRepository extends BaseRepository {
     }
   }
 
+  // Update cart item quantity
+  Future<void> updateCartItemQuantity({
+    required String userId,
+    required String productId,
+    required int quantity,
+  }) async {
+    try {
+      // Find existing cart item
+      final response = await queryBuilder
+          .select()
+          .eq(cartItemsSchema.userId, userId)
+          .eq(cartItemsSchema.productId, productId)
+          .single();
+
+      if (response == null) {
+        throw Exception('Cart item not found');
+      }
+
+      final cartItem = CartItem.fromJson(response);
+
+      // Update quantity
+      await queryBuilder
+          .update({cartItemsSchema.quantity: quantity})
+          .eq(cartItemsSchema.id, cartItem.id);
+    } catch (e) {
+      throw Exception('Failed to update cart item quantity: $e');
+    }
+  }
+
   // Get cart item by ID
   Future<CartItem?> getCartItemById(String id) async {
     try {
