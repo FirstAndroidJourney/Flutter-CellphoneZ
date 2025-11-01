@@ -9,11 +9,15 @@ class LogInForm extends StatelessWidget {
     required this.formKey,
     required this.onEmailSaved,
     required this.onPasswordSaved,
+    this.initialEmail = 'user@cellphonez.com',
+    this.initialPassword = 'Cellphone#Z',
   });
 
   final GlobalKey<FormState> formKey;
   final Function(String?) onEmailSaved;
   final Function(String?) onPasswordSaved;
+  final String? initialEmail;
+  final String? initialPassword;
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +30,7 @@ class LogInForm extends StatelessWidget {
             validator: emaildValidator.call,
             textInputAction: TextInputAction.next,
             keyboardType: TextInputType.emailAddress,
+            initialValue: initialEmail,
             decoration: InputDecoration(
               hintText: "Email address",
               prefixIcon: Padding(
@@ -51,6 +56,7 @@ class LogInForm extends StatelessWidget {
             onSaved: onPasswordSaved,
             validator: passwordValidator.call,
             obscureText: true,
+            initialValue: initialPassword,
             decoration: InputDecoration(
               hintText: "Password",
               prefixIcon: Padding(

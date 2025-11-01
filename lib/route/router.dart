@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shop/admin/views/category_management.dart';
 import 'package:shop/entry_point.dart';
 import 'package:shop/screens/product/views/product_detail_screen.dart';
 
@@ -105,6 +106,46 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder: (context) => const CartScreen(),
       );
+    case paymentScreenRoute:
+      return MaterialPageRoute(
+        builder: (context) => const PaymentScreen(),
+      );
+    case paymentResultScreenRoute:
+      final args = settings.arguments
+          as Map<String, dynamic>?; // nhận tham số truyền từ deeplink
+      final orderId = args?['orderId'] ?? 'unknown';
+      final status = args?['status'] ?? 'pending';
+
+      return MaterialPageRoute(
+        builder: (context) => PaymentResultScreen(
+          orderId: orderId,
+          status: status,
+        ),
+      );
+
+    case categoryManagementScreenRoute:
+      return MaterialPageRoute(
+        builder: (context) => const CategoryManagement(),
+      );
+
+    case orderConfirmationScreenRoute:
+      final args = settings.arguments as Map<String, dynamic>?;
+      final order = args?['order'];
+      final orderItems = args?['orderItems'];
+      
+      return MaterialPageRoute(
+        builder: (context) => OrderConfirmationScreen(
+          order: order,
+          orderItems: orderItems,
+        ),
+      );
+
+    case orderHistoryScreenRoute:
+      final userId = settings.arguments as String;
+      return MaterialPageRoute(
+        builder: (context) => OrderHistoryScreen(userId: userId),
+      );
+
     default:
       return MaterialPageRoute(
         // Make a screen for undefine
