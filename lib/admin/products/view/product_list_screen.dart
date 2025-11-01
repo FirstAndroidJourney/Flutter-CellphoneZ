@@ -345,7 +345,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   crossAxisCount: 2,
                   mainAxisSpacing: 12,
                   crossAxisSpacing: 12,
-                  childAspectRatio: 0.72,
+                  childAspectRatio: 0.75,
                 ),
               ),
             ),
@@ -696,11 +696,15 @@ class _ProductTile extends StatelessWidget {
     final priceText = _priceFormatter.format(product.price);
     final statusColor = isAvailable ? colorScheme.primary : colorScheme.error;
     final statusLabel = isAvailable ? 'Đang bán' : 'Ngừng bán';
+    final nameStyle = theme.textTheme.titleSmall?.copyWith(
+      fontWeight: FontWeight.w600,
+    );
+    final lineHeight = (nameStyle?.fontSize ?? 14) * (nameStyle?.height ?? 1.2);
 
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: colorScheme.outlineVariant.withValues(alpha: 0.08),
         ),
@@ -722,10 +726,10 @@ class _ProductTile extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(20),
+              top: Radius.circular(18),
             ),
             child: AspectRatio(
-              aspectRatio: 16 / 10,
+              aspectRatio: 16 / 9,
               child: imageUrl != null && imageUrl.isNotEmpty
                   ? Image.network(
                       imageUrl,
@@ -738,47 +742,49 @@ class _ProductTile extends StatelessWidget {
                       child: Icon(
                         Icons.image_not_supported_outlined,
                         color: colorScheme.onSurfaceVariant,
-                        size: 36,
+                        size: 32,
                       ),
                     ),
             ),
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    product.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
+                  SizedBox(
+                    height: lineHeight * 2,
+                    child: Text(
+                      product.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: nameStyle,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   Text(
                     priceText,
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: colorScheme.primary,
                       fontWeight: FontWeight.w600,
+                      fontSize: 13,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
                       Expanded(
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 4,
+                            horizontal: 5,
+                            vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: statusColor.withValues(alpha: 0.12),
+                            color: statusColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: statusColor.withValues(alpha: 0.2),
+                              color: statusColor.withValues(alpha: 0.18),
                             ),
                           ),
                           child: Row(
@@ -789,17 +795,17 @@ class _ProductTile extends StatelessWidget {
                                 isAvailable
                                     ? Icons.check_circle_outline
                                     : Icons.pause_circle_outline,
-                                size: 12,
+                                size: 10,
                                 color: statusColor,
                               ),
-                              const SizedBox(width: 3),
+                              const SizedBox(width: 2),
                               Flexible(
                                 child: Text(
                                   statusLabel,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    fontSize: 11,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    fontSize: 9,
                                     color: statusColor,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -827,7 +833,7 @@ class _ProductTile extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                 ],
               ),
             ),
