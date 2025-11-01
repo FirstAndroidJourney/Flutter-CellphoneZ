@@ -205,29 +205,53 @@ class _ProductListScreenState extends State<ProductListScreen> {
       content = _buildDashboardContent(context);
     }
 
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
         toolbarHeight: 72,
         titleSpacing: 24,
+        elevation: 0,
+        backgroundColor: colorScheme.surface,
+        surfaceTintColor: Colors.transparent,
+        shadowColor: Colors.transparent,
         title: Row(
           children: [
             Container(
-              width: 40,
-              height: 40,
-              padding: const EdgeInsets.all(6),
+              width: 44,
+              height: 44,
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(12),
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.12),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    offset: const Offset(6, 6),
+                    blurRadius: 18,
+                  ),
+                  BoxShadow(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    offset: const Offset(-6, -6),
+                    blurRadius: 18,
+                  ),
+                ],
               ),
               child: SvgPicture.asset(
                 'assets/logo/CellphoneZ.svg',
                 fit: BoxFit.contain,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             Text(
               'Quản lý sản phẩm',
-              style: Theme.of(context).textTheme.titleLarge,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
           ],
         ),
@@ -236,6 +260,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
             onPressed: () => _loadProducts(showSpinner: true),
             icon: const Icon(Icons.refresh),
             tooltip: 'Tải lại',
+            style: IconButton.styleFrom(
+              backgroundColor: colorScheme.primary.withValues(alpha: 0.08),
+              foregroundColor: colorScheme.primary,
+            ),
           ),
         ],
       ),
@@ -300,25 +328,32 @@ class _ProductListScreenState extends State<ProductListScreen> {
           else
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-              sliver: SliverGrid(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final product = _filteredProducts[index];
-                    return _ProductTile(
-                      product: product,
-                      actionsEnabled: !_isProcessing,
-                      onEdit: () => _openForm(product: product),
-                      onToggleAvailability: () => _changeAvailability(product),
-                    );
-                  },
-                  childCount: _filteredProducts.length,
-                ),
-                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 320,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: 3 / 4,
-                ),
+              sliver: SliverLayoutBuilder(
+                builder: (context, constraints) {
+                  final crossAxisExtent = constraints.crossAxisExtent;
+                  final crossAxisCount = crossAxisExtent <= 520 ? 1 : 2;
+                  return SliverGrid(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final product = _filteredProducts[index];
+                        return _ProductTile(
+                          product: product,
+                          actionsEnabled: !_isProcessing,
+                          onEdit: () => _openForm(product: product),
+                          onToggleAvailability: () =>
+                              _changeAvailability(product),
+                        );
+                      },
+                      childCount: _filteredProducts.length,
+                    ),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      mainAxisSpacing: 18,
+                      crossAxisSpacing: 18,
+                      childAspectRatio: 0.78,
+                    ),
+                  );
+                },
               ),
             ),
         ],
@@ -356,41 +391,36 @@ class _StatsSection extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final isCompact = constraints.maxWidth < 720;
-          if (isCompact) {
+          final stackCards = constraints.maxWidth < 720;
+          final children = [
+            _StatCard(
+              icon: Icons.inventory_2_outlined,
+              label: 'Tổng sản phẩm',
+              value: totalProducts.toString(),
+              iconColor: colorScheme.primary,
+            ),
+            _StatCard(
+              icon: Icons.store_mall_directory_outlined,
+              label: 'Đang bán',
+              value: availableProducts.toString(),
+              iconColor: colorScheme.secondary,
+            ),
+            _StatCard(
+              icon: Icons.pause_circle_outline,
+              label: 'Tạm ngưng',
+              value: unavailableProducts.toString(),
+              iconColor: colorScheme.error,
+            ),
+          ];
+
+          if (stackCards) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _StatCard(
-                        icon: Icons.inventory_2_outlined,
-                        label: 'Tổng sản phẩm',
-                        value: totalProducts.toString(),
-                        iconColor: colorScheme.primary,
-                        width: 220,
-                      ),
-                      const SizedBox(width: 12),
-                      _StatCard(
-                        icon: Icons.store_mall_directory_outlined,
-                        label: 'Đang bán',
-                        value: availableProducts.toString(),
-                        iconColor: colorScheme.secondary,
-                        width: 220,
-                      ),
-                      const SizedBox(width: 12),
-                      _StatCard(
-                        icon: Icons.pause_circle_outline,
-                        label: 'Tạm ngưng',
-                        value: unavailableProducts.toString(),
-                        iconColor: colorScheme.error,
-                        width: 220,
-                      ),
-                    ],
-                  ),
-                ),
+                for (int i = 0; i < children.length; i++) ...[
+                  children[i],
+                  if (i != children.length - 1) const SizedBox(height: 16),
+                ],
                 const SizedBox(height: 16),
                 _StatCard(
                   icon: Icons.payments_outlined,
@@ -408,32 +438,10 @@ class _StatsSection extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Expanded(
-                    child: _StatCard(
-                      icon: Icons.inventory_2_outlined,
-                      label: 'Tổng sản phẩm',
-                      value: totalProducts.toString(),
-                      iconColor: colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _StatCard(
-                      icon: Icons.store_mall_directory_outlined,
-                      label: 'Đang bán',
-                      value: availableProducts.toString(),
-                      iconColor: colorScheme.secondary,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _StatCard(
-                      icon: Icons.pause_circle_outline,
-                      label: 'Tạm ngưng',
-                      value: unavailableProducts.toString(),
-                      iconColor: colorScheme.error,
-                    ),
-                  ),
+                  for (int i = 0; i < children.length; i++) ...[
+                    Expanded(child: children[i]),
+                    if (i != children.length - 1) const SizedBox(width: 16),
+                  ],
                 ],
               ),
               const SizedBox(height: 16),
@@ -459,7 +467,6 @@ class _StatCard extends StatelessWidget {
     required this.value,
     required this.iconColor,
     this.isFullWidth = false,
-    this.width,
   });
 
   final IconData icon;
@@ -467,19 +474,35 @@ class _StatCard extends StatelessWidget {
   final String value;
   final Color iconColor;
   final bool isFullWidth;
-  final double? width;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final baseColor = colorScheme.surface;
+
     return Container(
-      width: isFullWidth ? double.infinity : width,
+      width: isFullWidth ? double.infinity : null,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: colorScheme.outlineVariant),
+        color: baseColor,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.08)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            offset: const Offset(8, 8),
+            blurRadius: 24,
+            spreadRadius: 1,
+          ),
+          BoxShadow(
+            color: Colors.white.withValues(alpha: 0.85),
+            offset: const Offset(-6, -6),
+            blurRadius: 20,
+            spreadRadius: 1,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -495,6 +518,7 @@ class _StatCard extends StatelessWidget {
                   value,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -504,7 +528,7 @@ class _StatCard extends StatelessWidget {
           Text(
             label,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
             ),
           ),
         ],
@@ -532,31 +556,48 @@ class _SearchBar extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-      child: TextField(
-        controller: controller,
-        onChanged: onChanged,
-        textInputAction: TextInputAction.search,
-        decoration: InputDecoration(
-          hintText: 'Tìm kiếm sản phẩm theo tên',
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon: query.isNotEmpty
-              ? IconButton(
-                  onPressed: onClear,
-                  icon: const Icon(Icons.clear),
-                  tooltip: 'Xoá tìm kiếm',
-                )
-              : null,
-          filled: true,
-          fillColor: colorScheme.surfaceContainerHighest,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(color: colorScheme.outlineVariant),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(
-              color: colorScheme.primary,
-              width: 2,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(26),
+          border: Border.all(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.08)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.07),
+              offset: const Offset(8, 8),
+              blurRadius: 24,
+              spreadRadius: 1,
+            ),
+            BoxShadow(
+              color: Colors.white.withValues(alpha: 0.85),
+              offset: const Offset(-6, -6),
+              blurRadius: 20,
+              spreadRadius: 1,
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: TextField(
+            controller: controller,
+            onChanged: onChanged,
+            textInputAction: TextInputAction.search,
+            cursorColor: colorScheme.primary,
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: query.isNotEmpty
+                  ? IconButton(
+                      onPressed: onClear,
+                      icon: const Icon(Icons.clear),
+                      tooltip: 'Xoá tìm kiếm',
+                    )
+                  : null,
+              hintText: 'Tìm kiếm sản phẩm theo tên',
+              hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+              ),
             ),
           ),
         ),
@@ -577,33 +618,57 @@ class _SearchEmptyView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = theme.colorScheme.onSurfaceVariant;
+    final colorScheme = theme.colorScheme;
+    final color = colorScheme.onSurfaceVariant;
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.search_off, size: 48),
-            const SizedBox(height: 12),
-            Text(
-              'Không tìm thấy sản phẩm cho "$query"',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Thử điều chỉnh từ khoá hoặc xoá tìm kiếm để xem tất cả sản phẩm.',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(color: color),
-            ),
-            const SizedBox(height: 16),
-            OutlinedButton.icon(
-              onPressed: onClear,
-              icon: const Icon(Icons.clear),
-              label: const Text('Xoá tìm kiếm'),
-            ),
-          ],
+        child: Container(
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.08)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                offset: const Offset(8, 8),
+                blurRadius: 24,
+              ),
+              BoxShadow(
+                color: Colors.white.withValues(alpha: 0.85),
+                offset: const Offset(-6, -6),
+                blurRadius: 20,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.search_off, size: 48),
+              const SizedBox(height: 12),
+              Text(
+                'Không tìm thấy sản phẩm cho "$query"',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Thử điều chỉnh từ khoá hoặc xoá tìm kiếm để xem tất cả sản phẩm.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(color: color),
+              ),
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: onClear,
+                icon: const Icon(Icons.clear),
+                label: const Text('Xoá tìm kiếm'),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -639,35 +704,54 @@ class _ProductTile extends StatelessWidget {
     final statusColor = isAvailable ? colorScheme.primary : colorScheme.error;
     final statusLabel = isAvailable ? 'Đang bán' : 'Ngừng bán';
 
-    return Card(
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      clipBehavior: Clip.antiAlias,
-      elevation: 0,
-      color: colorScheme.surfaceContainerLowest,
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.08)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.07),
+            offset: const Offset(8, 8),
+            blurRadius: 28,
+            spreadRadius: 1,
+          ),
+          BoxShadow(
+            color: Colors.white.withValues(alpha: 0.85),
+            offset: const Offset(-8, -8),
+            blurRadius: 28,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AspectRatio(
-            aspectRatio: 4 / 3,
-            child: imageUrl != null && imageUrl.isNotEmpty
-                ? Image.network(
-                    imageUrl,
-                    fit: BoxFit.cover,
-                  )
-                : Container(
-                    color: colorScheme.surfaceContainerHighest,
-                    alignment: Alignment.center,
-                    child: Icon(
-                      Icons.image_not_supported_outlined,
-                      color: colorScheme.onSurfaceVariant,
-                      size: 48,
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            child: AspectRatio(
+              aspectRatio: 4 / 3,
+              child: imageUrl != null && imageUrl.isNotEmpty
+                  ? Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                    )
+                  : Container(
+                      color: colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.3),
+                      alignment: Alignment.center,
+                      child: Icon(
+                        Icons.image_not_supported_outlined,
+                        color: colorScheme.onSurfaceVariant,
+                        size: 48,
+                      ),
                     ),
-                  ),
+            ),
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -697,7 +781,7 @@ class _ProductTile extends StatelessWidget {
                       color: statusColor.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: statusColor.withValues(alpha: 0.25),
+                        color: statusColor.withValues(alpha: 0.22),
                       ),
                     ),
                     child: Row(
@@ -728,6 +812,16 @@ class _ProductTile extends StatelessWidget {
                       IconButton(
                         tooltip: 'Chỉnh sửa',
                         visualDensity: VisualDensity.compact,
+                        style: IconButton.styleFrom(
+                          backgroundColor:
+                              colorScheme.primary.withValues(alpha: 0.08),
+                          foregroundColor: colorScheme.primary,
+                          disabledForegroundColor: colorScheme.onSurfaceVariant
+                              .withValues(alpha: 0.4),
+                          disabledBackgroundColor: colorScheme
+                              .surfaceContainerHighest
+                              .withValues(alpha: 0.2),
+                        ),
                         icon: const Icon(Icons.edit_outlined),
                         onPressed: actionsEnabled ? onEdit : null,
                       ),
@@ -741,6 +835,15 @@ class _ProductTile extends StatelessWidget {
                           color: actionsEnabled
                               ? statusColor
                               : colorScheme.onSurfaceVariant,
+                        ),
+                        style: IconButton.styleFrom(
+                          backgroundColor: statusColor.withValues(alpha: 0.12),
+                          foregroundColor: statusColor,
+                          disabledBackgroundColor: colorScheme
+                              .surfaceContainerHighest
+                              .withValues(alpha: 0.2),
+                          disabledForegroundColor: colorScheme.onSurfaceVariant
+                              .withValues(alpha: 0.4),
                         ),
                         onPressed: actionsEnabled ? onToggleAvailability : null,
                       ),
@@ -763,20 +866,48 @@ class _EmptyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.inventory_2_outlined, size: 48),
-          const SizedBox(height: 8),
-          const Text('Chưa có sản phẩm nào'),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: onReload,
-            icon: const Icon(Icons.refresh),
-            label: const Text('Tải lại'),
-          ),
-        ],
+      child: Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.08)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              offset: const Offset(8, 8),
+              blurRadius: 24,
+            ),
+            BoxShadow(
+              color: Colors.white.withValues(alpha: 0.85),
+              offset: const Offset(-6, -6),
+              blurRadius: 20,
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.inventory_2_outlined, size: 48),
+            const SizedBox(height: 12),
+            Text(
+              'Chưa có sản phẩm nào',
+              style:
+                  textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: onReload,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Tải lại'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -793,25 +924,50 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 48),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Thử lại'),
-            ),
-          ],
+        child: Container(
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.08)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                offset: const Offset(8, 8),
+                blurRadius: 24,
+              ),
+              BoxShadow(
+                color: Colors.white.withValues(alpha: 0.85),
+                offset: const Offset(-6, -6),
+                blurRadius: 20,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error_outline, size: 48),
+              const SizedBox(height: 12),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Thử lại'),
+              ),
+            ],
+          ),
         ),
       ),
     );
