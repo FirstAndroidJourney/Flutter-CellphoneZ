@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+
+import 'package:provider/provider.dart'; // <-- Đã thêm
+import 'package:shop/providers/cart_provider.dart'; // <-- Đã thêm
+import 'package:shop/providers/tab_provider.dart';
+import 'package:shop/route/route_constants.dart';
+
 import 'package:shop/route/router.dart' as router;
 import 'package:shop/screens/shop/views/shop_screen.dart';
 import 'package:shop/services/dependency_injection.dart';
@@ -11,7 +17,15 @@ void main() async {
   // Setup dependency injection
   await setupDependencies();
 
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => CartProvider()),
+        ChangeNotifierProvider(create: (context) => TabProvider()),
+      ],
+      child: const MyApp(), // Đây là app gốc của bạn
+    ),
+  );
 }
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
