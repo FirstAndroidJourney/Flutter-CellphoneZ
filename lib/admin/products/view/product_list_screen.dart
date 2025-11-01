@@ -263,11 +263,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           SliverToBoxAdapter(
-            child: _DashboardHeader(
-              onAddProduct: !_isProcessing ? () => _openForm() : null,
-            ),
-          ),
-          SliverToBoxAdapter(
               child: _StatsSection(
             totalProducts: _totalProducts,
             availableProducts: _availableProducts,
@@ -327,86 +322,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
               ),
             ),
         ],
-      ),
-    );
-  }
-}
-
-class _DashboardHeader extends StatelessWidget {
-  const _DashboardHeader({required this.onAddProduct});
-
-  final VoidCallback? onAddProduct;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: SvgPicture.asset(
-                    'assets/logo/CellphoneZ.svg',
-                    fit: BoxFit.contain,
-                  ),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'CellphoneZ Admin',
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Giám sát hiệu suất sản phẩm và cập nhật trạng thái bán hàng.',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            if (onAddProduct != null) ...[
-              const SizedBox(height: 20),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: FilledButton.icon(
-                  onPressed: onAddProduct,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Thêm sản phẩm'),
-                ),
-              ),
-            ],
-          ],
-        ),
       ),
     );
   }
