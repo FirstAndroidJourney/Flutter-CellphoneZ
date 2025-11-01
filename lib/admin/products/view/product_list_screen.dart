@@ -219,12 +219,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
         title: Row(
           children: [
             Container(
-              width: 44,
-              height: 44,
-              padding: const EdgeInsets.all(8),
+              width: 40,
+              height: 40,
+              padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: colorScheme.outlineVariant.withValues(alpha: 0.12),
                 ),
@@ -327,33 +327,26 @@ class _ProductListScreenState extends State<ProductListScreen> {
             )
           else
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-              sliver: SliverLayoutBuilder(
-                builder: (context, constraints) {
-                  final crossAxisExtent = constraints.crossAxisExtent;
-                  final crossAxisCount = crossAxisExtent <= 520 ? 1 : 2;
-                  return SliverGrid(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final product = _filteredProducts[index];
-                        return _ProductTile(
-                          product: product,
-                          actionsEnabled: !_isProcessing,
-                          onEdit: () => _openForm(product: product),
-                          onToggleAvailability: () =>
-                              _changeAvailability(product),
-                        );
-                      },
-                      childCount: _filteredProducts.length,
-                    ),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: crossAxisCount,
-                      mainAxisSpacing: 18,
-                      crossAxisSpacing: 18,
-                      childAspectRatio: 0.78,
-                    ),
-                  );
-                },
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              sliver: SliverGrid(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final product = _filteredProducts[index];
+                    return _ProductTile(
+                      product: product,
+                      actionsEnabled: !_isProcessing,
+                      onEdit: () => _openForm(product: product),
+                      onToggleAvailability: () => _changeAvailability(product),
+                    );
+                  },
+                  childCount: _filteredProducts.length,
+                ),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 0.72,
+                ),
               ),
             ),
         ],
@@ -388,7 +381,7 @@ class _StatsSection extends StatelessWidget {
     final totalValueLabel = currency.format(totalInventoryValue);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final stackCards = constraints.maxWidth < 720;
@@ -419,7 +412,7 @@ class _StatsSection extends StatelessWidget {
               children: [
                 for (int i = 0; i < children.length; i++) ...[
                   children[i],
-                  if (i != children.length - 1) const SizedBox(height: 16),
+                  if (i != children.length - 1) const SizedBox(height: 12),
                 ],
                 const SizedBox(height: 16),
                 _StatCard(
@@ -444,7 +437,7 @@ class _StatsSection extends StatelessWidget {
                   ],
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               _StatCard(
                 icon: Icons.payments_outlined,
                 label: 'Tổng giá niêm yết',
@@ -483,7 +476,7 @@ class _StatCard extends StatelessWidget {
 
     return Container(
       width: isFullWidth ? double.infinity : null,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: baseColor,
         borderRadius: BorderRadius.circular(22),
@@ -491,16 +484,16 @@ class _StatCard extends StatelessWidget {
             color: colorScheme.outlineVariant.withValues(alpha: 0.08)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            offset: const Offset(8, 8),
-            blurRadius: 24,
-            spreadRadius: 1,
+            color: Colors.black.withValues(alpha: 0.06),
+            offset: const Offset(6, 6),
+            blurRadius: 18,
+            spreadRadius: 0,
           ),
           BoxShadow(
             color: Colors.white.withValues(alpha: 0.85),
-            offset: const Offset(-6, -6),
-            blurRadius: 20,
-            spreadRadius: 1,
+            offset: const Offset(-5, -5),
+            blurRadius: 18,
+            spreadRadius: 0,
           ),
         ],
       ),
@@ -555,11 +548,11 @@ class _SearchBar extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(26),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
               color: colorScheme.outlineVariant.withValues(alpha: 0.08)),
           boxShadow: [
@@ -578,7 +571,7 @@ class _SearchBar extends StatelessWidget {
           ],
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           child: TextField(
             controller: controller,
             onChanged: onChanged,
@@ -707,21 +700,20 @@ class _ProductTile extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-            color: colorScheme.outlineVariant.withValues(alpha: 0.08)),
+          color: colorScheme.outlineVariant.withValues(alpha: 0.08),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.07),
-            offset: const Offset(8, 8),
-            blurRadius: 28,
-            spreadRadius: 1,
+            color: Colors.black.withValues(alpha: 0.06),
+            offset: const Offset(6, 6),
+            blurRadius: 20,
           ),
           BoxShadow(
             color: Colors.white.withValues(alpha: 0.85),
-            offset: const Offset(-8, -8),
-            blurRadius: 28,
-            spreadRadius: 1,
+            offset: const Offset(-6, -6),
+            blurRadius: 20,
           ),
         ],
       ),
@@ -729,9 +721,11 @@ class _ProductTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(20),
+            ),
             child: AspectRatio(
-              aspectRatio: 4 / 3,
+              aspectRatio: 16 / 10,
               child: imageUrl != null && imageUrl.isNotEmpty
                   ? Image.network(
                       imageUrl,
@@ -744,14 +738,14 @@ class _ProductTile extends StatelessWidget {
                       child: Icon(
                         Icons.image_not_supported_outlined,
                         color: colorScheme.onSurfaceVariant,
-                        size: 48,
+                        size: 36,
                       ),
                     ),
             ),
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(18),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -763,98 +757,124 @@ class _ProductTile extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
                     priceText,
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: colorScheme.primary,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: statusColor.withValues(alpha: 0.22),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          isAvailable
-                              ? Icons.check_circle_outline
-                              : Icons.pause_circle_outline,
-                          size: 16,
-                          color: statusColor,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          statusLabel,
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            color: statusColor,
-                            fontWeight: FontWeight.w600,
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: statusColor.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: statusColor.withValues(alpha: 0.2),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isAvailable
+                                    ? Icons.check_circle_outline
+                                    : Icons.pause_circle_outline,
+                                size: 12,
+                                color: statusColor,
+                              ),
+                              const SizedBox(width: 3),
+                              Flexible(
+                                child: Text(
+                                  statusLabel,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    fontSize: 11,
+                                    color: statusColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  const Spacer(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      IconButton(
+                      ),
+                      const SizedBox(width: 6),
+                      _TileActionButton(
                         tooltip: 'Chỉnh sửa',
-                        visualDensity: VisualDensity.compact,
-                        style: IconButton.styleFrom(
-                          backgroundColor:
-                              colorScheme.primary.withValues(alpha: 0.08),
-                          foregroundColor: colorScheme.primary,
-                          disabledForegroundColor: colorScheme.onSurfaceVariant
-                              .withValues(alpha: 0.4),
-                          disabledBackgroundColor: colorScheme
-                              .surfaceContainerHighest
-                              .withValues(alpha: 0.2),
-                        ),
-                        icon: const Icon(Icons.edit_outlined),
+                        icon: Icons.edit_outlined,
+                        color: colorScheme.primary,
                         onPressed: actionsEnabled ? onEdit : null,
                       ),
-                      IconButton(
+                      const SizedBox(width: 4),
+                      _TileActionButton(
                         tooltip: isAvailable ? 'Ngừng bán' : 'Mở bán lại',
-                        visualDensity: VisualDensity.compact,
-                        icon: Icon(
-                          isAvailable
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-                          color: actionsEnabled
-                              ? statusColor
-                              : colorScheme.onSurfaceVariant,
-                        ),
-                        style: IconButton.styleFrom(
-                          backgroundColor: statusColor.withValues(alpha: 0.12),
-                          foregroundColor: statusColor,
-                          disabledBackgroundColor: colorScheme
-                              .surfaceContainerHighest
-                              .withValues(alpha: 0.2),
-                          disabledForegroundColor: colorScheme.onSurfaceVariant
-                              .withValues(alpha: 0.4),
-                        ),
+                        icon: isAvailable
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        color: statusColor,
                         onPressed: actionsEnabled ? onToggleAvailability : null,
                       ),
                     ],
                   ),
+                  const SizedBox(height: 4),
                 ],
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _TileActionButton extends StatelessWidget {
+  const _TileActionButton({
+    required this.tooltip,
+    required this.icon,
+    required this.color,
+    required this.onPressed,
+  });
+
+  final String tooltip;
+  final IconData icon;
+  final Color color;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isEnabled = onPressed != null;
+    final background = isEnabled
+        ? color.withValues(alpha: 0.12)
+        : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.2);
+    final foreground = isEnabled
+        ? color
+        : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4);
+
+    return IconButton(
+      tooltip: tooltip,
+      onPressed: onPressed,
+      icon: Icon(icon, size: 14),
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints.tightFor(width: 28, height: 28),
+      style: IconButton.styleFrom(
+        minimumSize: const Size.square(28),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        backgroundColor: background,
+        foregroundColor: foreground,
+      ),
+      splashRadius: 18,
     );
   }
 }
