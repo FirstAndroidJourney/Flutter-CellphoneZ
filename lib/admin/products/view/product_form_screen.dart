@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
 import '../../../models/product.dart';
@@ -19,33 +17,19 @@ class ProductFormScreen extends StatelessWidget {
         ),
       ),
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            const maxWidth = 520.0;
-            final double width;
-            if (constraints.hasBoundedWidth && constraints.maxWidth.isFinite) {
-              width = math.min(constraints.maxWidth, maxWidth);
-            } else {
-              width = maxWidth;
-            }
-
-            return Align(
-              alignment: Alignment.topCenter,
-              child: SizedBox(
-                width: width,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 24,
-                  ),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ProductForm(product: product),
-                  ),
-                ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: ListView(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 24,
               ),
-            );
-          },
+              children: [
+                ProductForm(product: product),
+              ],
+            ),
+          ),
         ),
       ),
     );

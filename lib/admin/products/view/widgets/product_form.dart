@@ -18,7 +18,6 @@ class ProductForm extends StatefulWidget {
 }
 
 class _ProductFormState extends State<ProductForm> {
-  final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   late final TextEditingController _priceController;
   late final TextEditingController _descriptionController;
@@ -34,6 +33,8 @@ class _ProductFormState extends State<ProductForm> {
   Uint8List? _pickedImageBytes;
   String? _pickedImageExtension;
   String? _existingImageUrl;
+  String? _nameError;
+  String? _priceError;
 
   @override
   void initState() {
@@ -133,13 +134,10 @@ class _ProductFormState extends State<ProductForm> {
 
     return AbsorbPointer(
       absorbing: _isSubmitting,
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: _buildFormContents(),
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: _buildFormContents(),
       ),
     );
   }
@@ -147,35 +145,37 @@ class _ProductFormState extends State<ProductForm> {
   List<Widget> _buildFormContents() {
     return [
       if (_isSubmitting) const LinearProgressIndicator(),
-      TextFormField(
+      TextField(
         controller: _nameController,
-        decoration: const InputDecoration(
+        enabled: !_isSubmitting,
+        decoration: InputDecoration(
           labelText: 'Tên sản phẩm',
+          errorText: _nameError,
         ),
-        validator: (value) {
-          if (value == null || value.trim().isEmpty) {
-            return 'Tên sản phẩm không được để trống';
+        onChanged: (_) {
+          if (_nameError != null) {
+            setState(() {
+              _nameError = null;
+            });
           }
-          return null;
         },
       ),
       const SizedBox(height: 16),
-      TextFormField(
+      TextField(
         controller: _priceController,
+        enabled: !_isSubmitting,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        decoration: const InputDecoration(
+        decoration: InputDecoration(
           labelText: 'Giá bán',
           suffixText: 'đ',
+          errorText: _priceError,
         ),
-        validator: (value) {
-          if (value == null || value.trim().isEmpty) {
-            return 'Vui lòng nhập giá bán';
+        onChanged: (_) {
+          if (_priceError != null) {
+            setState(() {
+              _priceError = null;
+            });
           }
-          final parsed = double.tryParse(value.replaceAll(',', '.'));
-          if (parsed == null || parsed <= 0) {
-            return 'Giá bán phải lớn hơn 0';
-          }
-          return null;
         },
       ),
       const SizedBox(height: 16),
@@ -185,18 +185,21 @@ class _ProductFormState extends State<ProductForm> {
         value: _isAvailable,
         title: const Text('Trạng thái bán'),
         subtitle: Text(_isAvailable ? 'Đang bán' : 'Ngừng bán'),
-        onChanged: (value) {
-          setState(() {
-            _isAvailable = value;
-          });
-          debugPrint(
-            '[ProductForm] availabilityChanged | isAvailable=$value',
-          );
-        },
+        onChanged: _isSubmitting
+            ? null
+            : (value) {
+                setState(() {
+                  _isAvailable = value;
+                });
+                debugPrint(
+                  '[ProductForm] availabilityChanged | isAvailable=$value',
+                );
+              },
       ),
       const SizedBox(height: 16),
-      TextFormField(
+      TextField(
         controller: _descriptionController,
+        enabled: !_isSubmitting,
         decoration: const InputDecoration(
           labelText: 'Mô tả',
           alignLabelWithHint: true,
@@ -239,21 +242,28 @@ class _ProductFormState extends State<ProductForm> {
       ),
     ];
 
-    return DropdownButtonFormField<String?>(
-      key: ValueKey(initialCategoryId ?? 'null'),
-      initialValue: initialCategoryId,
-      items: options,
+    return InputDecorator(
       decoration: const InputDecoration(
         labelText: 'Danh mục',
       ),
-      onChanged: (value) {
-        setState(() {
-          _selectedCategoryId = value;
-        });
-        debugPrint(
-          '[ProductForm] categoryChanged | selected=${value ?? 'none'}',
-        );
-      },
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String?>(
+          key: ValueKey(initialCategoryId ?? 'null'),
+          value: initialCategoryId,
+          isExpanded: true,
+          items: options,
+          onChanged: _isSubmitting
+              ? null
+              : (value) {
+                  setState(() {
+                    _selectedCategoryId = value;
+                  });
+                  debugPrint(
+                    '[ProductForm] categoryChanged | selected=${value ?? 'none'}',
+                  );
+                },
+        ),
+      ),
     );
   }
 
@@ -339,24 +349,48 @@ class _ProductFormState extends State<ProductForm> {
     );
   }
 
-  Future<void> _handleSubmit() async {
-    debugPrint('[ProductForm] _handleSubmit start');
-    final isValid = _formKey.currentState?.validate() ?? false;
-    if (!isValid) {
-      debugPrint('[ProductForm] _handleSubmit validation failed');
-      return;
+  double? _validateInputs() {
+    final name = _nameController.text.trim();
+    final priceText = _priceController.text.trim();
+
+    String? nameError;
+    String? priceError;
+    double? parsedPrice;
+
+    if (name.isEmpty) {
+      nameError = 'Tên sản phẩm không được để trống';
     }
 
-    final parsedPrice =
-        double.tryParse(_priceController.text.replaceAll(',', '.'));
-    if (parsedPrice == null || parsedPrice <= 0) {
-      debugPrint(
-        '[ProductForm] _handleSubmit invalid price="${_priceController.text}"',
-      );
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Giá bán không hợp lệ')),
-      );
+    if (priceText.isEmpty) {
+      priceError = 'Vui lòng nhập giá bán';
+    } else {
+      final parsed =
+          double.tryParse(priceText.replaceAll(',', '.'));
+      if (parsed == null || parsed <= 0) {
+        priceError = 'Giá bán phải lớn hơn 0';
+      } else {
+        parsedPrice = parsed;
+      }
+    }
+
+    if (_nameError != nameError || _priceError != priceError) {
+      setState(() {
+        _nameError = nameError;
+        _priceError = priceError;
+      });
+    }
+
+    if (nameError != null || priceError != null) {
+      return null;
+    }
+    return parsedPrice;
+  }
+
+  Future<void> _handleSubmit() async {
+    debugPrint('[ProductForm] _handleSubmit start');
+    final parsedPrice = _validateInputs();
+    if (parsedPrice == null) {
+      debugPrint('[ProductForm] _handleSubmit validation failed');
       return;
     }
 
