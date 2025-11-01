@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shop/constants.dart';
 import 'package:shop/models/category.dart';
 import 'package:shop/models/product.dart';
+import 'package:shop/route/route_constants.dart';
 import 'package:shop/services/category_service.dart';
 import 'package:shop/services/product_service.dart';
 import 'package:shop/components/product/product_card.dart';
@@ -247,8 +248,11 @@ class _CategoryScreenState extends State<CategoryScreen> {
         return ProductCard(
           product: product,
           press: () {
-            // TODO: Navigate to product detail
-            print('Product tapped: ${product.name}');
+            Navigator.pushNamed(
+              context,
+              productDetailScreenRoute,
+              arguments: product.id,
+            );
           },
         );
       },

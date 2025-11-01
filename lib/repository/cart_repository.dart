@@ -1,6 +1,9 @@
 import '../models/cart_item.dart';
 import 'base_repository.dart';
+import '../services/database_schema.dart';
 
+
+  
 class CartRepository extends BaseRepository {
   @override
   String get tableName => cartItemsSchema.table;
@@ -26,6 +29,35 @@ class CartRepository extends BaseRepository {
     }
   }
 
+  // Update cart item quantity
+  Future<void> updateCartItemQuantity({
+    required String userId,
+    required String productId,
+    required int quantity,
+  }) async {
+    try {
+      // Find existing cart item
+      final response = await queryBuilder
+          .select()
+          .eq(cartItemsSchema.userId, userId)
+          .eq(cartItemsSchema.productId, productId)
+          .single();
+
+      if (response == null) {
+        throw Exception('Cart item not found');
+      }
+
+      final cartItem = CartItem.fromJson(response);
+
+      // Update quantity
+      await queryBuilder
+          .update({cartItemsSchema.quantity: quantity})
+          .eq(cartItemsSchema.id, cartItem.id);
+    } catch (e) {
+      throw Exception('Failed to update cart item quantity: $e');
+    }
+  }
+
   // Get cart item by ID
   Future<CartItem?> getCartItemById(String id) async {
     try {
@@ -37,7 +69,7 @@ class CartRepository extends BaseRepository {
   }
 
   // Add item to cart
-  Future<CartItem> addToCart(CartItem cartItem) async {
+Future<CartItem> addToCart(CartItem cartItem) async {
     try {
       // Check if item already exists in cart
       final existingItem = await getCartItemByUserAndProduct(
@@ -52,10 +84,18 @@ class CartRepository extends BaseRepository {
           existingItem.id,
           existingItem.copyWith(quantity: updatedQuantity),
         );
-      } else {
-        // Create new cart item
-        final data = await create(cartItem.toJson());
+      } else {        
+        // 1. Chuyển cartItem thành Map
+        final dataToInsert = cartItem.toJson();
+        
+        // 2. Xóa trường 'id' rỗng để CSDL có thể tự tạo
+        dataToInsert.remove('id'); 
+
+        // 3. Gửi Map đã được "làm sạch" đi
+        final data = await create(dataToInsert);
         return CartItem.fromJson(data);
+        
+        // === KẾT THÚC SỬA LỖI ===
       }
     } catch (e) {
       throw Exception('Failed to add item to cart: $e');
@@ -82,14 +122,14 @@ class CartRepository extends BaseRepository {
   }
 
   // Get specific cart item by user and product
-  Future<CartItem?> getCartItemByUserAndProduct(
+Future<CartItem?> getCartItemByUserAndProduct(
       String userId, String productId) async {
-    try {
+       try {
       final response = await queryBuilder
-          .select()
-          .eq('userId', userId)
-          .eq('productId', productId)
-          .maybeSingle();
+           .select()
+           .eq(DatabaseSchema.cartItems.userId, userId) 
+           .eq(DatabaseSchema.cartItems.productId, productId)
+           .maybeSingle();
       return response != null ? CartItem.fromJson(response) : null;
     } catch (e) {
       throw Exception('Failed to fetch cart item: $e');
@@ -99,7 +139,7 @@ class CartRepository extends BaseRepository {
   // Clear all cart items for user
   Future<void> clearUserCart(String userId) async {
     try {
-      await queryBuilder.delete().eq('userId', userId);
+      await queryBuilder.delete().eq('user_id', userId);
     } catch (e) {
       throw Exception('Failed to clear user cart: $e');
     }
@@ -128,7 +168,7 @@ class CartRepository extends BaseRepository {
   Future<int> getUserCartItemsCount(String userId) async {
     try {
       final response =
-          await queryBuilder.select('quantity').eq('userId', userId);
+          await queryBuilder.select('quantity').eq('user_id', userId);
       final data = List<Map<String, dynamic>>.from(response);
       return data.fold<int>(0, (sum, item) => sum + (item['quantity'] as int));
     } catch (e) {

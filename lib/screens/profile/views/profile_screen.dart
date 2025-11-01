@@ -1,179 +1,343 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shop/components/list_tile/divider_list_tile.dart';
-import 'package:shop/components/network_image_with_loader.dart';
 import 'package:shop/constants.dart';
 import 'package:shop/route/screen_export.dart';
+import 'package:shop/services/auth_service.dart';
 
 import 'components/profile_card.dart';
 import 'components/profile_menu_item_list_tile.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: ListView(
-        children: [
-          ProfileCard(
-            name: "Sepide",
-            email: "theflutterway@gmail.com",
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final AuthService _authService = AuthService();
+
+  Widget _buildGuestView() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(defaultPadding * 2),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.account_circle_outlined,
+              size: 120,
+              color: Colors.grey[300],
+            ),
+            const SizedBox(height: defaultPadding),
+            Text(
+              'Chào mừng bạn đến với CellphoneZ',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: defaultPadding / 2),
+            Text(
+              'Đăng nhập để trải nghiệm mua sắm tuyệt vời',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey[600],
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: defaultPadding * 2),
+            // Nút Đăng nhập
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, logInScreenRoute);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: cellphoneZRed,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Đăng nhập',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: defaultPadding),
+            // Nút Đăng ký
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, signUpScreenRoute);
+                },
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: cellphoneZRed,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  side: const BorderSide(color: cellphoneZRed, width: 2),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Đăng ký tài khoản mới',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoggedInView() {
+    final user = _authService.currentUser;
+    final userName = user?.userMetadata?['name'] ?? 'User';
+    final userEmail = user?.email ?? '';
+
+    return ListView(
+      children: [
+        Container(
+          color: cellphoneZRed,
+          padding: const EdgeInsets.only(bottom: defaultPadding),
+          child: ProfileCard(
+            name: userName,
+            email: userEmail,
             imageSrc: "https://i.imgur.com/IXnwbLk.png",
-            // proLableText: "Sliver",
-            // isPro: true, if the user is pro
             press: () {
               Navigator.pushNamed(context, userInfoScreenRoute);
             },
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: defaultPadding, vertical: defaultPadding * 1.5),
-            child: GestureDetector(
-              onTap: () {},
-              child: const AspectRatio(
-                aspectRatio: 1.8,
-                child:
-                    NetworkImageWithLoader("https://i.imgur.com/dz0BBom.png"),
-              ),
-            ),
-          ),
+        ),
 
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
-            child: Text(
-              "Account",
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
+        // Account Section
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.all(defaultPadding),
+          margin: const EdgeInsets.only(
+              top: defaultPadding, bottom: defaultPadding / 2),
+          child: Text(
+            "Tài khoản",
+            style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
           ),
-          const SizedBox(height: defaultPadding / 2),
-          ProfileMenuListTile(
-            text: "Orders",
-            svgSrc: "assets/icons/Order.svg",
-            press: () {
-              Navigator.pushNamed(context, ordersScreenRoute);
-            },
-          ),
-          ProfileMenuListTile(
-            text: "Returns",
-            svgSrc: "assets/icons/Return.svg",
-            press: () {},
-          ),
-          ProfileMenuListTile(
-            text: "Wishlist",
-            svgSrc: "assets/icons/Wishlist.svg",
-            press: () {},
-          ),
-          ProfileMenuListTile(
-            text: "Addresses",
-            svgSrc: "assets/icons/Address.svg",
-            press: () {
-              Navigator.pushNamed(context, addressesScreenRoute);
-            },
-          ),
-          ProfileMenuListTile(
-            text: "Payment",
-            svgSrc: "assets/icons/card.svg",
-            press: () {
-              Navigator.pushNamed(context, emptyPaymentScreenRoute);
-            },
-          ),
-          ProfileMenuListTile(
-            text: "Wallet",
-            svgSrc: "assets/icons/Wallet.svg",
-            press: () {
-              Navigator.pushNamed(context, walletScreenRoute);
-            },
-          ),
-          const SizedBox(height: defaultPadding),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: defaultPadding, vertical: defaultPadding / 2),
-            child: Text(
-              "Personalization",
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-          ),
-          DividerListTileWithTrilingText(
-            svgSrc: "assets/icons/Notification.svg",
-            title: "Notification",
-            trilingText: "Off",
-            press: () {
-              Navigator.pushNamed(context, enableNotificationScreenRoute);
-            },
-          ),
-          ProfileMenuListTile(
-            text: "Preferences",
-            svgSrc: "assets/icons/Preferences.svg",
-            press: () {
-              Navigator.pushNamed(context, preferencesScreenRoute);
-            },
-          ),
-          const SizedBox(height: defaultPadding),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: defaultPadding, vertical: defaultPadding / 2),
-            child: Text(
-              "Settings",
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-          ),
-          ProfileMenuListTile(
-            text: "Language",
-            svgSrc: "assets/icons/Language.svg",
-            press: () {
-              Navigator.pushNamed(context, selectLanguageScreenRoute);
-            },
-          ),
-          ProfileMenuListTile(
-            text: "Location",
-            svgSrc: "assets/icons/Location.svg",
-            press: () {},
-          ),
-          const SizedBox(height: defaultPadding),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: defaultPadding, vertical: defaultPadding / 2),
-            child: Text(
-              "Help & Support",
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-          ),
-          ProfileMenuListTile(
-            text: "Get Help",
-            svgSrc: "assets/icons/Help.svg",
-            press: () {
-              Navigator.pushNamed(context, getHelpScreenRoute);
-            },
-          ),
-          ProfileMenuListTile(
-            text: "FAQ",
-            svgSrc: "assets/icons/FAQ.svg",
-            press: () {},
-            isShowDivider: false,
-          ),
-          const SizedBox(height: defaultPadding),
+        ),
+        ProfileMenuListTile(
+          text: "Lịch sử mua hàng",
+          svgSrc: "assets/icons/Order.svg",
+          press: () {
+            Navigator.pushNamed(context, ordersScreenRoute);
+          },
+        ),
+        ProfileMenuListTile(
+          text: "Địa chỉ nhận hàng",
+          svgSrc: "assets/icons/Address.svg",
+          press: () {
+            Navigator.pushNamed(context, addressesScreenRoute);
+          },
+        ),
+        ProfileMenuListTile(
+          text: "Phương thức thanh toán",
+          svgSrc: "assets/icons/card.svg",
+          press: () {
+            Navigator.pushNamed(context, emptyPaymentScreenRoute);
+          },
+        ),
+        ProfileMenuListTile(
+          text: "Ví của tôi",
+          svgSrc: "assets/icons/Wallet.svg",
+          press: () {
+            Navigator.pushNamed(context, walletScreenRoute);
+          },
+        ),
+        ProfileMenuListTile(
+          text: "Sản phẩm yêu thích",
+          svgSrc: "assets/icons/Wishlist.svg",
+          press: () {},
+        ),
 
-          // Log Out
-          ListTile(
-            onTap: () {},
+        // Support Section
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.all(defaultPadding),
+          margin: const EdgeInsets.only(
+              top: defaultPadding, bottom: defaultPadding / 2),
+          child: Text(
+            "Hỗ trợ & Chính sách",
+            style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+        ),
+        ProfileMenuListTile(
+          text: "Tư vấn hỗ trợ",
+          svgSrc: "assets/icons/Help.svg",
+          press: () {
+            Navigator.pushNamed(context, getHelpScreenRoute);
+          },
+        ),
+        ProfileMenuListTile(
+          text: "Chính sách đổi trả",
+          svgSrc: "assets/icons/Return.svg",
+          press: () {},
+        ),
+        ProfileMenuListTile(
+          text: "Điều khoản sử dụng",
+          svgSrc: "assets/icons/FAQ.svg",
+          press: () {
+            Navigator.pushNamed(context, termsOfServicesScreenRoute);
+          },
+        ),
+        ProfileMenuListTile(
+          text: "Câu hỏi thường gặp",
+          svgSrc: "assets/icons/FAQ.svg",
+          press: () {},
+        ),
+
+        // Settings Section
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.all(defaultPadding),
+          margin: const EdgeInsets.only(
+              top: defaultPadding, bottom: defaultPadding / 2),
+          child: Text(
+            "Cài đặt",
+            style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+        ),
+        DividerListTileWithTrilingText(
+          svgSrc: "assets/icons/Notification.svg",
+          title: "Thông báo",
+          trilingText: "Tắt",
+          press: () {
+            Navigator.pushNamed(context, enableNotificationScreenRoute);
+          },
+        ),
+        ProfileMenuListTile(
+          text: "Ngôn ngữ",
+          svgSrc: "assets/icons/Language.svg",
+          press: () {
+            Navigator.pushNamed(context, selectLanguageScreenRoute);
+          },
+        ),
+        ProfileMenuListTile(
+          text: "Vị trí",
+          svgSrc: "assets/icons/Location.svg",
+          press: () {},
+        ),
+
+        // Logout
+        Container(
+          color: Colors.white,
+          margin: const EdgeInsets.only(top: defaultPadding),
+          child: ListTile(
+            onTap: () async {
+              // Show confirmation dialog
+              final result = await showDialog<bool>(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    title: const Text('Xác nhận đăng xuất'),
+                    content: const Text('Bạn có chắc chắn muốn đăng xuất?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text('Hủy'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: cellphoneZRed,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text('Đăng xuất'),
+                      ),
+                    ],
+                  );
+                },
+              );
+
+              if (result == true) {
+                try {
+                  await _authService.signOut();
+                  if (mounted) {
+                    setState(() {});
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Đã đăng xuất thành công'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Lỗi đăng xuất: $e'),
+                        backgroundColor: cellphoneZRed,
+                      ),
+                    );
+                  }
+                }
+              }
+            },
             minLeadingWidth: 24,
             leading: SvgPicture.asset(
               "assets/icons/Logout.svg",
               height: 24,
               width: 24,
               colorFilter: const ColorFilter.mode(
-                errorColor,
+                cellphoneZRed,
                 BlendMode.srcIn,
               ),
             ),
             title: const Text(
-              "Log Out",
-              style: TextStyle(color: errorColor, fontSize: 14, height: 1),
+              "Đăng xuất",
+              style: TextStyle(
+                  color: cellphoneZRed,
+                  fontSize: 14,
+                  height: 1,
+                  fontWeight: FontWeight.w600),
             ),
-          )
-        ],
+          ),
+        ),
+        const SizedBox(height: defaultPadding),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isAuthenticated = _authService.isAuthenticated;
+
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        backgroundColor: cellphoneZRed,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        title: const Text('Tài khoản'),
+        centerTitle: true,
       ),
+      body: isAuthenticated ? _buildLoggedInView() : _buildGuestView(),
     );
   }
 }

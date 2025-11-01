@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:shop/components/product/product_card.dart';
 import 'package:shop/constants.dart';
 import 'package:shop/models/category.dart';
 import 'package:shop/models/product.dart';
+import 'package:shop/route/route_constants.dart';
 import 'package:shop/screens/category/views/category_products_screen.dart';
 import 'package:shop/services/product_service.dart';
 
@@ -84,88 +86,29 @@ class _CategoryProductsSectionState extends State<CategoryProductsSection> {
         ),
         const SizedBox(height: defaultPadding / 2),
         SizedBox(
-          height: 280,
+          height: 220,
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: defaultPadding / 2),
                   itemCount: _products.length,
                   itemBuilder: (context, index) {
                     final product = _products[index];
-                    return Container(
-                      width: 180,
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: defaultPadding / 2),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        left: defaultPadding,
+                        right:
+                            index == _products.length - 1 ? defaultPadding : 0,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ClipRRect(
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(8),
-                            ),
-                            child: AspectRatio(
-                              aspectRatio: 1,
-                              child: product.imageUrl != null
-                                  ? Image.network(
-                                      product.imageUrl!,
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                        return Container(
-                                          color: Colors.grey.shade200,
-                                          child: const Center(
-                                            child: Icon(Icons.error_outline),
-                                          ),
-                                        );
-                                      },
-                                    )
-                                  : Container(
-                                      color: Colors.grey.shade200,
-                                      child: const Center(
-                                        child: Icon(Icons.image_not_supported),
-                                      ),
-                                    ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  product.name,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${product.price.toStringAsFixed(0)}₫',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(
-                                        color: cellphoneZRed,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                      child: ProductCard.fromProduct(
+                        product: product,
+                        onPressed: () {
+                          Navigator.pushNamed(
+                            context,
+                            productDetailScreenRoute,
+                            arguments: product.id,
+                          );
+                        },
                       ),
                     );
                   },

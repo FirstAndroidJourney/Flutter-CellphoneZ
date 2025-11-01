@@ -134,6 +134,24 @@ Route<dynamic> generateRoute(RouteSettings settings) {
         builder: (context) => const CategoryManagement(),
       );
 
+    case orderConfirmationScreenRoute:
+      final args = settings.arguments as Map<String, dynamic>?;
+      final order = args?['order'];
+      final orderItems = args?['orderItems'];
+      
+      return MaterialPageRoute(
+        builder: (context) => OrderConfirmationScreen(
+          order: order,
+          orderItems: orderItems,
+        ),
+      );
+
+    case orderHistoryScreenRoute:
+      final userId = settings.arguments as String;
+      return MaterialPageRoute(
+        builder: (context) => OrderHistoryScreen(userId: userId),
+      );
+
     default:
       return MaterialPageRoute(
         // Make a screen for undefine

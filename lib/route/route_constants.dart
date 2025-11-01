@@ -61,3 +61,6 @@ const String paymentScreenRoute = "payment";
 const String paymentResultScreenRoute = "payment_result";
 const String adminProductListScreenRoute = "admin_product_list";
 const String categoryManagementScreenRoute = "category_management";
+const String orderConfirmationScreenRoute = "order_confirmation";
+const String orderHistoryScreenRoute = "order_history";
+
