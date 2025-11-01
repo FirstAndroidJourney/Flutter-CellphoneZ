@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
       themeMode: ThemeMode.light,
       onGenerateRoute: router.generateRoute,
       home: const MainScreen(),
-      initialRoute: adminProductListScreenRoute,
+      initialRoute: onbordingScreenRoute,
     );
   }
 }
