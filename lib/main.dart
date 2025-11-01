@@ -8,6 +8,7 @@ import 'package:shop/route/router.dart' as router;
 import 'package:shop/screens/main_screen.dart';
 import 'package:shop/services/dependency_injection.dart';
 import 'package:shop/theme/app_theme.dart';
+import 'package:shop/route/route_constants.dart';
 // import 'package:supabase_flutter/supabase_flutter.dart';
 // import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -43,6 +44,7 @@ class MyApp extends StatelessWidget {
       themeMode: ThemeMode.light,
       onGenerateRoute: router.generateRoute,
       home: const MainScreen(),
+      initialRoute: onbordingScreenRoute,
     );
   }
 }
