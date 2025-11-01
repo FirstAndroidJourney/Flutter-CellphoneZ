@@ -20,14 +20,12 @@ class ProductFormScreen extends StatelessWidget {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 520),
-            child: ListView(
+            child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 24,
               ),
-              children: [
-                ProductForm(product: product),
-              ],
+              child: ProductForm(product: product),
             ),
           ),
         ),
