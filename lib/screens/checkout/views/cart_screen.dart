@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shop/constants.dart';
 import 'package:shop/components/network_image_with_loader.dart';
-import 'package:shop/components/cart_button.dart';
-import 'package:shop/services/cart_service.dart';
-import 'package:shop/models/cart_item.dart';
+import 'package:shop/providers/cart_provider.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -13,200 +12,340 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
-  final CartService _cartService = CartService();
-  List<CartItemWithProduct> _items = [];
-  double _total = 0;
-  bool _loading = true;
+  // Track selected items
+  Set<String> selectedItems = {};
 
-  @override
-  void initState() {
-    super.initState();
-    _loadCart();
+  // Format price to VND
+  String formatVND(double price) {
+    final priceInt = price.toInt();
+    return '${priceInt.toString().replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]}.',
+        )}đ';
   }
 
-  Future<void> _loadCart() async {
-    setState(() => _loading = true);
-    try {
-      final items = await _cartService.getCartItemsWithProducts();
-      final total = await _cartService.getCartTotal();
-      if (mounted) {
-        setState(() {
-          _items = items;
-          _total = total;
-        });
+  // Calculate total of selected items
+  double getSelectedTotal(List items) {
+    double total = 0;
+    for (var entry in items) {
+      if (selectedItems.contains(entry.cartItem.id)) {
+        final price = entry.product?.price ?? 0.0;
+        final quantity = entry.cartItem.quantity;
+        total += price * quantity;
       }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Không thể tải giỏ: $e')));
-      }
-    } finally {
-      if (mounted) setState(() => _loading = false);
     }
-  }
-
-  Future<void> _updateQuantity(String cartItemId, int newQty) async {
-    try {
-      await _cartService.updateQuantity(cartItemId, newQty);
-      await _loadCart();
-    } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Không cập nhật được: $e')));
-    }
-  }
-
-  Future<void> _removeItem(String cartItemId) async {
-    try {
-      await _cartService.removeFromCart(cartItemId);
-      await _loadCart();
-    } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Không xóa được: $e')));
-    }
+    return total;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Giỏ hàng'),
-      ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _items.isEmpty
-              ? Center(
-                  child: Text(
-                    'Giỏ hàng trống',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _loadCart,
-                  child: ListView.separated(
-                    padding: const EdgeInsets.all(defaultPadding),
-                    itemCount: _items.length,
-                    separatorBuilder: (_, __) =>
-                        const SizedBox(height: defaultPadding / 2),
-                    itemBuilder: (context, index) {
-                      final entry = _items[index];
-                      final cartItem = entry.cartItem;
-                      final product = entry.product;
-                      final imageUrl = product?.imageUrl ?? productDemoImg1;
-                      final title = product?.name ?? 'Product';
-                      final price = product?.price ?? 0.0;
+    return Consumer<CartProvider>(
+      builder: (context, cartProvider, child) {
+        final selectedTotal = getSelectedTotal(cartProvider.items);
 
-                      return Container(
-                        decoration: BoxDecoration(
-                          borderRadius: const BorderRadius.all(
-                              Radius.circular(defaultBorderRadious)),
-                          border: Border.all(
-                              color: Theme.of(context).dividerColor),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(defaultPadding / 2),
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 86,
-                                height: 86,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child:
-                                      NetworkImageWithLoader(imageUrl),
+        return Scaffold(
+          backgroundColor: Colors.grey[50],
+          appBar: AppBar(
+            backgroundColor: cellphoneZRed,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            title: const Text('Giỏ hàng'),
+          ),
+          body: cartProvider.loading
+              ? const Center(child: CircularProgressIndicator())
+              : cartProvider.items.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.shopping_cart_outlined,
+                            size: 100,
+                            color: Colors.grey[300],
+                          ),
+                          const SizedBox(height: defaultPadding),
+                          Text(
+                            'Giỏ hàng trống',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: () => cartProvider.loadCart(),
+                      child: ListView.separated(
+                        padding: const EdgeInsets.all(defaultPadding),
+                        itemCount: cartProvider.items.length,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: defaultPadding / 2),
+                        itemBuilder: (context, index) {
+                          final entry = cartProvider.items[index];
+                          final cartItem = entry.cartItem;
+                          final product = entry.product;
+                          final imageUrl = product?.imageUrl ?? productDemoImg1;
+                          final title = product?.name ?? 'Product';
+                          final price = product?.price ?? 0.0;
+                          final isSelected =
+                              selectedItems.contains(cartItem.id);
+
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: const BorderRadius.all(
+                                  Radius.circular(defaultBorderRadious)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
                                 ),
-                              ),
-                              const SizedBox(width: defaultPadding / 2),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(title,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      "\$${price.toStringAsFixed(2)}",
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyLarge!
-                                          .copyWith(fontWeight: FontWeight.w600),
+                              ],
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(defaultPadding / 2),
+                              child: Row(
+                                children: [
+                                  // Checkbox
+                                  Checkbox(
+                                    value: isSelected,
+                                    activeColor: cellphoneZRed,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        if (value == true) {
+                                          selectedItems.add(cartItem.id);
+                                        } else {
+                                          selectedItems.remove(cartItem.id);
+                                        }
+                                      });
+                                    },
+                                  ),
+                                  const SizedBox(width: 8),
+                                  SizedBox(
+                                    width: 86,
+                                    height: 86,
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: NetworkImageWithLoader(imageUrl),
                                     ),
-                                    const SizedBox(height: 8),
-                                    Row(
+                                  ),
+                                  const SizedBox(width: defaultPadding / 2),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        SizedBox(
-                                          height: 36,
-                                          width: 36,
-                                          child: OutlinedButton(
-                                            onPressed: cartItem.quantity > 1
-                                                ? () => _updateQuantity(
-                                                    cartItem.id,
-                                                    cartItem.quantity - 1)
-                                                : null,
-                                            style: OutlinedButton.styleFrom(
-                                              padding: EdgeInsets.zero,
+                                        Text(
+                                          title,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          formatVND(price),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyLarge!
+                                              .copyWith(
+                                                fontWeight: FontWeight.w600,
+                                                color: cellphoneZRed,
+                                              ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          children: [
+                                            SizedBox(
+                                              height: 36,
+                                              width: 36,
+                                              child: OutlinedButton(
+                                                onPressed: cartItem.quantity > 1
+                                                    ? () => cartProvider
+                                                        .updateQuantity(
+                                                            cartItem.id,
+                                                            cartItem.quantity -
+                                                                1)
+                                                    : null,
+                                                style: OutlinedButton.styleFrom(
+                                                  padding: EdgeInsets.zero,
+                                                  side: const BorderSide(
+                                                      color: cellphoneZRed),
+                                                  foregroundColor:
+                                                      cellphoneZRed,
+                                                ),
+                                                child: const Icon(Icons.remove,
+                                                    size: 18),
+                                              ),
                                             ),
-                                            child: const Icon(Icons.remove,
-                                                size: 18),
-                                          ),
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8.0),
-                                          child: Text(
-                                            cartItem.quantity.toString(),
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleMedium,
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          height: 36,
-                                          width: 36,
-                                          child: OutlinedButton(
-                                            onPressed: () => _updateQuantity(
-                                                cartItem.id,
-                                                cartItem.quantity + 1),
-                                            style: OutlinedButton.styleFrom(
-                                              padding: EdgeInsets.zero,
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8.0),
+                                              child: Text(
+                                                cartItem.quantity.toString(),
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .titleMedium!
+                                                    .copyWith(
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                              ),
                                             ),
-                                            child: const Icon(Icons.add,
-                                                size: 18),
-                                          ),
-                                        ),
-                                        const Spacer(),
-                                        IconButton(
-                                          onPressed: () =>
-                                              _removeItem(cartItem.id),
-                                          icon: const Icon(Icons.delete_outline),
+                                            SizedBox(
+                                              height: 36,
+                                              width: 36,
+                                              child: OutlinedButton(
+                                                onPressed: () =>
+                                                    cartProvider.updateQuantity(
+                                                        cartItem.id,
+                                                        cartItem.quantity + 1),
+                                                style: OutlinedButton.styleFrom(
+                                                  padding: EdgeInsets.zero,
+                                                  side: const BorderSide(
+                                                      color: cellphoneZRed),
+                                                  foregroundColor:
+                                                      cellphoneZRed,
+                                                ),
+                                                child: const Icon(Icons.add,
+                                                    size: 18),
+                                              ),
+                                            ),
+                                            const Spacer(),
+                                            IconButton(
+                                              onPressed: () => cartProvider
+                                                  .removeItem(cartItem.id),
+                                              icon: const Icon(
+                                                  Icons.delete_outline),
+                                              color: cellphoneZRed,
+                                            )
+                                          ],
                                         )
                                       ],
-                                    )
-                                  ],
-                                ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+          bottomNavigationBar: cartProvider.items.isEmpty
+              ? null
+              : Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, -2),
+                      ),
+                    ],
+                  ),
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.all(defaultPadding),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Select All Checkbox
+                          Row(
+                            children: [
+                              Checkbox(
+                                value: selectedItems.length ==
+                                        cartProvider.items.length &&
+                                    cartProvider.items.isNotEmpty,
+                                activeColor: cellphoneZRed,
+                                onChanged: (value) {
+                                  setState(() {
+                                    if (value == true) {
+                                      // Select all
+                                      selectedItems = cartProvider.items
+                                          .map((e) => e.cartItem.id)
+                                          .toSet();
+                                    } else {
+                                      // Deselect all
+                                      selectedItems.clear();
+                                    }
+                                  });
+                                },
+                              ),
+                              Text(
+                                'Chọn tất cả (${selectedItems.length}/${cartProvider.items.length})',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                              const Spacer(),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    'Tổng thanh toán',
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                  Text(
+                                    formatVND(selectedTotal),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge!
+                                        .copyWith(
+                                          color: cellphoneZRed,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ),
-                      );
-                    },
+                          const SizedBox(height: defaultPadding / 2),
+                          // Checkout Button
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: selectedItems.isEmpty
+                                  ? null
+                                  : () {
+                                      // TODO: chuyển đến trang checkout / payment
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              'Thanh toán ${selectedItems.length} sản phẩm'),
+                                          backgroundColor: cellphoneZRed,
+                                        ),
+                                      );
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: cellphoneZRed,
+                                foregroundColor: Colors.white,
+                                disabledBackgroundColor: Colors.grey[300],
+                                disabledForegroundColor: Colors.grey[600],
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: Text(
+                                selectedItems.isEmpty
+                                    ? 'Vui lòng chọn sản phẩm'
+                                    : 'Thanh toán (${selectedItems.length})',
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-              horizontal: defaultPadding, vertical: defaultBorderRadious / 2),
-          child: CartButton(
-            price: _total,
-            title: 'Checkout',
-            subTitle: 'Total price',
-            press: () {
-              // TODO: chuyển đến trang checkout / payment
-            },
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

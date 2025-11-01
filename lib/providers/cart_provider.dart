@@ -5,16 +5,23 @@ import 'package:shop/services/cart_service.dart';
 
 class CartProvider with ChangeNotifier {
   final CartService _cartService = CartService();
-  
+
   // 1. "Nâng" tất cả state từ CartScreen lên đây
   List<CartItemWithProduct> _items = [];
   double _total = 0;
   bool _loading = true;
 
+  // Constructor - Tự động load giỏ hàng khi khởi tạo
+  CartProvider() {
+    loadCart();
+  }
+
   // 2. Tạo "getters" để UI có thể đọc (nhưng không thể sửa)
   List<CartItemWithProduct> get items => _items;
   double get total => _total;
   bool get loading => _loading;
+  int get totalItems =>
+      _items.fold<int>(0, (sum, item) => sum + item.cartItem.quantity);
 
   /// 3. Hàm tải giỏ hàng (sẽ được gọi khi app khởi động VÀ khi cần)
   Future<void> loadCart() async {
@@ -25,9 +32,18 @@ class CartProvider with ChangeNotifier {
       _items = await _cartService.getCartItemsWithProducts();
       _total = await _cartService.getCartTotal();
     } catch (e) {
-      print('Lỗi nghiêm trọng khi tải giỏ hàng: $e');
-      _items = []; // Nếu lỗi thì trả về giỏ rỗng
-      _total = 0;
+      // Nếu lỗi (ví dụ: chưa đăng nhập), trả về giỏ rỗng
+      // Không cần in lỗi ra console nếu chỉ là chưa đăng nhập
+      if (e.toString().contains('not authenticated')) {
+        // User chưa đăng nhập - trả về giỏ rỗng, không báo lỗi
+        _items = [];
+        _total = 0;
+      } else {
+        // Lỗi khác - in ra để debug
+        print('Lỗi khi tải giỏ hàng: $e');
+        _items = [];
+        _total = 0;
+      }
     } finally {
       _loading = false;
       notifyListeners(); // Thông báo cho UI "Loading xong, có dữ liệu mới"
@@ -38,9 +54,9 @@ class CartProvider with ChangeNotifier {
   Future<void> addToCart(String productId, int quantity) async {
     try {
       await _cartService.addToCart(productId: productId, quantity: quantity);
-      
+
       // Quan trọng: Tải lại giỏ hàng ngay sau khi thêm thành công
-      await loadCart(); 
+      await loadCart();
     } catch (e) {
       print('Lỗi Provider-addToCart: $e');
       rethrow; // Ném lỗi ra để ProductBuyNowScreen hiển thị SnackBar
@@ -65,5 +81,18 @@ class CartProvider with ChangeNotifier {
     } catch (e) {
       print('Lỗi Provider-removeItem: $e');
     }
+  }
+
+  /// 7. Hàm làm mới giỏ hàng (gọi khi user đăng nhập/đăng xuất)
+  Future<void> refresh() async {
+    await loadCart();
+  }
+
+  /// 8. Hàm xóa toàn bộ giỏ hàng (khi user đăng xuất)
+  void clearLocalCart() {
+    _items = [];
+    _total = 0;
+    _loading = false;
+    notifyListeners();
   }
 }

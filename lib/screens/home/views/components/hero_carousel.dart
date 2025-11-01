@@ -116,8 +116,7 @@ class _CellphoneZHeroCarouselState extends State<CellphoneZHeroCarousel> {
                   onTap: item.onTap,
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(24)),
+                      borderRadius: const BorderRadius.all(Radius.circular(24)),
                       gradient: LinearGradient(
                         colors: item.gradient,
                         begin: Alignment.topLeft,
@@ -138,75 +137,78 @@ class _CellphoneZHeroCarouselState extends State<CellphoneZHeroCarousel> {
                                 const SizedBox.shrink(),
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.all(defaultPadding),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.12),
-                                  borderRadius: BorderRadius.circular(24),
-                                ),
-                                child: Text(
-                                  item.badge.toUpperCase(),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .labelSmall
-                                      ?.copyWith(
-                                        color: Colors.white,
-                                        letterSpacing: 1.2,
-                                      ),
-                                ),
-                              ),
-                              const SizedBox(height: defaultPadding / 2),
-                              Text(
-                                item.title,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall
-                                    ?.copyWith(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                              ),
-                              Text(
-                                item.subtitle,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.copyWith(
-                                      color: Colors.white.withOpacity(0.8),
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                              ),
-                              const Spacer(),
-                              Text(
-                                item.description,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
-                                      color: Colors.white.withOpacity(0.9),
-                                    ),
-                              ),
-                              const SizedBox(height: defaultPadding / 1.2),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  foregroundColor: cellphoneZDark,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(32),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.all(defaultPadding),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                  child: Text(
+                                    item.badge.toUpperCase(),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(
+                                          color: Colors.white,
+                                          letterSpacing: 1.2,
+                                        ),
                                   ),
                                 ),
-                                onPressed: item.onTap ?? () {},
-                                child: const Text("Mua ngay"),
-                              ),
-                            ],
+                                const SizedBox(height: defaultPadding / 2),
+                                Text(
+                                  item.title,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                ),
+                                Text(
+                                  item.subtitle,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        color: Colors.white.withOpacity(0.8),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                ),
+                                const Spacer(),
+                                Text(
+                                  item.description,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: Colors.white.withOpacity(0.9),
+                                      ),
+                                ),
+                                const SizedBox(height: defaultPadding / 1.2),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    foregroundColor: cellphoneZDark,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(32),
+                                    ),
+                                  ),
+                                  onPressed: item.onTap ?? () {},
+                                  child: const Text("Mua ngay"),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],

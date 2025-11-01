@@ -3,6 +3,7 @@ import 'package:shop/components/product/product_card.dart';
 import 'package:shop/constants.dart';
 import 'package:shop/models/category.dart';
 import 'package:shop/models/product.dart';
+import 'package:shop/route/route_constants.dart';
 import 'package:shop/services/category_service.dart';
 import 'package:shop/services/product_service.dart';
 
@@ -171,8 +172,11 @@ class _CategoryProductsScreenState extends State<CategoryProductsScreen> {
                     return ProductCard(
                       product: product,
                       press: () {
-                        // TODO: Navigate to product detail
-                        print('Product tapped: ${product.name}');
+                        Navigator.pushNamed(
+                          context,
+                          productDetailScreenRoute,
+                          arguments: product.id,
+                        );
                       },
                     );
                   },

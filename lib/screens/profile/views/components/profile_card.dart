@@ -28,6 +28,7 @@ class ProfileCard extends StatelessWidget {
       onTap: press,
       leading: CircleAvatar(
         radius: 28,
+        backgroundColor: Colors.white,
         child: NetworkImageWithLoader(
           imageSrc,
           radius: 100,
@@ -37,7 +38,10 @@ class ProfileCard extends StatelessWidget {
         children: [
           Text(
             isShowHi ? "Hi, $name" : name,
-            style: const TextStyle(fontWeight: FontWeight.w500),
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -47,7 +51,7 @@ class ProfileCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(
                   horizontal: defaultPadding / 2, vertical: defaultPadding / 4),
               decoration: const BoxDecoration(
-                color: primaryColor,
+                color: Colors.white,
                 borderRadius:
                     BorderRadius.all(Radius.circular(defaultBorderRadious)),
               ),
@@ -57,7 +61,7 @@ class ProfileCard extends StatelessWidget {
                   fontFamily: grandisExtendedFont,
                   fontSize: 10,
                   fontWeight: FontWeight.w500,
-                  color: Colors.white,
+                  color: cellphoneZRed,
                   letterSpacing: 0.7,
                   height: 1,
                 ),
@@ -65,11 +69,14 @@ class ProfileCard extends StatelessWidget {
             ),
         ],
       ),
-      subtitle: Text(email),
+      subtitle: Text(
+        email,
+        style: const TextStyle(color: Colors.white70),
+      ),
       trailing: isShowArrow
           ? SvgPicture.asset(
               "assets/icons/miniRight.svg",
-              color: Theme.of(context).iconTheme.color!.withOpacity(0.4),
+              color: Colors.white,
             )
           : null,
     );

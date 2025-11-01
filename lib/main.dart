@@ -4,9 +4,8 @@ import 'package:provider/provider.dart'; // <-- Đã thêm
 import 'package:shop/providers/cart_provider.dart'; // <-- Đã thêm
 import 'package:shop/providers/tab_provider.dart';
 import 'package:shop/route/route_constants.dart';
-
 import 'package:shop/route/router.dart' as router;
-import 'package:shop/screens/shop/views/shop_screen.dart';
+import 'package:shop/screens/main_screen.dart';
 import 'package:shop/services/dependency_injection.dart';
 import 'package:shop/theme/app_theme.dart';
 // import 'package:supabase_flutter/supabase_flutter.dart';
@@ -43,8 +42,7 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.lightTheme(context),
       themeMode: ThemeMode.light,
       onGenerateRoute: router.generateRoute,
-      // Khởi động trực tiếp vào ShopScreen để test Category Filter & Search
-      home: const ShopScreen(),
+      home: const MainScreen(),
     );
   }
 }
