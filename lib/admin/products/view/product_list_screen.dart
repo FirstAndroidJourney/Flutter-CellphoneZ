@@ -439,35 +439,99 @@ class _StatsSection extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-      child: Wrap(
-        spacing: 16,
-        runSpacing: 16,
-        children: [
-          _StatCard(
-            icon: Icons.inventory_2_outlined,
-            label: 'Tổng sản phẩm',
-            value: totalProducts.toString(),
-            iconColor: colorScheme.primary,
-          ),
-          _StatCard(
-            icon: Icons.store_mall_directory_outlined,
-            label: 'Đang bán',
-            value: availableProducts.toString(),
-            iconColor: colorScheme.secondary,
-          ),
-          _StatCard(
-            icon: Icons.pause_circle_outline,
-            label: 'Tạm ngưng',
-            value: unavailableProducts.toString(),
-            iconColor: colorScheme.error,
-          ),
-          _StatCard(
-            icon: Icons.payments_outlined,
-            label: 'Tổng giá niêm yết',
-            value: totalValueLabel,
-            iconColor: colorScheme.tertiary,
-          ),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isCompact = constraints.maxWidth < 720;
+          if (isCompact) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _StatCard(
+                        icon: Icons.inventory_2_outlined,
+                        label: 'Tổng sản phẩm',
+                        value: totalProducts.toString(),
+                        iconColor: colorScheme.primary,
+                        width: 220,
+                      ),
+                      const SizedBox(width: 12),
+                      _StatCard(
+                        icon: Icons.store_mall_directory_outlined,
+                        label: 'Đang bán',
+                        value: availableProducts.toString(),
+                        iconColor: colorScheme.secondary,
+                        width: 220,
+                      ),
+                      const SizedBox(width: 12),
+                      _StatCard(
+                        icon: Icons.pause_circle_outline,
+                        label: 'Tạm ngưng',
+                        value: unavailableProducts.toString(),
+                        iconColor: colorScheme.error,
+                        width: 220,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _StatCard(
+                  icon: Icons.payments_outlined,
+                  label: 'Tổng giá niêm yết',
+                  value: totalValueLabel,
+                  iconColor: colorScheme.tertiary,
+                  isFullWidth: true,
+                ),
+              ],
+            );
+          }
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: _StatCard(
+                      icon: Icons.inventory_2_outlined,
+                      label: 'Tổng sản phẩm',
+                      value: totalProducts.toString(),
+                      iconColor: colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _StatCard(
+                      icon: Icons.store_mall_directory_outlined,
+                      label: 'Đang bán',
+                      value: availableProducts.toString(),
+                      iconColor: colorScheme.secondary,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _StatCard(
+                      icon: Icons.pause_circle_outline,
+                      label: 'Tạm ngưng',
+                      value: unavailableProducts.toString(),
+                      iconColor: colorScheme.error,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _StatCard(
+                icon: Icons.payments_outlined,
+                label: 'Tổng giá niêm yết',
+                value: totalValueLabel,
+                iconColor: colorScheme.tertiary,
+                isFullWidth: true,
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -479,47 +543,56 @@ class _StatCard extends StatelessWidget {
     required this.label,
     required this.value,
     required this.iconColor,
+    this.isFullWidth = false,
+    this.width,
   });
 
   final IconData icon;
   final String label;
   final String value;
   final Color iconColor;
+  final bool isFullWidth;
+  final double? width;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minWidth: 160, maxWidth: 220),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: colorScheme.outlineVariant),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: iconColor),
-            const SizedBox(height: 12),
-            Text(
-              value,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
+    return Container(
+      width: isFullWidth ? double.infinity : width,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: iconColor),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  value,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
             ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
