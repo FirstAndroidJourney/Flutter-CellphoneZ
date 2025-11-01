@@ -11,6 +11,7 @@ _$CategoryImpl _$$CategoryImplFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       name: json['name'] as String,
       parentId: json['parent_id'] as String?,
+      isPopular: json['is_popular'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$CategoryImplToJson(_$CategoryImpl instance) =>
@@ -18,4 +19,21 @@ Map<String, dynamic> _$$CategoryImplToJson(_$CategoryImpl instance) =>
       'id': instance.id,
       'name': instance.name,
       'parent_id': instance.parentId,
+      'is_popular': instance.isPopular,
+    };
+
+_$CategoryCreateRequestImpl _$$CategoryCreateRequestImplFromJson(
+        Map<String, dynamic> json) =>
+    _$CategoryCreateRequestImpl(
+      name: json['name'] as String,
+      parentId: json['parent_id'] as String?,
+      isPopular: json['is_popular'] as bool? ?? false,
+    );
+
+Map<String, dynamic> _$$CategoryCreateRequestImplToJson(
+        _$CategoryCreateRequestImpl instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      'parent_id': instance.parentId,
+      'is_popular': instance.isPopular,
     };

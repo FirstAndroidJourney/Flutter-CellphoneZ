@@ -17,8 +17,10 @@ const double DEFAULT_SHIPPING_FEE = 30000; // 30.000đ
 
 // On color 80, 60.... those means opacity
 
-// Primary color changed from purple to red (app-wide theme)
-const Color primaryColor = Color(0xFFEF4444);
+const Color primaryColor = Color(0xFF7B61FF);
+const Color cellphoneZRed = Color(0xFFD70018);
+const Color cellphoneZDark = Color(0xFF111111);
+const Color cellphoneZGrey = Color(0xFFF6F6F6);
 
 const MaterialColor primaryMaterialColor = MaterialColor(
   0xFFEF4444,

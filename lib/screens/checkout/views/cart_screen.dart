@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'checkout_screen.dart';
-import '../../../models/cart_item.dart';
-import '../../../services/cart_service.dart';
+import 'package:provider/provider.dart';
+import 'package:shop/constants.dart';
+import 'package:shop/components/network_image_with_loader.dart';
+import 'package:shop/providers/cart_provider.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -12,200 +12,340 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
-  final List<CartItem> _cartItems = [];
-  final CartService _cartService = CartService();
-  double _totalPrice = 0.0;
+  // Track selected items
+  Set<String> selectedItems = {};
 
-  @override
-  void initState() {
-    super.initState();
-    _loadCartItems();
+  // Format price to VND
+  String formatVND(double price) {
+    final priceInt = price.toInt();
+    return '${priceInt.toString().replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]}.',
+        )}đ';
   }
 
-  Future<void> _loadCartItems() async {
-    try {
-      final items = await _cartService.getCurrentUserCartItems();
-      setState(() {
-        _cartItems.clear();
-        if (items.isEmpty) {
-          // Nếu giỏ hàng thật sự rỗng, thêm 1-2 món demo để demo giao diện
-          _cartItems.addAll([
-            CartItem(
-              id: 'demo-1',
-              userId: 'demo',
-              productId: 'p-001',
-              quantity: 1,
-              unitPrice: 499000.0,
-              productName: 'Tai nghe không dây',
-              productImage: null,
-              isSelected: true,
-            ),
-            CartItem(
-              id: 'demo-2',
-              userId: 'demo',
-              productId: 'p-002',
-              quantity: 2,
-              unitPrice: 1290000.0,
-              productName: 'Ốp lưng điện thoại',
-              productImage: null,
-              isSelected: true,
-            ),
-          ]);
-        } else {
-          _cartItems.addAll(items);
-        }
-        _calculateTotal();
-      });
-    } catch (_) {
-      // If fetching fails (e.g., not authenticated) or cart is empty,
-      // insert 1-2 demo items for a demo flow (Vietnamese, VND)
-      setState(() {
-        _cartItems.clear();
-        _cartItems.addAll([
-          CartItem(
-            id: 'demo-1',
-            userId: 'demo',
-            productId: 'p-001',
-            quantity: 1,
-            unitPrice: 499000.0,
-            productName: 'Tai nghe không dây',
-            productImage: null,
-            isSelected: true,
-          ),
-          CartItem(
-            id: 'demo-2',
-            userId: 'demo',
-            productId: 'p-002',
-            quantity: 2,
-            unitPrice: 1290000.0,
-            productName: 'Ốp lưng điện thoại',
-            productImage: null,
-            isSelected: true,
-          ),
-        ]);
-        _calculateTotal();
-      });
+  // Calculate total of selected items
+  double getSelectedTotal(List items) {
+    double total = 0;
+    for (var entry in items) {
+      if (selectedItems.contains(entry.cartItem.id)) {
+        final price = entry.product?.price ?? 0.0;
+        final quantity = entry.cartItem.quantity;
+        total += price * quantity;
+      }
     }
-  }
-
-  void _toggleItemSelection(int index) {
-    setState(() {
-      _cartItems[index] = _cartItems[index].copyWith(
-        isSelected: !_cartItems[index].isSelected,
-      );
-      _calculateTotal();
-    });
-  }
-
-  void _calculateTotal() {
-    _totalPrice = _cartItems
-        .where((item) => item.isSelected)
-        .fold(0.0, (sum, item) => sum + item.totalPrice);
-  }
-
-  String _formatVnd(double price) {
-    final formatter = NumberFormat('#,###', 'vi_VN');
-    return '${formatter.format(price.round())}đ';
-  }
-
-  void _proceedToCheckout() {
-    final selectedItems = _cartItems.where((item) => item.isSelected).toList();
-    if (selectedItems.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Vui lòng chọn ít nhất một sản phẩm để thanh toán'),
-        ),
-      );
-      return;
-    }
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CheckoutScreen(cartItems: selectedItems),
-      ),
-    ).then((_) {
-      _loadCartItems(); // Refresh cart when returning from checkout
-    });
+    return total;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Giỏ hàng'),
-      ),
-      body: _cartItems.isEmpty
-          ? const Center(
-              child: Text('Giỏ hàng trống'),
-            )
-          : ListView.separated(
-              itemCount: _cartItems.length,
-              separatorBuilder: (context, index) => const Divider(),
-              itemBuilder: (context, index) {
-                final item = _cartItems[index];
-                return ListTile(
-                  leading: Checkbox(
-                    value: item.isSelected,
-                    onChanged: (_) => _toggleItemSelection(index),
-                  ),
-                  title: Text(item.productName),
-                  subtitle: Text('Số lượng: ${item.quantity}'),
-                  trailing: Text(
-                    _formatVnd(item.totalPrice),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                );
-              },
-            ),
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Tổng:',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    _formatVnd(_totalPrice),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _proceedToCheckout,
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(50),
-                  backgroundColor: Colors.red,
-                ),
-                child: const Text(
-                  'Tiếp tục thanh toán',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
+    return Consumer<CartProvider>(
+      builder: (context, cartProvider, child) {
+        final selectedTotal = getSelectedTotal(cartProvider.items);
+
+        return Scaffold(
+          backgroundColor: Colors.grey[50],
+          appBar: AppBar(
+            backgroundColor: cellphoneZRed,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            title: const Text('Giỏ hàng'),
           ),
-        ),
-      ),
+          body: cartProvider.loading
+              ? const Center(child: CircularProgressIndicator())
+              : cartProvider.items.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.shopping_cart_outlined,
+                            size: 100,
+                            color: Colors.grey[300],
+                          ),
+                          const SizedBox(height: defaultPadding),
+                          Text(
+                            'Giỏ hàng trống',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: () => cartProvider.loadCart(),
+                      child: ListView.separated(
+                        padding: const EdgeInsets.all(defaultPadding),
+                        itemCount: cartProvider.items.length,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: defaultPadding / 2),
+                        itemBuilder: (context, index) {
+                          final entry = cartProvider.items[index];
+                          final cartItem = entry.cartItem;
+                          final product = entry.product;
+                          final imageUrl = product?.imageUrl ?? productDemoImg1;
+                          final title = product?.name ?? 'Product';
+                          final price = product?.price ?? 0.0;
+                          final isSelected =
+                              selectedItems.contains(cartItem.id);
+
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: const BorderRadius.all(
+                                  Radius.circular(defaultBorderRadious)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(defaultPadding / 2),
+                              child: Row(
+                                children: [
+                                  // Checkbox
+                                  Checkbox(
+                                    value: isSelected,
+                                    activeColor: cellphoneZRed,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        if (value == true) {
+                                          selectedItems.add(cartItem.id);
+                                        } else {
+                                          selectedItems.remove(cartItem.id);
+                                        }
+                                      });
+                                    },
+                                  ),
+                                  const SizedBox(width: 8),
+                                  SizedBox(
+                                    width: 86,
+                                    height: 86,
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: NetworkImageWithLoader(imageUrl),
+                                    ),
+                                  ),
+                                  const SizedBox(width: defaultPadding / 2),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          title,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          formatVND(price),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyLarge!
+                                              .copyWith(
+                                                fontWeight: FontWeight.w600,
+                                                color: cellphoneZRed,
+                                              ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          children: [
+                                            SizedBox(
+                                              height: 36,
+                                              width: 36,
+                                              child: OutlinedButton(
+                                                onPressed: cartItem.quantity > 1
+                                                    ? () => cartProvider
+                                                        .updateQuantity(
+                                                            cartItem.id,
+                                                            cartItem.quantity -
+                                                                1)
+                                                    : null,
+                                                style: OutlinedButton.styleFrom(
+                                                  padding: EdgeInsets.zero,
+                                                  side: const BorderSide(
+                                                      color: cellphoneZRed),
+                                                  foregroundColor:
+                                                      cellphoneZRed,
+                                                ),
+                                                child: const Icon(Icons.remove,
+                                                    size: 18),
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8.0),
+                                              child: Text(
+                                                cartItem.quantity.toString(),
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .titleMedium!
+                                                    .copyWith(
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height: 36,
+                                              width: 36,
+                                              child: OutlinedButton(
+                                                onPressed: () =>
+                                                    cartProvider.updateQuantity(
+                                                        cartItem.id,
+                                                        cartItem.quantity + 1),
+                                                style: OutlinedButton.styleFrom(
+                                                  padding: EdgeInsets.zero,
+                                                  side: const BorderSide(
+                                                      color: cellphoneZRed),
+                                                  foregroundColor:
+                                                      cellphoneZRed,
+                                                ),
+                                                child: const Icon(Icons.add,
+                                                    size: 18),
+                                              ),
+                                            ),
+                                            const Spacer(),
+                                            IconButton(
+                                              onPressed: () => cartProvider
+                                                  .removeItem(cartItem.id),
+                                              icon: const Icon(
+                                                  Icons.delete_outline),
+                                              color: cellphoneZRed,
+                                            )
+                                          ],
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+          bottomNavigationBar: cartProvider.items.isEmpty
+              ? null
+              : Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, -2),
+                      ),
+                    ],
+                  ),
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.all(defaultPadding),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Select All Checkbox
+                          Row(
+                            children: [
+                              Checkbox(
+                                value: selectedItems.length ==
+                                        cartProvider.items.length &&
+                                    cartProvider.items.isNotEmpty,
+                                activeColor: cellphoneZRed,
+                                onChanged: (value) {
+                                  setState(() {
+                                    if (value == true) {
+                                      // Select all
+                                      selectedItems = cartProvider.items
+                                          .map((e) => e.cartItem.id)
+                                          .toSet();
+                                    } else {
+                                      // Deselect all
+                                      selectedItems.clear();
+                                    }
+                                  });
+                                },
+                              ),
+                              Text(
+                                'Chọn tất cả (${selectedItems.length}/${cartProvider.items.length})',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                              const Spacer(),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    'Tổng thanh toán',
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                  Text(
+                                    formatVND(selectedTotal),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge!
+                                        .copyWith(
+                                          color: cellphoneZRed,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: defaultPadding / 2),
+                          // Checkout Button
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: selectedItems.isEmpty
+                                  ? null
+                                  : () {
+                                      // TODO: chuyển đến trang checkout / payment
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              'Thanh toán ${selectedItems.length} sản phẩm'),
+                                          backgroundColor: cellphoneZRed,
+                                        ),
+                                      );
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: cellphoneZRed,
+                                foregroundColor: Colors.white,
+                                disabledBackgroundColor: Colors.grey[300],
+                                disabledForegroundColor: Colors.grey[600],
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: Text(
+                                selectedItems.isEmpty
+                                    ? 'Vui lòng chọn sản phẩm'
+                                    : 'Thanh toán (${selectedItems.length})',
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+        );
+      },
     );
   }
 }
