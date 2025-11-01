@@ -33,14 +33,8 @@ class OrderCalculationService {
   }
 
   double calculateDiscount(String? couponCode, double subtotal) {
-    if (couponCode == null || couponCode.isEmpty) return 0.0;
-    
-    // Demo voucher: WELCOME gives 10% off
-    if (couponCode.toUpperCase() == 'WELCOME') {
-      return subtotal * 0.1; // 10% discount
-    }
-    
-    return 0.0; // Invalid voucher
+    // TODO: Implement coupon logic
+    return 0.0;
   }
 
   OrderCalculationResult calculateOrder({

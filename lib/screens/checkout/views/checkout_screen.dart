@@ -190,16 +190,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ? null
                 : () async {
                     // Navigate to payment screen when user taps
-                    // Filter only selected items
-                    final selectedItems = widget.cartItems.where((item) => item.isSelected).toList();
-                    
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => PaymentScreen(
                           orderSummary: _orderSummary,
                           deliveryAddress: _selectedAddress!,
-                          items: selectedItems,
+                          items: widget.cartItems,
                           customerNote: _noteController.text.isEmpty ? null : _noteController.text,
                         ),
                       ),
