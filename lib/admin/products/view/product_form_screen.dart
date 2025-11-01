@@ -17,17 +17,25 @@ class ProductFormScreen extends StatelessWidget {
         ),
       ),
       body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 520),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 24,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final maxWidth = constraints.maxWidth;
+            final width = maxWidth >= 520 ? 520.0 : maxWidth;
+
+            return Align(
+              alignment: Alignment.topCenter,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 24,
+                ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints.tightFor(width: width),
+                  child: ProductForm(product: product),
+                ),
               ),
-              child: ProductForm(product: product),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );

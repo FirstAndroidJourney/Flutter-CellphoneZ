@@ -18,21 +18,19 @@ class ProductForm extends StatefulWidget {
 }
 
 class _ProductFormState extends State<ProductForm> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _nameController;
+  late final TextEditingController _priceController;
+  late final TextEditingController _descriptionController;
   final CategoryService _categoryService = CategoryService();
   final ProductService _productService = ProductService();
   final ImagePicker _picker = ImagePicker();
 
-  Product? _currentProduct;
-  String _name = '';
-  double? _price;
-  String? _description;
   bool _isAvailable = true;
   bool _isSubmitting = false;
-
   bool _loadingCategories = true;
   List<Category> _categories = const [];
   String? _selectedCategoryId;
-
   Uint8List? _pickedImageBytes;
   String? _pickedImageExtension;
   String? _existingImageUrl;
@@ -41,14 +39,24 @@ class _ProductFormState extends State<ProductForm> {
   void initState() {
     super.initState();
     final product = widget.product;
-    _currentProduct = product;
-    _name = product?.name ?? '';
-    _price = product?.price;
-    _description = product?.description;
+    _nameController = TextEditingController(text: product?.name ?? '');
+    _priceController = TextEditingController(
+      text: product != null ? product.price.toStringAsFixed(2) : '',
+    );
+    _descriptionController =
+        TextEditingController(text: product?.description ?? '');
     _isAvailable = product?.isAvailable ?? true;
     _selectedCategoryId = product?.categoryId;
     _existingImageUrl = product?.imageUrl;
     _loadCategories();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _priceController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadCategories() async {
@@ -80,126 +88,123 @@ class _ProductFormState extends State<ProductForm> {
 
   @override
   Widget build(BuildContext context) {
-    final sections = <Widget>[
-      if (_isSubmitting) const LinearProgressIndicator(),
-      _buildEditableField(
-        title: 'Tên sản phẩm',
-        value: _name.isEmpty ? 'Chưa nhập' : _name,
-        onEdit: _isSubmitting ? null : _editName,
-      ),
-      const SizedBox(height: 12),
-      _buildEditableField(
-        title: 'Giá bán',
-        value: _price != null ? _formatPrice(_price!) : 'Chưa nhập',
-        onEdit: _isSubmitting ? null : _editPrice,
-      ),
-      const SizedBox(height: 12),
-      _buildEditableField(
-        title: 'Mô tả',
-        value: (_description?.trim().isEmpty ?? true)
-            ? 'Chưa nhập'
-            : _description!.trim(),
-        onEdit: _isSubmitting ? null : _editDescription,
-      ),
-      const SizedBox(height: 12),
-      _buildCategorySection(),
-      const SizedBox(height: 12),
-      _buildAvailabilityTile(),
-      const SizedBox(height: 16),
-      _buildImageSection(),
-      const SizedBox(height: 24),
-      if (_currentProduct == null)
-        FilledButton(
-          onPressed: _isSubmitting ? null : _createProduct,
-          child: const Text('Tạo sản phẩm'),
-        ),
-    ];
-
     return AbsorbPointer(
       absorbing: _isSubmitting,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: sections,
-      ),
-    );
-  }
-
-  Widget _buildEditableField({
-    required String title,
-    required String value,
-    VoidCallback? onEdit,
-  }) {
-    return Card(
-      child: ListTile(
-        title: Text(title),
-        subtitle: Text(
-          value.isEmpty ? 'Chưa nhập' : value,
-          style: const TextStyle(height: 1.3),
-        ),
-        trailing: IconButton(
-          tooltip: 'Chỉnh sửa',
-          icon: const Icon(Icons.edit),
-          onPressed: onEdit,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCategorySection() {
-    if (_loadingCategories) {
-      return const Card(
-        child: ListTile(
-          title: Text('Danh mục'),
-          subtitle: Text('Đang tải...'),
-          trailing: SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
-      );
-    }
-
-    final categoryName = _selectedCategoryId == null
-        ? 'Không chọn'
-        : _categories
-                .firstWhere(
-                  (category) => category.id == _selectedCategoryId,
-                  orElse: () => const Category(
-                    id: '',
-                    name: 'Danh mục đã bị xoá',
-                  ),
-                )
-                .name;
-
-    return Card(
-      child: ListTile(
-        title: const Text('Danh mục'),
-        subtitle: Text(categoryName),
-        trailing: IconButton(
-          tooltip: 'Chọn danh mục',
-          icon: const Icon(Icons.edit),
-          onPressed: _isSubmitting ? null : _selectCategory,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAvailabilityTile() {
-    return Card(
-      child: SwitchListTile(
-        title: const Text('Trạng thái bán'),
-        subtitle: Text(_isAvailable ? 'Đang bán' : 'Ngừng bán'),
-        value: _isAvailable,
-        onChanged: _isSubmitting
-            ? null
-            : (value) async {
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (_isSubmitting) const LinearProgressIndicator(),
+            if (_isSubmitting) const SizedBox(height: 16),
+            TextFormField(
+              controller: _nameController,
+              decoration: const InputDecoration(
+                labelText: 'Tên sản phẩm',
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Tên sản phẩm không được để trống';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _priceController,
+              decoration: const InputDecoration(
+                labelText: 'Giá bán',
+                suffixText: 'đ',
+              ),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Vui lòng nhập giá bán';
+                }
+                final parsed = double.tryParse(value.replaceAll(',', '.'));
+                if (parsed == null || parsed <= 0) {
+                  return 'Giá bán phải lớn hơn 0';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            _buildCategoryField(),
+            const SizedBox(height: 16),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Trạng thái bán'),
+              subtitle: Text(_isAvailable ? 'Đang bán' : 'Ngừng bán'),
+              value: _isAvailable,
+              onChanged: (value) {
                 setState(() {
                   _isAvailable = value;
                 });
-                await _persistExistingProduct();
               },
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _descriptionController,
+              decoration: const InputDecoration(
+                labelText: 'Mô tả',
+                alignLabelWithHint: true,
+              ),
+              maxLines: 4,
+            ),
+            const SizedBox(height: 16),
+            _buildImageSection(),
+            const SizedBox(height: 24),
+            FilledButton(
+              onPressed: _isSubmitting ? null : _handleSubmit,
+              child: Text(
+                widget.product == null ? 'Tạo sản phẩm' : 'Cập nhật',
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildCategoryField() {
+    if (_loadingCategories) {
+      return const SizedBox(
+        height: 56,
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final options = <DropdownMenuItem<String?>>[
+      const DropdownMenuItem<String?>(
+        value: null,
+        child: Text('Không chọn danh mục'),
+      ),
+      ..._categories.map(
+        (category) => DropdownMenuItem<String?>(
+          value: category.id,
+          child: Text(category.name),
+        ),
+      ),
+    ];
+
+    final hasSelected = _selectedCategoryId != null &&
+        _categories.any((category) => category.id == _selectedCategoryId);
+
+    return DropdownButtonFormField<String?>(
+      key: ValueKey(hasSelected ? _selectedCategoryId : 'none'),
+      initialValue: hasSelected ? _selectedCategoryId : null,
+      decoration: const InputDecoration(
+        labelText: 'Danh mục',
+      ),
+      items: options,
+      onChanged: (value) {
+        setState(() {
+          _selectedCategoryId = value;
+        });
+      },
     );
   }
 
@@ -253,8 +258,6 @@ class _ProductFormState extends State<ProductForm> {
       preview = placeholder;
     }
 
-    final isNewProduct = _currentProduct == null;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -268,189 +271,24 @@ class _ProductFormState extends State<ProductForm> {
           child: preview,
         ),
         const SizedBox(height: 12),
-        Row(
+        Wrap(
+          spacing: 12,
+          runSpacing: 8,
           children: [
             ElevatedButton.icon(
               onPressed: _isSubmitting ? null : _pickImage,
               icon: const Icon(Icons.photo_library_outlined),
-              label: Text(isNewProduct ? 'Chọn ảnh' : 'Đổi ảnh'),
+              label: const Text('Chọn ảnh'),
             ),
-            const SizedBox(width: 12),
-            if (isNewProduct &&
-                (_pickedImageBytes != null || _existingImageUrl != null))
+            if (_pickedImageBytes != null || _existingImageUrl != null)
               TextButton(
                 onPressed: _isSubmitting ? null : _clearSelectedImage,
                 child: const Text('Xoá ảnh'),
               ),
           ],
         ),
-        if (!isNewProduct)
-          const Padding(
-            padding: EdgeInsets.only(top: 8),
-            child: Text(
-              'Ảnh sẽ được cập nhật ngay khi bạn chọn ảnh mới.',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-          ),
       ],
     );
-  }
-
-  Future<void> _editName() async {
-    final controller = TextEditingController(text: _name);
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Tên sản phẩm'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(
-            hintText: 'Nhập tên sản phẩm',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Huỷ'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(controller.text),
-            child: const Text('Lưu'),
-          ),
-        ],
-      ),
-    );
-
-    if (result == null) return;
-    final trimmed = result.trim();
-    if (trimmed.isEmpty) {
-      _showSnack('Tên sản phẩm không được để trống', isError: true);
-      return;
-    }
-
-    setState(() {
-      _name = trimmed;
-    });
-    await _persistExistingProduct();
-  }
-
-  Future<void> _editPrice() async {
-    final controller =
-        TextEditingController(text: _price?.toStringAsFixed(0) ?? '');
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Giá bán'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(
-            hintText: 'Nhập giá bán',
-            suffixText: 'đ',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Huỷ'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(controller.text),
-            child: const Text('Lưu'),
-          ),
-        ],
-      ),
-    );
-
-    if (result == null) return;
-    final parsed = double.tryParse(result.replaceAll(',', '.'));
-    if (parsed == null || parsed <= 0) {
-      _showSnack('Giá bán phải lớn hơn 0', isError: true);
-      return;
-    }
-
-    setState(() {
-      _price = parsed;
-    });
-    await _persistExistingProduct();
-  }
-
-  Future<void> _editDescription() async {
-    final controller = TextEditingController(text: _description ?? '');
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Mô tả sản phẩm'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          minLines: 3,
-          maxLines: 6,
-          decoration: const InputDecoration(
-            hintText: 'Nhập mô tả (có thể bỏ trống)',
-            alignLabelWithHint: true,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Huỷ'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(controller.text),
-            child: const Text('Lưu'),
-          ),
-        ],
-      ),
-    );
-
-    if (result == null) return;
-    final trimmed = result.trim();
-    setState(() {
-      _description = trimmed.isEmpty ? null : trimmed;
-    });
-    await _persistExistingProduct();
-  }
-
-  Future<void> _selectCategory() async {
-    if (_loadingCategories) {
-      await _loadCategories();
-      if (!mounted) return;
-      if (_loadingCategories) return;
-    }
-
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) => SimpleDialog(
-        title: const Text('Chọn danh mục'),
-        children: [
-          SimpleDialogOption(
-            onPressed: () => Navigator.of(context).pop('__none__'),
-            child: const Text('Không chọn'),
-          ),
-          ..._categories.map(
-            (category) => SimpleDialogOption(
-              onPressed: () => Navigator.of(context).pop(category.id),
-              child: Text(category.name),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (result == null) return;
-
-    final newCategoryId = result == '__none__' ? null : result;
-    if (newCategoryId == _selectedCategoryId) {
-      return;
-    }
-
-    setState(() {
-      _selectedCategoryId = newCategoryId;
-    });
-    await _persistExistingProduct();
   }
 
   Future<void> _pickImage() async {
@@ -462,22 +300,11 @@ class _ProductFormState extends State<ProductForm> {
     final bytes = await file.readAsBytes();
     if (!mounted) return;
 
-    final extension = file.path.split('.').last.toLowerCase();
-
-    if (_currentProduct == null) {
-      setState(() {
-        _pickedImageBytes = bytes;
-        _pickedImageExtension = extension;
-        _existingImageUrl = null;
-      });
-    } else {
-      await _persistExistingProduct(
-        imagePayload: ProductImagePayload(
-          bytes: bytes,
-          extension: extension,
-        ),
-      );
-    }
+    setState(() {
+      _pickedImageBytes = bytes;
+      _pickedImageExtension = file.path.split('.').last.toLowerCase();
+      _existingImageUrl = null;
+    });
   }
 
   void _clearSelectedImage() {
@@ -488,12 +315,25 @@ class _ProductFormState extends State<ProductForm> {
     });
   }
 
-  Future<void> _persistExistingProduct({
-    ProductImagePayload? imagePayload,
-  }) async {
-    final current = _currentProduct;
-    if (current == null) {
+  Future<void> _handleSubmit() async {
+    final isValid = _formKey.currentState?.validate() ?? false;
+    if (!isValid) {
       return;
+    }
+
+    final parsedPrice =
+        double.tryParse(_priceController.text.replaceAll(',', '.'));
+    if (parsedPrice == null || parsedPrice <= 0) {
+      _showSnack('Giá bán không hợp lệ', isError: true);
+      return;
+    }
+
+    ProductImagePayload? imagePayload;
+    if (_pickedImageBytes != null && _pickedImageExtension != null) {
+      imagePayload = ProductImagePayload(
+        bytes: _pickedImageBytes!,
+        extension: _pickedImageExtension!,
+      );
     }
 
     setState(() {
@@ -501,32 +341,37 @@ class _ProductFormState extends State<ProductForm> {
     });
 
     try {
-      final updated = await _productService.updateProduct(
-        current: current,
-        name: _name.trim().isEmpty ? current.name : _name.trim(),
-        price: _price ?? current.price,
-        isAvailable: _isAvailable,
-        description:
-            (_description?.trim().isEmpty ?? true) ? null : _description!.trim(),
-        categoryId: _selectedCategoryId,
-        newImage: imagePayload,
-      );
+      final description = _descriptionController.text.trim();
 
-      if (!mounted) return;
+      if (widget.product == null) {
+        await _productService.createProduct(
+          name: _nameController.text.trim(),
+          price: parsedPrice,
+          isAvailable: _isAvailable,
+          description: description.isEmpty ? null : description,
+          categoryId: _selectedCategoryId,
+          image: imagePayload,
+        );
 
-      setState(() {
-        _currentProduct = updated;
-        _existingImageUrl = updated.imageUrl;
-        if (imagePayload != null) {
-          _pickedImageBytes = null;
-          _pickedImageExtension = null;
-        }
-      });
+        if (!mounted) return;
+        Navigator.of(context).pop('Đã tạo sản phẩm mới');
+      } else {
+        await _productService.updateProduct(
+          current: widget.product!,
+          name: _nameController.text.trim(),
+          price: parsedPrice,
+          isAvailable: _isAvailable,
+          description: description.isEmpty ? null : description,
+          categoryId: _selectedCategoryId,
+          newImage: imagePayload,
+        );
 
-      _showSnack('Đã cập nhật sản phẩm');
+        if (!mounted) return;
+        Navigator.of(context).pop('Đã cập nhật sản phẩm');
+      }
     } catch (error) {
       if (!mounted) return;
-      _showSnack('Không thể cập nhật sản phẩm: $error', isError: true);
+      _showSnack('Không thể lưu sản phẩm: $error', isError: true);
     } finally {
       if (mounted) {
         setState(() {
@@ -534,58 +379,6 @@ class _ProductFormState extends State<ProductForm> {
         });
       }
     }
-  }
-
-  Future<void> _createProduct() async {
-    final trimmedName = _name.trim();
-    if (trimmedName.isEmpty) {
-      _showSnack('Vui lòng nhập tên sản phẩm', isError: true);
-      return;
-    }
-
-    final price = _price;
-    if (price == null || price <= 0) {
-      _showSnack('Vui lòng nhập giá bán hợp lệ', isError: true);
-      return;
-    }
-
-    setState(() {
-      _isSubmitting = true;
-    });
-
-    try {
-      await _productService.createProduct(
-        name: trimmedName,
-        price: price,
-        isAvailable: _isAvailable,
-        description:
-            (_description?.trim().isEmpty ?? true) ? null : _description!.trim(),
-        categoryId: _selectedCategoryId,
-        image: _pickedImageBytes != null && _pickedImageExtension != null
-            ? ProductImagePayload(
-                bytes: _pickedImageBytes!,
-                extension: _pickedImageExtension!,
-              )
-            : null,
-      );
-
-      if (!mounted) return;
-
-      Navigator.of(context).pop('Đã tạo sản phẩm mới');
-    } catch (error) {
-      if (!mounted) return;
-      _showSnack('Không thể tạo sản phẩm: $error', isError: true);
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-      }
-    }
-  }
-
-  String _formatPrice(double value) {
-    return '${value.toStringAsFixed(0)} đ';
   }
 
   void _showSnack(String message, {bool isError = false}) {
