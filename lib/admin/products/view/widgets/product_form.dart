@@ -1,15 +1,12 @@
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../models/category.dart';
 import '../../../../models/product.dart';
 import '../../../../services/category_service.dart';
-import '../../../../services/product_service.dart' show ProductImagePayload;
-import '../../bloc/product_admin_bloc.dart';
+import '../../../../services/product_service.dart';
 
 class ProductForm extends StatefulWidget {
   const ProductForm({super.key, this.product});
@@ -26,9 +23,11 @@ class _ProductFormState extends State<ProductForm> {
   late final TextEditingController _priceController;
   late final TextEditingController _descriptionController;
   final CategoryService _categoryService = CategoryService();
+  final ProductService _productService = ProductService();
   final ImagePicker _picker = ImagePicker();
 
   bool _isAvailable = true;
+  bool _isSubmitting = false;
   List<Category> _categories = const [];
   bool _loadingCategories = true;
   String? _selectedCategoryId;
@@ -74,28 +73,25 @@ class _ProductFormState extends State<ProductForm> {
 
     try {
       final categories = await _categoryService.getAllCategories();
-      if (mounted) {
-        setState(() {
-          _categories = categories;
-          _loadingCategories = false;
-          if (_selectedCategoryId != null &&
-              !_categories
-                  .any((category) => category.id == _selectedCategoryId)) {
-            _selectedCategoryId = null;
-          }
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        _categories = categories;
+        _loadingCategories = false;
+        if (_selectedCategoryId != null &&
+            !_categories.any((category) => category.id == _selectedCategoryId)) {
+          _selectedCategoryId = null;
+        }
+      });
       debugPrint(
         '[ProductForm] _loadCategories success | count=${categories.length}',
       );
     } catch (error) {
       debugPrint('[ProductForm] _loadCategories error: $error');
-      if (mounted) {
-        setState(() {
-          _categories = const [];
-          _loadingCategories = false;
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        _categories = const [];
+        _loadingCategories = false;
+      });
     }
   }
 
@@ -112,8 +108,7 @@ class _ProductFormState extends State<ProductForm> {
 
     setState(() {
       _pickedImageBytes = bytes;
-      _pickedImageExtension =
-          file.path.split('.').last.toLowerCase();
+      _pickedImageExtension = file.path.split('.').last.toLowerCase();
       _existingImageUrl = null;
     });
     debugPrint(
@@ -135,29 +130,23 @@ class _ProductFormState extends State<ProductForm> {
     debugPrint(
       '[ProductForm] build | productId=${widget.product?.id ?? 'new'} | categoriesLoaded=${_categories.isNotEmpty}',
     );
-    return BlocBuilder<ProductAdminBloc, ProductAdminState>(
-      builder: (context, state) {
-        final isSubmitting =
-            state.formStatus == ProductAdminFormStatus.submitting;
 
-        return AbsorbPointer(
-          absorbing: isSubmitting,
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: _buildFormContents(isSubmitting),
-            ),
-          ),
-        );
-      },
+    return AbsorbPointer(
+      absorbing: _isSubmitting,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: _buildFormContents(),
+        ),
+      ),
     );
   }
 
-  List<Widget> _buildFormContents(bool isSubmitting) {
+  List<Widget> _buildFormContents() {
     return [
-      if (isSubmitting) const LinearProgressIndicator(),
+      if (_isSubmitting) const LinearProgressIndicator(),
       TextFormField(
         controller: _nameController,
         decoration: const InputDecoration(
@@ -173,9 +162,7 @@ class _ProductFormState extends State<ProductForm> {
       const SizedBox(height: 16),
       TextFormField(
         controller: _priceController,
-        keyboardType: const TextInputType.numberWithOptions(
-          decimal: true,
-        ),
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
         decoration: const InputDecoration(
           labelText: 'Giá bán',
           suffixText: 'đ',
@@ -197,9 +184,7 @@ class _ProductFormState extends State<ProductForm> {
       SwitchListTile(
         value: _isAvailable,
         title: const Text('Trạng thái bán'),
-        subtitle: Text(
-          _isAvailable ? 'Đang bán' : 'Ngừng bán',
-        ),
+        subtitle: Text(_isAvailable ? 'Đang bán' : 'Ngừng bán'),
         onChanged: (value) {
           setState(() {
             _isAvailable = value;
@@ -222,10 +207,8 @@ class _ProductFormState extends State<ProductForm> {
       _buildImageSection(),
       const SizedBox(height: 24),
       FilledButton(
-        onPressed: isSubmitting ? null : _handleSubmit,
-        child: Text(
-          widget.product == null ? 'Tạo sản phẩm' : 'Cập nhật',
-        ),
+        onPressed: _isSubmitting ? null : () => _handleSubmit(),
+        child: Text(widget.product == null ? 'Tạo sản phẩm' : 'Cập nhật'),
       ),
     ];
   }
@@ -241,8 +224,7 @@ class _ProductFormState extends State<ProductForm> {
     final hasSelectedCategory = _selectedCategoryId != null &&
         _categories.any((category) => category.id == _selectedCategoryId);
 
-    final initialCategoryId =
-        hasSelectedCategory ? _selectedCategoryId : null;
+    final initialCategoryId = hasSelectedCategory ? _selectedCategoryId : null;
 
     final options = <DropdownMenuItem<String?>>[
       const DropdownMenuItem<String?>(
@@ -341,14 +323,14 @@ class _ProductFormState extends State<ProductForm> {
         Row(
           children: [
             ElevatedButton.icon(
-              onPressed: _pickImage,
+              onPressed: _isSubmitting ? null : _pickImage,
               icon: const Icon(Icons.photo_library_outlined),
               label: const Text('Chọn ảnh'),
             ),
             const SizedBox(width: 12),
             if (_pickedImageBytes != null || _existingImageUrl != null)
               TextButton(
-                onPressed: _clearSelectedImage,
+                onPressed: _isSubmitting ? null : _clearSelectedImage,
                 child: const Text('Xoá ảnh'),
               ),
           ],
@@ -357,7 +339,7 @@ class _ProductFormState extends State<ProductForm> {
     );
   }
 
-  void _handleSubmit() {
+  Future<void> _handleSubmit() async {
     debugPrint('[ProductForm] _handleSubmit start');
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid) {
@@ -371,6 +353,7 @@ class _ProductFormState extends State<ProductForm> {
       debugPrint(
         '[ProductForm] _handleSubmit invalid price="${_priceController.text}"',
       );
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Giá bán không hợp lệ')),
       );
@@ -386,21 +369,55 @@ class _ProductFormState extends State<ProductForm> {
     }
 
     final description = _descriptionController.text.trim();
-    context.read<ProductAdminBloc>().add(
-          ProductAdminSubmitted(
-            existing: widget.product,
-            input: ProductFormInput(
-              name: _nameController.text.trim(),
-              price: parsedPrice,
-              isAvailable: _isAvailable,
-              description: description.isEmpty ? null : description,
-              categoryId: _selectedCategoryId,
-              image: imagePayload,
-            ),
-          ),
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      if (widget.product == null) {
+        await _productService.createProduct(
+          name: _nameController.text.trim(),
+          price: parsedPrice,
+          isAvailable: _isAvailable,
+          description: description.isEmpty ? null : description,
+          categoryId: _selectedCategoryId,
+          image: imagePayload,
         );
-    debugPrint(
-      '[ProductForm] _handleSubmit dispatched | productId=${widget.product?.id ?? 'new'}',
-    );
+        if (!mounted) return;
+        Navigator.of(context).pop('Đã tạo sản phẩm mới');
+      } else {
+        await _productService.updateProduct(
+          current: widget.product!,
+          name: _nameController.text.trim(),
+          price: parsedPrice,
+          isAvailable: _isAvailable,
+          description: description.isEmpty ? null : description,
+          categoryId: _selectedCategoryId,
+          newImage: imagePayload,
+        );
+        if (!mounted) return;
+        Navigator.of(context).pop('Đã cập nhật sản phẩm');
+      }
+    } on ArgumentError catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.message)),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Không thể lưu sản phẩm: $error'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
   }
 }

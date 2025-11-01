@@ -1,172 +1,85 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../models/product.dart';
-import '../../../services/dependency_injection.dart';
 import '../../../services/product_service.dart';
-import '../../products/bloc/product_admin_bloc.dart';
-import '../../products/bloc/product_selection_cubit.dart';
 import 'product_form_screen.dart';
 
-class ProductListScreen extends StatelessWidget {
+class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (_) => ProductAdminBloc(ProductService())
-            ..add(const ProductAdminStarted()),
-        ),
-        BlocProvider<ProductSelectionCubit>.value(
-          value: getIt<ProductSelectionCubit>(),
-        ),
-      ],
-      child: const _ProductListView(),
-    );
-  }
+  State<ProductListScreen> createState() => _ProductListScreenState();
 }
 
-class _ProductListView extends StatefulWidget {
-  const _ProductListView();
+class _ProductListScreenState extends State<ProductListScreen> {
+  final ProductService _productService = ProductService();
+
+  bool _isLoading = true;
+  bool _isProcessing = false;
+  List<Product> _products = const [];
+  String? _errorMessage;
 
   @override
-  State<_ProductListView> createState() => _ProductListViewState();
-}
-
-class _ProductListViewState extends State<_ProductListView> {
-  @override
-  Widget build(BuildContext context) {
-    return BlocListener<ProductAdminBloc, ProductAdminState>(
-      listenWhen: (previous, current) =>
-          previous.formStatus != current.formStatus ||
-          previous.successMessage != current.successMessage ||
-          previous.errorMessage != current.errorMessage,
-      listener: (context, state) {
-        final route = ModalRoute.of(context);
-        final isCurrentRoute = route?.isCurrent ?? true;
-
-        if (!isCurrentRoute) {
-          return;
-        }
-
-        if (state.formStatus == ProductAdminFormStatus.failure &&
-            state.errorMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.errorMessage!),
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-          );
-          context
-              .read<ProductAdminBloc>()
-              .add(const ProductAdminFormReset());
-        } else if (state.formStatus == ProductAdminFormStatus.success &&
-            state.successMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.successMessage!)),
-          );
-          context
-              .read<ProductAdminBloc>()
-              .add(const ProductAdminFormReset());
-        }
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Quản lý sản phẩm'),
-          actions: [
-            IconButton(
-              onPressed: () => context
-                  .read<ProductAdminBloc>()
-                  .add(const ProductAdminRefreshed()),
-              icon: const Icon(Icons.refresh),
-            ),
-          ],
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => _openForm(context),
-          child: const Icon(Icons.add),
-        ),
-        body: BlocBuilder<ProductAdminBloc, ProductAdminState>(
-          builder: (context, state) {
-            switch (state.status) {
-              case ProductAdminStatus.loading:
-                return const Center(child: CircularProgressIndicator());
-              case ProductAdminStatus.failure:
-                return _ErrorView(
-                  message: state.errorMessage ??
-                      'Không thể tải danh sách sản phẩm.',
-                  onRetry: () => context
-                      .read<ProductAdminBloc>()
-                      .add(const ProductAdminStarted()),
-                );
-              case ProductAdminStatus.success:
-                return _ProductList(
-                  products: state.products,
-                  onEdit: (product) => _openForm(context, product: product),
-                  onDelete: _confirmDelete,
-                );
-              case ProductAdminStatus.initial:
-                return const SizedBox.shrink();
-            }
-          },
-        ),
-      ),
-    );
+  void initState() {
+    super.initState();
+    _loadProducts(showSpinner: true);
   }
 
-  Future<void> _openForm(BuildContext context, {Product? product}) async {
-    debugPrint(
-      '[ProductList] _openForm start | productId=${product?.id ?? 'new'}',
-    );
-    final listBloc = context.read<ProductAdminBloc>();
-    final selectionCubit = context.read<ProductSelectionCubit>();
-    final messenger = ScaffoldMessenger.of(context);
-
-    selectionCubit.select(product?.id);
-
-    final result = await Navigator.of(context).push<String?>(
-      MaterialPageRoute(
-        builder: (_) => MultiBlocProvider(
-          providers: [
-            BlocProvider<ProductSelectionCubit>.value(
-              value: selectionCubit,
-            ),
-            BlocProvider(
-              create: (_) => ProductAdminBloc(ProductService()),
-            ),
-          ],
-          child: const ProductFormScreen(),
-        ),
-      ),
-    );
-
-    selectionCubit.clear();
-
+  Future<void> _loadProducts({bool showSpinner = false}) async {
     if (!mounted) return;
 
-    debugPrint(
-      '[ProductList] _openForm result | productId=${product?.id ?? 'new'} | result="$result"',
-    );
+    setState(() {
+      if (showSpinner) {
+        _isLoading = true;
+      }
+      _errorMessage = null;
+    });
 
-    if (result != null && result.isNotEmpty) {
-      messenger.showSnackBar(SnackBar(content: Text(result)));
-      listBloc.add(const ProductAdminRefreshed());
-      listBloc.add(const ProductAdminFormReset());
+    try {
+      final products = await _productService.getAllProducts();
+      if (!mounted) return;
+      setState(() {
+        _products = products;
+        _isLoading = false;
+        _errorMessage = null;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'Không thể tải danh sách sản phẩm: $error';
+        _isLoading = false;
+      });
     }
   }
 
-  Future<void> _confirmDelete(Product product) async {
-    final bloc = context.read<ProductAdminBloc>();
-    final isAvailable = product.isAvailable;
-    final title =
-        isAvailable ? 'Ngừng bán sản phẩm' : 'Mở bán lại sản phẩm';
-    final content = isAvailable
-        ? 'Bạn có chắc muốn ngừng bán "${product.name}" không?'
-        : 'Bạn có muốn mở bán lại "${product.name}" không?';
-    final confirmLabel = isAvailable ? 'Ngừng bán' : 'Mở bán lại';
+  Future<void> _openForm({Product? product}) async {
+    final message = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (context) => ProductFormScreen(product: product),
+      ),
+    );
+
+    if (!mounted || message == null) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+    await _loadProducts(showSpinner: true);
+  }
+
+  Future<void> _changeAvailability(Product product) async {
+    if (_isProcessing) {
+      return;
+    }
+
+    final shouldEnable = !product.isAvailable;
+    final title = shouldEnable ? 'Mở bán sản phẩm' : 'Ngừng bán sản phẩm';
+    final confirmLabel = shouldEnable ? 'Mở bán' : 'Ngừng bán';
+    final content = shouldEnable
+        ? 'Bạn có chắc muốn mở bán lại sản phẩm "${product.name}"?'
+        : 'Bạn có chắc muốn ngừng bán sản phẩm "${product.name}"?';
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -181,9 +94,9 @@ class _ProductListViewState extends State<_ProductListView> {
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: isAvailable
-                  ? Theme.of(context).colorScheme.error
-                  : Theme.of(context).colorScheme.primary,
+              backgroundColor: shouldEnable
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.error,
             ),
             child: Text(confirmLabel),
           ),
@@ -191,45 +104,94 @@ class _ProductListViewState extends State<_ProductListView> {
       ),
     );
 
-    if (confirmed == true) {
-      bloc.add(ProductAdminDeleteRequested(product));
+    if (confirmed != true || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _isProcessing = true;
+    });
+
+    try {
+      await _productService.updateProductAvailability(product, shouldEnable);
+      if (!mounted) return;
+      await _loadProducts();
+      if (!mounted) return;
+      final message = shouldEnable
+          ? 'Đã mở bán lại sản phẩm'
+          : 'Đã ngừng bán sản phẩm';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Không thể cập nhật sản phẩm: $error'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+        });
+      }
     }
   }
-}
-
-class _ProductList extends StatelessWidget {
-  const _ProductList({
-    required this.products,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  final List<Product> products;
-  final Future<void> Function(Product) onEdit;
-  final Future<void> Function(Product) onDelete;
 
   @override
   Widget build(BuildContext context) {
-    if (products.isEmpty) {
-      return const _EmptyView();
+    final Widget body;
+    if (_isLoading) {
+      body = const Center(child: CircularProgressIndicator());
+    } else if (_errorMessage != null) {
+      body = _ErrorView(
+        message: _errorMessage!,
+        onRetry: () => _loadProducts(showSpinner: true),
+      );
+    } else if (_products.isEmpty) {
+      body = _EmptyView(onReload: () => _loadProducts(showSpinner: true));
+    } else {
+      body = RefreshIndicator(
+        onRefresh: _loadProducts,
+        child: ListView.separated(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          itemCount: _products.length,
+          separatorBuilder: (_, __) => const Divider(height: 1),
+          itemBuilder: (context, index) {
+            final product = _products[index];
+            return _ProductTile(
+              product: product,
+              actionsEnabled: !_isProcessing,
+              onEdit: () => _openForm(product: product),
+              onToggleAvailability: () => _changeAvailability(product),
+            );
+          },
+        ),
+      );
     }
 
-    return RefreshIndicator(
-      onRefresh: () async {
-        context.read<ProductAdminBloc>().add(const ProductAdminRefreshed());
-      },
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        itemBuilder: (context, index) {
-          final product = products[index];
-          return _ProductTile(
-            product: product,
-            onEdit: () => onEdit(product),
-            onDelete: () => onDelete(product),
-          );
-        },
-        separatorBuilder: (_, __) => const Divider(height: 1),
-        itemCount: products.length,
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Quản lý sản phẩm'),
+        actions: [
+          IconButton(
+            onPressed: () => _loadProducts(showSpinner: true),
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _openForm(),
+        child: const Icon(Icons.add),
+      ),
+      body: Column(
+        children: [
+          if (_isProcessing) const LinearProgressIndicator(minHeight: 2),
+          Expanded(child: body),
+        ],
       ),
     );
   }
@@ -238,13 +200,15 @@ class _ProductList extends StatelessWidget {
 class _ProductTile extends StatelessWidget {
   const _ProductTile({
     required this.product,
+    required this.actionsEnabled,
     required this.onEdit,
-    required this.onDelete,
+    required this.onToggleAvailability,
   });
 
   final Product product;
+  final bool actionsEnabled;
   final VoidCallback onEdit;
-  final VoidCallback onDelete;
+  final VoidCallback onToggleAvailability;
 
   @override
   Widget build(BuildContext context) {
@@ -268,8 +232,7 @@ class _ProductTile extends StatelessWidget {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color:
-                    Theme.of(context).colorScheme.surfaceContainerHighest,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(Icons.image_not_supported),
@@ -284,12 +247,7 @@ class _ProductTile extends StatelessWidget {
           IconButton(
             tooltip: 'Chỉnh sửa',
             icon: const Icon(Icons.edit),
-            onPressed: () {
-              debugPrint(
-                '[ProductList] Edit tapped | productId=${product.id}',
-              );
-              onEdit();
-            },
+            onPressed: actionsEnabled ? onEdit : null,
           ),
           IconButton(
             tooltip: isAvailable ? 'Ngừng bán' : 'Mở bán lại',
@@ -299,7 +257,7 @@ class _ProductTile extends StatelessWidget {
                   ? Theme.of(context).colorScheme.error
                   : Theme.of(context).colorScheme.primary,
             ),
-            onPressed: onDelete,
+            onPressed: actionsEnabled ? onToggleAvailability : null,
           ),
         ],
       ),
@@ -308,7 +266,9 @@ class _ProductTile extends StatelessWidget {
 }
 
 class _EmptyView extends StatelessWidget {
-  const _EmptyView();
+  const _EmptyView({required this.onReload});
+
+  final VoidCallback onReload;
 
   @override
   Widget build(BuildContext context) {
@@ -321,9 +281,7 @@ class _EmptyView extends StatelessWidget {
           const Text('Chưa có sản phẩm nào'),
           const SizedBox(height: 16),
           ElevatedButton.icon(
-            onPressed: () => context
-                .read<ProductAdminBloc>()
-                .add(const ProductAdminStarted()),
+            onPressed: onReload,
             icon: const Icon(Icons.refresh),
             label: const Text('Tải lại'),
           ),
