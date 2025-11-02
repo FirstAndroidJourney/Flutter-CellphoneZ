@@ -12,14 +12,14 @@ import 'package:uuid/uuid.dart';
 final supabase = Supabase.instance.client;
 
 class PaymentScreen extends StatefulWidget {
-  final OrderCalculationResult orderSummary;
+  final OrderCalculationResult? orderSummary;
   final String deliveryAddress;
   final List<CartItem> items;
   final String? customerNote;
 
   const PaymentScreen({
     super.key,
-    required this.orderSummary,
+    this.orderSummary,
     required this.deliveryAddress,
     required this.items,
     this.customerNote,
@@ -39,7 +39,26 @@ class _PaymentScreenState extends State<PaymentScreen> {
   void initState() {
     super.initState();
     _deliveryAddress = widget.deliveryAddress;
-    _orderSummary = widget.orderSummary;
+    _orderSummary = widget.orderSummary ??
+        OrderCalculationService().calculateOrder(
+          items: widget.items,
+          deliveryLocation: widget.deliveryAddress,
+        );
+    
+    // Debug: In ra thông tin giá
+    debugPrint('🛒 Payment Screen initialized:');
+    debugPrint('  - Items count: ${widget.items.length}');
+    for (var item in widget.items) {
+      debugPrint('  - Item: ${item.productName}');
+      debugPrint('    Product ID: ${item.productId}');
+      debugPrint('    Quantity: ${item.quantity}');
+      debugPrint('    Unit Price: ${item.unitPrice}');
+      debugPrint('    Total Price: ${item.totalPrice}');
+    }
+    debugPrint('  - Subtotal: ${_orderSummary.subtotal}');
+    debugPrint('  - Tax: ${_orderSummary.tax}');
+    debugPrint('  - Shipping: ${_orderSummary.shipping}');
+    debugPrint('  - Total: ${_orderSummary.total}');
   }
 
   Future<void> _changeAddress() async {
@@ -260,19 +279,37 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
 
     if (confirmed == true && mounted) {
-      // TODO: Create order in database
-      final orderId = 'COD_${DateTime.now().millisecondsSinceEpoch}';
+      setState(() => _isProcessing = true);
+      
+      // Create order in database
+      final orderId = await _createOrderWithItemsAndPayment(
+        method: 'ship_cod',
+        status: 'success',
+      );
+
+      if (orderId == null) {
+        if (mounted) {
+          setState(() => _isProcessing = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Không thể tạo đơn hàng')),
+          );
+        }
+        return;
+      }
 
       // Navigate to result screen
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        paymentResultScreenRoute,
-        (route) => false,
-        arguments: {
-          'orderId': orderId,
-          'status': 'success',
-          'purchasedItemIds': widget.items.map((e) => e.id).toList(),
-        },
-      );
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          paymentResultScreenRoute,
+          (route) => false,
+          arguments: {
+            'orderId': orderId,
+            'status': 'success',
+            'purchasedItemIds': widget.items.map((e) => e.id).toList(),
+          },
+        );
+      }
     }
   }
 
@@ -312,19 +349,37 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
 
     if (confirmed == true && mounted) {
-      // TODO: Create order in database
-      final orderId = 'STORE_${DateTime.now().millisecondsSinceEpoch}';
+      setState(() => _isProcessing = true);
+      
+      // Create order in database
+      final orderId = await _createOrderWithItemsAndPayment(
+        method: 'store_pickup',
+        status: 'success',
+      );
+
+      if (orderId == null) {
+        if (mounted) {
+          setState(() => _isProcessing = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Không thể tạo đơn hàng')),
+          );
+        }
+        return;
+      }
 
       // Navigate to result screen
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        paymentResultScreenRoute,
-        (route) => false,
-        arguments: {
-          'orderId': orderId,
-          'status': 'success',
-          'purchasedItemIds': widget.items.map((e) => e.id).toList(),
-        },
-      );
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          paymentResultScreenRoute,
+          (route) => false,
+          arguments: {
+            'orderId': orderId,
+            'status': 'success',
+            'purchasedItemIds': widget.items.map((e) => e.id).toList(),
+          },
+        );
+      }
     }
   }
 
@@ -373,9 +428,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
         'method': method,
       });
 
-      // 🗑️ 4️⃣ Xóa các item khỏi giỏ hàng
+      // 🗑️ 4️⃣ Xóa các item khỏi giỏ hàng (chỉ xóa nếu không phải item tạm)
       for (final item in widget.items) {
-        await supabase.from('cart_items').delete().eq('id', item.id);
+        // Chỉ xóa cart items thật (không xóa temp items từ mua trực tiếp)
+        if (!item.id.startsWith('temp_')) {
+          await supabase.from('cart_items').delete().eq('id', item.id);
+        }
       }
 
       debugPrint('✅ Đã tạo order + order_items + payment + xóa giỏ hàng');

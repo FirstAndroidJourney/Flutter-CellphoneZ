@@ -111,10 +111,21 @@ class _CartScreenState extends State<CartScreen> {
       return;
     }
 
-    // Get selected cart items
+    // Get selected cart items with proper unit price from product
     final selectedCartItems = cartProvider.items
         .where((entry) => selectedItems.contains(entry.cartItem.id))
-        .map((entry) => entry.cartItem)
+        .map((entry) {
+          // Ensure unitPrice is populated from product
+          final product = entry.product;
+          if (product != null) {
+            return entry.cartItem.copyWith(
+              unitPrice: product.price,
+              productName: product.name,
+              productImage: product.imageUrl,
+            );
+          }
+          return entry.cartItem;
+        })
         .toList();
 
     // Calculate order summary
@@ -131,6 +142,7 @@ class _CartScreenState extends State<CartScreen> {
         'orderSummary': orderSummary,
         'deliveryAddress': '',
         'items': selectedCartItems,
+        'customerNote': null,
       },
     );
   }

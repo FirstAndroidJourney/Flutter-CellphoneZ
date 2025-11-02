@@ -10,7 +10,7 @@ class OrderRepository extends BaseRepository {
   Future<List<Order>> getAllOrders() async {
     try {
       final data = await getAll();
-      return data.map((json) => Order.fromJson(json)).toList();
+      return data.map((json) => _mapToOrder(json)).toList();
     } catch (e) {
       throw Exception('Failed to fetch orders: $e');
     }
@@ -24,17 +24,28 @@ class OrderRepository extends BaseRepository {
           .eq(ordersSchema.userId, userId)
           .order(createdAtColumn, ascending: false);
       final data = List<Map<String, dynamic>>.from(response);
-      return data.map((json) => Order.fromJson(json)).toList();
+      return data.map((json) => _mapToOrder(json)).toList();
     } catch (e) {
       throw Exception('Failed to fetch user orders: $e');
     }
+  }
+  
+  // Helper method to safely map database JSON to Order model
+  Order _mapToOrder(Map<String, dynamic> json) {
+    return Order.fromJson({
+      'id': json['id'] ?? '',
+      'user_id': json['user_id'] ?? '',
+      'total_price': (json['total_amount'] ?? json['total_price'] ?? 0).toDouble(),
+      'status': json['status'] ?? 'pending',
+      'created_at': json['created_at'] ?? DateTime.now().toIso8601String(),
+    });
   }
 
   // Get order by ID
   Future<Order?> getOrderById(String id) async {
     try {
       final data = await getById(id);
-      return data != null ? Order.fromJson(data) : null;
+      return data != null ? _mapToOrder(data) : null;
     } catch (e) {
       throw Exception('Failed to fetch order: $e');
     }
@@ -54,7 +65,7 @@ class OrderRepository extends BaseRepository {
   Future<Order> updateOrder(String id, Order order) async {
     try {
       final data = await update(id, order.toJson());
-      return Order.fromJson(data);
+      return _mapToOrder(data);
     } catch (e) {
       throw Exception('Failed to update order: $e');
     }
@@ -68,7 +79,7 @@ class OrderRepository extends BaseRepository {
           .eq('id', id)
           .select()
           .single();
-      return Order.fromJson(response);
+      return _mapToOrder(response);
     } catch (e) {
       throw Exception('Failed to update order status: $e');
     }
@@ -89,9 +100,9 @@ class OrderRepository extends BaseRepository {
       final response = await queryBuilder
           .select()
           .eq('status', status.name)
-          .order('createdAt', ascending: false);
+          .order('created_at', ascending: false);
       final data = List<Map<String, dynamic>>.from(response);
-      return data.map((json) => Order.fromJson(json)).toList();
+      return data.map((json) => _mapToOrder(json)).toList();
     } catch (e) {
       throw Exception('Failed to fetch orders by status: $e');
     }
@@ -103,11 +114,11 @@ class OrderRepository extends BaseRepository {
     try {
       final response = await queryBuilder
           .select()
-          .eq('userId', userId)
+          .eq('user_id', userId)
           .eq('status', status.name)
-          .order('createdAt', ascending: false);
+          .order('created_at', ascending: false);
       final data = List<Map<String, dynamic>>.from(response);
-      return data.map((json) => Order.fromJson(json)).toList();
+      return data.map((json) => _mapToOrder(json)).toList();
     } catch (e) {
       throw Exception('Failed to fetch user orders by status: $e');
     }
@@ -122,15 +133,20 @@ class OrderRepository extends BaseRepository {
 
       // Get order items from order_items table
       final orderItemsResponse =
-          await client.from('order_items').select().eq('orderId', orderId);
+          await client.from('order_items').select().eq('order_id', orderId);
 
       final orderItemsData =
           List<Map<String, dynamic>>.from(orderItemsResponse);
-      final orderItems =
-          orderItemsData.map((json) => OrderItem.fromJson(json)).toList();
+      final orderItems = orderItemsData.map((json) => OrderItem.fromJson({
+        'id': json['id'] ?? '',
+        'order_id': json['order_id'] ?? '',
+        'product_id': json['product_id'] ?? '',
+        'quantity': json['quantity'] ?? 1,
+        'price': (json['price'] ?? 0).toDouble(),
+      })).toList();
 
       // Create order with items
-      final order = Order.fromJson(orderData);
+      final order = _mapToOrder(orderData);
       return order.copyWith(items: orderItems);
     } catch (e) {
       throw Exception('Failed to fetch order with items: $e');

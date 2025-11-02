@@ -139,7 +139,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
           text: "Lịch sử mua hàng",
           svgSrc: "assets/icons/Order.svg",
           press: () {
-            Navigator.pushNamed(context, ordersScreenRoute);
+            final user = _authService.currentUser;
+            if (user != null) {
+              Navigator.pushNamed(
+                context,
+                orderHistoryScreenRoute,
+                arguments: user.id,
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Vui lòng đăng nhập để xem lịch sử đơn hàng'),
+                ),
+              );
+            }
           },
         ),
         ProfileMenuListTile(

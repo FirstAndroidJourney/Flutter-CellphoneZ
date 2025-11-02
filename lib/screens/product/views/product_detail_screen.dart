@@ -187,7 +187,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   // Buy now with auth check
-  Future<void> _handleBuyNow(String productId) async {
+  void _handleBuyNow(Product product) {
     // Check authentication first
     if (!_authService.isAuthenticated) {
       _showLoginDialog();
@@ -195,17 +195,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
 
     try {
-      // Lấy thông tin sản phẩm hiện tại
-      final product = await _productFuture;
-      if (product == null) {
-        throw Exception('Không tìm thấy thông tin sản phẩm');
-      }
-
       // Tạo CartItem tạm thời cho sản phẩm này
       final tempCartItem = CartItem(
         id: 'temp_${DateTime.now().millisecondsSinceEpoch}',
         userId: _authService.currentUser?.id ?? '',
-        productId: productId,
+        productId: product.id,
         quantity: 1,
         unitPrice: product.price,
         productName: product.name,
@@ -218,26 +212,23 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         deliveryLocation: '', // Sẽ chọn sau ở màn thanh toán
       );
 
-      if (mounted) {
-        Navigator.pushNamed(
-          context,
-          paymentScreenRoute,
-          arguments: {
-            'orderSummary': orderSummary,
-            'deliveryAddress': '',
-            'items': [tempCartItem],
-          },
-        );
-      }
+      Navigator.pushNamed(
+        context,
+        paymentScreenRoute,
+        arguments: {
+          'orderSummary': orderSummary,
+          'deliveryAddress': '',
+          'items': [tempCartItem],
+          'customerNote': null,
+        },
+      );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Lỗi: $e'),
-            backgroundColor: cellphoneZRed,
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lỗi: $e'),
+          backgroundColor: cellphoneZRed,
+        ),
+      );
     }
   }
 
@@ -490,7 +481,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               child: SizedBox(
                                 height: 50,
                                 child: ElevatedButton(
-                                  onPressed: () => _handleBuyNow(product.id),
+                                  onPressed: () => _handleBuyNow(product),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: cellphoneZRed,
                                     foregroundColor: Colors.white,
