@@ -935,8 +935,6 @@ class _FilterChip extends StatelessWidget {
       showCheckmark: !isSubcategory,
     );
 
-    if (!isSubcategory) return chip;
-
     return chip;
   }
 }
