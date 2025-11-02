@@ -95,6 +95,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   int get _totalProducts => _products.length;
 
+  int get _totalBrands => _products
+      .map((product) => product.categoryId.trim())
+      .where((categoryId) => categoryId.isNotEmpty)
+      .toSet()
+      .length;
+
   int get _availableProducts =>
       _products.where((product) => product.isAvailable).length;
 
@@ -152,24 +158,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(content),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Huỷ'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: shouldEnable
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.error,
-            ),
-            child: Text(confirmLabel),
-          ),
-        ],
+      barrierColor: Colors.black.withValues(alpha: 0.4),
+      builder: (context) => _AvailabilityDialog(
+        title: title,
+        message: content,
+        confirmLabel: confirmLabel,
+        confirmColor: shouldEnable
+            ? Theme.of(context).colorScheme.primary
+            : Theme.of(context).colorScheme.error,
       ),
     );
 
@@ -399,6 +395,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
           SliverToBoxAdapter(
               child: _StatsSection(
             totalProducts: _totalProducts,
+            totalBrands: _totalBrands,
             availableProducts: _availableProducts,
             unavailableProducts: _unavailableProducts,
             totalInventoryValue: _totalInventoryValue,
@@ -478,12 +475,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
 class _StatsSection extends StatelessWidget {
   const _StatsSection({
     required this.totalProducts,
+    required this.totalBrands,
     required this.availableProducts,
     required this.unavailableProducts,
     required this.totalInventoryValue,
   });
 
   final int totalProducts;
+  final int totalBrands;
   final int availableProducts;
   final int unavailableProducts;
   final double totalInventoryValue;
@@ -500,48 +499,83 @@ class _StatsSection extends StatelessWidget {
 
     final totalValueLabel = currency.format(totalInventoryValue);
 
+    final totalProductsCard = _StatCard(
+      icon: Icons.inventory_2_outlined,
+      label: 'Tổng sản phẩm',
+      value: totalProducts.toString(),
+      iconColor: colorScheme.primary,
+    );
+
+    final totalBrandsCard = _StatCard(
+      icon: Icons.loyalty_outlined,
+      label: 'Tổng thương hiệu',
+      value: totalBrands.toString(),
+      iconColor: colorScheme.tertiary,
+    );
+
+    final availableCard = _StatCard(
+      icon: Icons.store_mall_directory_outlined,
+      label: 'Đang bán',
+      value: availableProducts.toString(),
+      iconColor: colorScheme.secondary,
+    );
+
+    final unavailableCard = _StatCard(
+      icon: Icons.pause_circle_outline,
+      label: 'Tạm ngưng',
+      value: unavailableProducts.toString(),
+      iconColor: colorScheme.error,
+    );
+
+    final totalValueCard = _StatCard(
+      icon: Icons.payments_outlined,
+      label: 'Tổng giá niêm yết',
+      value: totalValueLabel,
+      iconColor: colorScheme.tertiary,
+      isFullWidth: true,
+    );
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final stackCards = constraints.maxWidth < 720;
-          final children = [
-            _StatCard(
-              icon: Icons.inventory_2_outlined,
-              label: 'Tổng sản phẩm',
-              value: totalProducts.toString(),
-              iconColor: colorScheme.primary,
-            ),
-            _StatCard(
-              icon: Icons.store_mall_directory_outlined,
-              label: 'Đang bán',
-              value: availableProducts.toString(),
-              iconColor: colorScheme.secondary,
-            ),
-            _StatCard(
-              icon: Icons.pause_circle_outline,
-              label: 'Tạm ngưng',
-              value: unavailableProducts.toString(),
-              iconColor: colorScheme.error,
-            ),
-          ];
+          final isCompact = constraints.maxWidth < 720;
 
-          if (stackCards) {
+          if (isCompact) {
+            const wrapSpacing = 12.0;
+            const wrapRunSpacing = 12.0;
+            final availableWidth = constraints.maxWidth;
+            final cardWidth = availableWidth > wrapSpacing
+                ? (availableWidth - wrapSpacing) / 2
+                : availableWidth;
+
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                for (int i = 0; i < children.length; i++) ...[
-                  children[i],
-                  if (i != children.length - 1) const SizedBox(height: 12),
-                ],
-                const SizedBox(height: 16),
-                _StatCard(
-                  icon: Icons.payments_outlined,
-                  label: 'Tổng giá niêm yết',
-                  value: totalValueLabel,
-                  iconColor: colorScheme.tertiary,
-                  isFullWidth: true,
+                Wrap(
+                  spacing: wrapSpacing,
+                  runSpacing: wrapRunSpacing,
+                  children: [
+                    SizedBox(
+                      width: cardWidth,
+                      child: totalProductsCard,
+                    ),
+                    SizedBox(
+                      width: cardWidth,
+                      child: totalBrandsCard,
+                    ),
+                    SizedBox(
+                      width: cardWidth,
+                      child: availableCard,
+                    ),
+                    SizedBox(
+                      width: cardWidth,
+                      child: unavailableCard,
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 16),
+                totalValueCard,
               ],
             );
           }
@@ -551,20 +585,21 @@ class _StatsSection extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  for (int i = 0; i < children.length; i++) ...[
-                    Expanded(child: children[i]),
-                    if (i != children.length - 1) const SizedBox(width: 16),
-                  ],
+                  Expanded(child: totalProductsCard),
+                  const SizedBox(width: 16),
+                  Expanded(child: totalBrandsCard),
                 ],
               ),
               const SizedBox(height: 12),
-              _StatCard(
-                icon: Icons.payments_outlined,
-                label: 'Tổng giá niêm yết',
-                value: totalValueLabel,
-                iconColor: colorScheme.tertiary,
-                isFullWidth: true,
+              Row(
+                children: [
+                  Expanded(child: availableCard),
+                  const SizedBox(width: 16),
+                  Expanded(child: unavailableCard),
+                ],
               ),
+              const SizedBox(height: 12),
+              totalValueCard,
             ],
           );
         },
@@ -936,6 +971,113 @@ class _FilterChip extends StatelessWidget {
     );
 
     return chip;
+  }
+}
+
+class _AvailabilityDialog extends StatelessWidget {
+  const _AvailabilityDialog({
+    required this.title,
+    required this.message,
+    required this.confirmLabel,
+    required this.confirmColor,
+  });
+
+  final String title;
+  final String message;
+  final String confirmLabel;
+  final Color confirmColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 360),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 40,
+                offset: const Offset(0, 20),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: confirmColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Icon(
+                  Icons.inventory_2_outlined,
+                  color: confirmColor,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                title,
+                style: textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                message,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('Huỷ'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: confirmColor,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: Text(confirmLabel),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
