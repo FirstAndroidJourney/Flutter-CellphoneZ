@@ -23,6 +23,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
   final supabase = Supabase.instance.client;
   Order? _order;
   List<OrderItem> _orderItems = [];
+  Map<String, Map<String, dynamic>> _productDetails = {}; // Cache product info
   bool _loading = true;
   String? _error;
 
@@ -34,20 +35,81 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
 
   Future<void> _loadOrderData() async {
     try {
-      // TODO: Load order từ database theo orderId
-      // Tạm thời tạo mock order
+      debugPrint('🔍 Loading order data for: ${widget.orderId}');
+      
+      // Validate order ID format
+      if (widget.orderId.isEmpty) {
+        throw Exception('Order ID không hợp lệ');
+      }
+      
+      // Load order from database
+      final orderResponse = await supabase
+          .from('orders')
+          .select()
+          .eq('id', widget.orderId)
+          .maybeSingle();
+
+      if (orderResponse == null) {
+        throw Exception('Không tìm thấy đơn hàng với ID: ${widget.orderId}');
+      }
+
+      debugPrint('✅ Order data: $orderResponse');
+
+      // Load order items
+      final orderItemsResponse = await supabase
+          .from('order_items')
+          .select()
+          .eq('order_id', widget.orderId);
+
+      final orderItemsData = List<Map<String, dynamic>>.from(orderItemsResponse);
+      debugPrint('✅ Order items: ${orderItemsData.length} items');
+
+      // Load product details for each item
+      for (var itemData in orderItemsData) {
+        final productId = itemData['product_id'];
+        if (!_productDetails.containsKey(productId)) {
+          try {
+            final productResponse = await supabase
+                .from('products')
+                .select('id, name, image_url')
+                .eq('id', productId)
+                .maybeSingle();
+            
+            if (productResponse != null) {
+              _productDetails[productId] = productResponse;
+              debugPrint('✅ Loaded product: ${productResponse['name']}');
+            }
+          } catch (e) {
+            debugPrint('⚠️ Failed to load product $productId: $e');
+          }
+        }
+      }
+
       setState(() {
-        _order = Order(
-          id: widget.orderId,
-          userId: 'mock_user',
-          totalPrice: 0,
-          status: OrderStatus.paid,
-          createdAt: DateTime.now(),
-        );
-        _orderItems = [];
+        _order = Order.fromJson({
+          'id': orderResponse['id'] ?? '',
+          'user_id': orderResponse['user_id'] ?? '',
+          'total_price': (orderResponse['total_amount'] ?? 0).toDouble(),
+          'status': orderResponse['status'] ?? 'pending',
+          'created_at': orderResponse['created_at'] ?? DateTime.now().toIso8601String(),
+        });
+        
+        _orderItems = orderItemsData.map((json) {
+          return OrderItem(
+            id: json['id'] ?? '',
+            orderId: json['order_id'] ?? '',
+            productId: json['product_id'] ?? '',
+            quantity: json['quantity'] ?? 1,
+            price: (json['price'] ?? 0).toDouble(),
+          );
+        }).toList();
+        
         _loading = false;
       });
+      
+      debugPrint('✅ Order loaded successfully: ${_order?.id} with ${_orderItems.length} items');
     } catch (e) {
+      debugPrint('❌ Error loading order: $e');
       setState(() {
         _error = e.toString();
         _loading = false;
@@ -287,12 +349,22 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                                   SizedBox(
                                     width: double.infinity,
                                     child: OutlinedButton(
-                                      onPressed: () {
-                                        Navigator.pushNamedAndRemoveUntil(
-                                          context,
-                                          orderHistoryScreenRoute,
-                                          (route) => route.isFirst,
-                                        );
+                                      onPressed: () async {
+                                        final user = supabase.auth.currentUser;
+                                        if (user != null) {
+                                          Navigator.pushNamedAndRemoveUntil(
+                                            context,
+                                            orderHistoryScreenRoute,
+                                            (route) => route.isFirst,
+                                            arguments: user.id,
+                                          );
+                                        } else {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('Vui lòng đăng nhập để xem lịch sử đơn hàng'),
+                                            ),
+                                          );
+                                        }
                                       },
                                       style: OutlinedButton.styleFrom(
                                         foregroundColor: cellphoneZRed,
@@ -360,19 +432,31 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
     OrderItem item,
     NumberFormat currencyFormat,
   ) {
+    final productInfo = _productDetails[item.productId];
+    final productName = productInfo?['name'] ?? 'Sản phẩm #${item.productId.substring(0, 8)}';
+    final imageUrl = productInfo?['image_url'];
+
     return Padding(
       padding: const EdgeInsets.only(bottom: defaultPadding),
       child: Row(
         children: [
-          // Product Image placeholder
+          // Product Image
           Container(
             width: 60,
             height: 60,
             decoration: BoxDecoration(
               color: Colors.grey.shade200,
               borderRadius: BorderRadius.circular(8),
+              image: imageUrl != null
+                  ? DecorationImage(
+                      image: NetworkImage(imageUrl),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
             ),
-            child: const Icon(Icons.shopping_bag, color: Colors.grey),
+            child: imageUrl == null
+                ? const Icon(Icons.shopping_bag, color: Colors.grey)
+                : null,
           ),
           const SizedBox(width: defaultPadding),
           Expanded(
@@ -380,10 +464,12 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Sản phẩm #${item.productId.substring(0, 8)}',
+                  productName,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(

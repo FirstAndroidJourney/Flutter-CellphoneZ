@@ -145,6 +145,7 @@ class _CartScreenState extends State<CartScreen> {
         'orderSummary': orderSummary,
         'deliveryAddress': '',
         'items': selectedCartItems,
+        'customerNote': null,
       },
     );
   }

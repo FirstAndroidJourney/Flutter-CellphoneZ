@@ -187,7 +187,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   // Buy now with auth check
-  Future<void> _handleBuyNow(String productId) async {
+  void _handleBuyNow(Product product) {
     // Check authentication first
     if (!_authService.isAuthenticated) {
       _showLoginDialog();
@@ -205,7 +205,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       final tempCartItem = CartItem(
         id: '', // Empty ID để biết đây là buy now, không phải từ cart
         userId: _authService.currentUser?.id ?? '',
-        productId: productId,
+        productId: product.id,
         quantity: 1,
         unitPrice: product.price,
         productName: product.name,
@@ -231,14 +231,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         );
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Lỗi: $e'),
-            backgroundColor: cellphoneZRed,
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lỗi: $e'),
+          backgroundColor: cellphoneZRed,
+        ),
+      );
     }
   }
 
@@ -490,7 +488,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               child: SizedBox(
                                 height: 50,
                                 child: ElevatedButton(
-                                  onPressed: () => _handleBuyNow(product.id),
+                                  onPressed: () => _handleBuyNow(product),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: cellphoneZRed,
                                     foregroundColor: Colors.white,

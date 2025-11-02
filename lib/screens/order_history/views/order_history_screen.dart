@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:shop/constants.dart';
 import 'package:shop/models/order.dart';
+import 'package:shop/route/route_constants.dart';
 import 'package:shop/screens/order_history/blocs/order_history_bloc.dart';
 import 'package:shop/screens/order_history/blocs/order_history_event.dart';
 import 'package:shop/screens/order_history/blocs/order_history_state.dart';
@@ -44,6 +45,18 @@ class _OrderHistoryScreenViewState extends State<OrderHistoryScreenView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lịch sử đơn hàng'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.home),
+            tooltip: 'Về trang chủ',
+            onPressed: () {
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                entryPointScreenRoute,
+                (route) => false,
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -227,11 +240,12 @@ class _OrderHistoryScreenViewState extends State<OrderHistoryScreenView> {
       ),
       child: InkWell(
         onTap: () {
-          // Navigate to order detail
-          context
-              .read<OrderHistoryBloc>()
-              .add(LoadOrderWithItems(order.id));
-          // TODO: Navigate to order detail screen
+          // Navigate to order confirmation screen to show order detail
+          Navigator.pushNamed(
+            context,
+            orderConfirmationScreenRoute,
+            arguments: {'orderId': order.id},
+          );
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
@@ -314,10 +328,12 @@ class _OrderHistoryScreenViewState extends State<OrderHistoryScreenView> {
                   const SizedBox(width: defaultPadding / 2),
                   TextButton.icon(
                     onPressed: () {
-                      context
-                          .read<OrderHistoryBloc>()
-                          .add(LoadOrderWithItems(order.id));
-                      // TODO: Navigate to order detail
+                      // Navigate to order confirmation screen to show order detail
+                      Navigator.pushNamed(
+                        context,
+                        orderConfirmationScreenRoute,
+                        arguments: {'orderId': order.id},
+                      );
                     },
                     icon: const Icon(Icons.visibility, size: 18),
                     label: const Text('Chi tiết'),

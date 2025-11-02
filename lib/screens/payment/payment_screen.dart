@@ -12,7 +12,7 @@ import 'package:uuid/uuid.dart';
 final supabase = Supabase.instance.client;
 
 class PaymentScreen extends StatefulWidget {
-  final OrderCalculationResult orderSummary;
+  final OrderCalculationResult? orderSummary;
   final String deliveryAddress;
   final List<CartItem> items;
   final String? customerNote;
@@ -20,7 +20,7 @@ class PaymentScreen extends StatefulWidget {
 
   const PaymentScreen({
     super.key,
-    required this.orderSummary,
+    this.orderSummary,
     required this.deliveryAddress,
     required this.items,
     this.customerNote,
@@ -41,7 +41,26 @@ class _PaymentScreenState extends State<PaymentScreen> {
   void initState() {
     super.initState();
     _deliveryAddress = widget.deliveryAddress;
-    _orderSummary = widget.orderSummary;
+    _orderSummary = widget.orderSummary ??
+        OrderCalculationService().calculateOrder(
+          items: widget.items,
+          deliveryLocation: widget.deliveryAddress,
+        );
+    
+    // Debug: In ra thông tin giá
+    debugPrint('🛒 Payment Screen initialized:');
+    debugPrint('  - Items count: ${widget.items.length}');
+    for (var item in widget.items) {
+      debugPrint('  - Item: ${item.productName}');
+      debugPrint('    Product ID: ${item.productId}');
+      debugPrint('    Quantity: ${item.quantity}');
+      debugPrint('    Unit Price: ${item.unitPrice}');
+      debugPrint('    Total Price: ${item.totalPrice}');
+    }
+    debugPrint('  - Subtotal: ${_orderSummary.subtotal}');
+    debugPrint('  - Tax: ${_orderSummary.tax}');
+    debugPrint('  - Shipping: ${_orderSummary.shipping}');
+    debugPrint('  - Total: ${_orderSummary.total}');
   }
 
   Future<void> _changeAddress() async {
