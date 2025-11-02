@@ -187,7 +187,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   // Buy now with auth check
-  void _handleBuyNow(Product product) {
+  Future<void> _handleBuyNow(Product product) async {
     // Check authentication first
     if (!_authService.isAuthenticated) {
       _showLoginDialog();
