@@ -201,9 +201,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         throw Exception('Không tìm thấy thông tin sản phẩm');
       }
 
-      // Tạo CartItem tạm thời cho sản phẩm này
+      // Tạo CartItem tạm thời cho sản phẩm này (không có ID từ DB)
       final tempCartItem = CartItem(
-        id: 'temp_${DateTime.now().millisecondsSinceEpoch}',
+        id: '', // Empty ID để biết đây là buy now, không phải từ cart
         userId: _authService.currentUser?.id ?? '',
         productId: productId,
         quantity: 1,
@@ -226,6 +226,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             'orderSummary': orderSummary,
             'deliveryAddress': '',
             'items': [tempCartItem],
+            'isBuyNow': true, // Flag để biết đây là mua ngay, không từ cart
           },
         );
       }
@@ -327,8 +328,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       itemBuilder: (context, index) => Padding(
         padding: EdgeInsets.only(
           left: defaultPadding,
-          right:
-              index == _relatedProducts.length - 1 ? defaultPadding : 0,
+          right: index == _relatedProducts.length - 1 ? defaultPadding : 0,
         ),
         child: SizedBox(
           width: 160,

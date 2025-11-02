@@ -6,6 +6,7 @@ import 'package:shop/providers/cart_provider.dart';
 import 'package:shop/services/auth_service.dart';
 import 'package:shop/route/route_constants.dart';
 import 'package:shop/services/order_calculation_service.dart';
+import 'package:shop/models/cart_item.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -111,11 +112,24 @@ class _CartScreenState extends State<CartScreen> {
       return;
     }
 
-    // Get selected cart items
+    // Get selected cart items WITH product info
     final selectedCartItems = cartProvider.items
         .where((entry) => selectedItems.contains(entry.cartItem.id))
-        .map((entry) => entry.cartItem)
-        .toList();
+        .map((entry) {
+      final cartItem = entry.cartItem;
+      final product = entry.product;
+
+      // Create CartItem with full info for payment
+      return CartItem(
+        id: cartItem.id,
+        userId: cartItem.userId,
+        productId: cartItem.productId,
+        quantity: cartItem.quantity,
+        unitPrice: product?.price ?? 0.0,
+        productName: product?.name ?? 'Sản phẩm',
+        productImage: product?.imageUrl,
+      );
+    }).toList();
 
     // Calculate order summary
     final orderSummary = OrderCalculationService().calculateOrder(
