@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 
+import '../../../models/category.dart';
 import '../../../models/product.dart';
 import '../../../services/product_service.dart';
+import '../../../services/category_service.dart';
 import 'product_form_screen.dart';
 
 class ProductListScreen extends StatefulWidget {
@@ -15,6 +17,7 @@ class ProductListScreen extends StatefulWidget {
 
 class _ProductListScreenState extends State<ProductListScreen> {
   final ProductService _productService = ProductService();
+  final CategoryService _categoryService = CategoryService();
   final TextEditingController _searchController = TextEditingController();
 
   bool _isLoading = true;
@@ -23,11 +26,20 @@ class _ProductListScreenState extends State<ProductListScreen> {
   List<Product> _filteredProducts = const [];
   String _searchQuery = '';
   String? _errorMessage;
+  bool _isCategoryLoading = true;
+  bool _isSubcategoryLoading = false;
+  String? _categoryError;
+  String? _loadingSubcategoryParentId;
+  List<Category> _rootCategories = const [];
+  final Map<String, List<Category>> _subcategoryCache = {};
+  String? _selectedCategoryId;
+  String? _selectedSubcategoryId;
 
   @override
   void initState() {
     super.initState();
     _loadProducts(showSpinner: true);
+    _loadCategories();
   }
 
   @override
@@ -51,10 +63,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
       if (!mounted) return;
       setState(() {
         _products = products;
-        _filteredProducts = _filterProducts(_searchQuery);
         _isLoading = false;
         _errorMessage = null;
       });
+      _applyFilters();
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -95,30 +107,35 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   List<Product> _filterProducts(String query) {
     final normalized = query.trim().toLowerCase();
-    if (normalized.isEmpty) {
-      return List<Product>.from(_products);
+    Set<String>? allowedCategories;
+    if (_selectedSubcategoryId != null) {
+      allowedCategories = {_selectedSubcategoryId!};
+    } else if (_selectedCategoryId != null) {
+      final ids = <String>{_selectedCategoryId!};
+      final subcategories = _subcategoryCache[_selectedCategoryId!] ?? const [];
+      ids.addAll(subcategories.map((category) => category.id));
+      allowedCategories = ids;
     }
-    return _products
-        .where(
-          (product) => product.name.toLowerCase().contains(normalized),
-        )
-        .toList();
+
+    return _products.where((product) {
+      final matchesSearch =
+          normalized.isEmpty || product.name.toLowerCase().contains(normalized);
+      final matchesCategory = allowedCategories == null ||
+          allowedCategories.contains(product.categoryId);
+      return matchesSearch && matchesCategory;
+    }).toList();
   }
 
   void _onSearchChanged(String value) {
-    setState(() {
-      _searchQuery = value;
-      _filteredProducts = _filterProducts(value);
-    });
+    _searchQuery = value;
+    _applyFilters();
   }
 
   void _clearSearch() {
     if (_searchQuery.isEmpty) return;
-    setState(() {
-      _searchQuery = '';
-      _searchController.clear();
-      _filteredProducts = List<Product>.from(_products);
-    });
+    _searchQuery = '';
+    _searchController.clear();
+    _applyFilters();
   }
 
   Future<void> _changeAvailability(Product product) async {
@@ -189,6 +206,95 @@ class _ProductListScreenState extends State<ProductListScreen> {
         });
       }
     }
+  }
+
+  Future<void> _loadCategories() async {
+    setState(() {
+      _isCategoryLoading = true;
+      _categoryError = null;
+    });
+
+    try {
+      final categories = await _categoryService.getRootCategories();
+      if (!mounted) return;
+      setState(() {
+        _rootCategories = categories;
+        _isCategoryLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _isCategoryLoading = false;
+        _categoryError = 'Không thể tải danh mục: $error';
+      });
+    }
+  }
+
+  void _applyFilters() {
+    if (!mounted) return;
+    setState(() {
+      _filteredProducts = _filterProducts(_searchQuery);
+    });
+  }
+
+  Future<void> _onCategorySelected(String? categoryId) async {
+    if (categoryId == null) {
+      setState(() {
+        _selectedCategoryId = null;
+        _selectedSubcategoryId = null;
+      });
+      _applyFilters();
+      return;
+    }
+
+    if (_selectedCategoryId == categoryId && _selectedSubcategoryId == null) {
+      _applyFilters();
+      return;
+    }
+
+    setState(() {
+      _selectedCategoryId = categoryId;
+      _selectedSubcategoryId = null;
+    });
+
+    if (!_subcategoryCache.containsKey(categoryId)) {
+      setState(() {
+        _isSubcategoryLoading = true;
+        _loadingSubcategoryParentId = categoryId;
+      });
+      try {
+        final subcategories =
+            await _categoryService.getSubcategories(categoryId);
+        if (!mounted) return;
+        setState(() {
+          _subcategoryCache[categoryId] = subcategories;
+          _isSubcategoryLoading = false;
+          _loadingSubcategoryParentId = null;
+        });
+      } catch (error) {
+        if (!mounted) return;
+        setState(() {
+          _isSubcategoryLoading = false;
+          _loadingSubcategoryParentId = null;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Không thể tải danh mục con: $error')),
+        );
+      }
+    }
+
+    _applyFilters();
+  }
+
+  void _onSubcategorySelected(String? subcategoryId) {
+    setState(() {
+      if (_selectedSubcategoryId == subcategoryId) {
+        _selectedSubcategoryId = null;
+      } else {
+        _selectedSubcategoryId = subcategoryId;
+      }
+    });
+    _applyFilters();
   }
 
   @override
@@ -305,6 +411,20 @@ class _ProductListScreenState extends State<ProductListScreen> {
               onClear: _clearSearch,
             ),
           ),
+          SliverToBoxAdapter(
+            child: _CategoryFilterBar(
+              isLoading: _isCategoryLoading,
+              errorMessage: _categoryError,
+              categories: _rootCategories,
+              selectedCategoryId: _selectedCategoryId,
+              selectedSubcategoryId: _selectedSubcategoryId,
+              subcategories: _subcategoryCache,
+              isSubcategoryLoading: _isSubcategoryLoading &&
+                  _loadingSubcategoryParentId == _selectedCategoryId,
+              onCategorySelected: _onCategorySelected,
+              onSubcategorySelected: _onSubcategorySelected,
+            ),
+          ),
           if (!hasBaseProducts)
             SliverFillRemaining(
               hasScrollBody: false,
@@ -345,7 +465,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   crossAxisCount: 2,
                   mainAxisSpacing: 12,
                   crossAxisSpacing: 12,
-                  childAspectRatio: 0.72,
+                  childAspectRatio: 0.75,
                 ),
               ),
             ),
@@ -599,6 +719,226 @@ class _SearchBar extends StatelessWidget {
   }
 }
 
+class _CategoryFilterBar extends StatelessWidget {
+  const _CategoryFilterBar({
+    required this.isLoading,
+    required this.errorMessage,
+    required this.categories,
+    required this.selectedCategoryId,
+    required this.selectedSubcategoryId,
+    required this.subcategories,
+    required this.isSubcategoryLoading,
+    required this.onCategorySelected,
+    required this.onSubcategorySelected,
+  });
+
+  final bool isLoading;
+  final String? errorMessage;
+  final List<Category> categories;
+  final String? selectedCategoryId;
+  final String? selectedSubcategoryId;
+  final Map<String, List<Category>> subcategories;
+  final bool isSubcategoryLoading;
+  final ValueChanged<String?> onCategorySelected;
+  final ValueChanged<String?> onSubcategorySelected;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Padding(
+        padding: EdgeInsets.only(bottom: 16),
+        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      );
+    }
+
+    if (errorMessage != null) {
+      final colorScheme = Theme.of(context).colorScheme;
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: colorScheme.errorContainer.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: colorScheme.error.withValues(alpha: 0.5)),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Text(
+              errorMessage!,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(color: colorScheme.error),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final selectedParentId = selectedCategoryId;
+    final currentSubcategories = selectedParentId != null
+        ? (subcategories[selectedParentId] ?? const <Category>[])
+        : const <Category>[];
+
+    final chips = <Widget>[];
+
+    void addChip(Widget chip, {double spacing = 8}) {
+      if (chips.isNotEmpty) {
+        chips.add(SizedBox(width: spacing));
+      }
+      chips.add(chip);
+    }
+
+    addChip(
+      _FilterChip(
+        label: 'Default',
+        selected: selectedCategoryId == null && selectedSubcategoryId == null,
+        onSelected: () => onCategorySelected(null),
+        colorScheme: colorScheme,
+        textTheme: textTheme,
+      ),
+    );
+
+    for (final category in categories) {
+      addChip(
+        _FilterChip(
+          label: category.name,
+          selected: selectedCategoryId == category.id,
+          onSelected: () => onCategorySelected(category.id),
+          colorScheme: colorScheme,
+          textTheme: textTheme,
+        ),
+      );
+
+      if (category.id == selectedParentId) {
+        if (isSubcategoryLoading) {
+          addChip(
+            const SizedBox(
+              width: 12,
+              height: 12,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            spacing: 3,
+          );
+        } else if (currentSubcategories.isNotEmpty) {
+          addChip(
+            _FilterChip(
+              label: 'Tất cả',
+              selected: selectedSubcategoryId == null,
+              onSelected: () => onSubcategorySelected(null),
+              colorScheme: colorScheme,
+              textTheme: textTheme,
+              dense: true,
+              isSubcategory: true,
+            ),
+            spacing: 3,
+          );
+
+          for (final subcategory in currentSubcategories) {
+            addChip(
+              _FilterChip(
+                label: subcategory.name,
+                selected: selectedSubcategoryId == subcategory.id,
+                onSelected: () => onSubcategorySelected(subcategory.id),
+                colorScheme: colorScheme,
+                textTheme: textTheme,
+                dense: true,
+                isSubcategory: true,
+              ),
+              spacing: 3,
+            );
+          }
+        }
+      }
+    }
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: Row(children: chips),
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  const _FilterChip({
+    required this.label,
+    required this.selected,
+    required this.onSelected,
+    required this.colorScheme,
+    required this.textTheme,
+    this.dense = false,
+    this.isSubcategory = false,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onSelected;
+  final ColorScheme colorScheme;
+  final TextTheme textTheme;
+  final bool dense;
+  final bool isSubcategory;
+
+  @override
+  Widget build(BuildContext context) {
+    final textStyle =
+        (isSubcategory ? textTheme.bodySmall : textTheme.bodyMedium) ??
+            const TextStyle();
+    final baseStyle = textStyle.copyWith(
+      fontSize: isSubcategory ? 11 : (dense ? 12 : textStyle.fontSize),
+      color: selected
+          ? (isSubcategory ? colorScheme.onSecondary : colorScheme.onPrimary)
+          : colorScheme.onSurfaceVariant,
+      fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+    );
+
+    final labelWidget = isSubcategory
+        ? ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 120),
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: baseStyle,
+            ),
+          )
+        : Text(label, style: baseStyle);
+
+    final selectedColor =
+        isSubcategory ? colorScheme.secondary : colorScheme.primary;
+    final unselectedBackground = isSubcategory
+        ? colorScheme.secondaryContainer.withValues(alpha: 0.4)
+        : colorScheme.surface;
+    final unselectedBorder = isSubcategory
+        ? colorScheme.secondary.withValues(alpha: 0.5)
+        : colorScheme.outlineVariant.withValues(alpha: 0.6);
+
+    final chip = ChoiceChip(
+      label: labelWidget,
+      selected: selected,
+      onSelected: (_) => onSelected(),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(isSubcategory ? 8 : 18),
+      ),
+      padding: EdgeInsets.symmetric(
+        horizontal: isSubcategory ? 6 : (dense ? 8 : 12),
+        vertical: isSubcategory ? 1 : (dense ? 2 : 4),
+      ),
+      labelStyle: baseStyle,
+      selectedColor: selectedColor,
+      backgroundColor: selected ? selectedColor : unselectedBackground,
+      side: BorderSide(
+        color: selected ? selectedColor : unselectedBorder,
+      ),
+      showCheckmark: !isSubcategory,
+    );
+
+    return chip;
+  }
+}
+
 class _SearchEmptyView extends StatelessWidget {
   const _SearchEmptyView({
     required this.query,
@@ -696,11 +1036,15 @@ class _ProductTile extends StatelessWidget {
     final priceText = _priceFormatter.format(product.price);
     final statusColor = isAvailable ? colorScheme.primary : colorScheme.error;
     final statusLabel = isAvailable ? 'Đang bán' : 'Ngừng bán';
+    final nameStyle = theme.textTheme.titleSmall?.copyWith(
+      fontWeight: FontWeight.w600,
+    );
+    final lineHeight = (nameStyle?.fontSize ?? 14) * (nameStyle?.height ?? 1.2);
 
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: colorScheme.outlineVariant.withValues(alpha: 0.08),
         ),
@@ -722,10 +1066,10 @@ class _ProductTile extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(20),
+              top: Radius.circular(18),
             ),
             child: AspectRatio(
-              aspectRatio: 16 / 10,
+              aspectRatio: 16 / 9,
               child: imageUrl != null && imageUrl.isNotEmpty
                   ? Image.network(
                       imageUrl,
@@ -738,47 +1082,49 @@ class _ProductTile extends StatelessWidget {
                       child: Icon(
                         Icons.image_not_supported_outlined,
                         color: colorScheme.onSurfaceVariant,
-                        size: 36,
+                        size: 32,
                       ),
                     ),
             ),
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    product.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
+                  SizedBox(
+                    height: lineHeight * 2,
+                    child: Text(
+                      product.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: nameStyle,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   Text(
                     priceText,
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: colorScheme.primary,
                       fontWeight: FontWeight.w600,
+                      fontSize: 13,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
                       Expanded(
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 4,
+                            horizontal: 5,
+                            vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: statusColor.withValues(alpha: 0.12),
+                            color: statusColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: statusColor.withValues(alpha: 0.2),
+                              color: statusColor.withValues(alpha: 0.18),
                             ),
                           ),
                           child: Row(
@@ -789,17 +1135,17 @@ class _ProductTile extends StatelessWidget {
                                 isAvailable
                                     ? Icons.check_circle_outline
                                     : Icons.pause_circle_outline,
-                                size: 12,
+                                size: 10,
                                 color: statusColor,
                               ),
-                              const SizedBox(width: 3),
+                              const SizedBox(width: 2),
                               Flexible(
                                 child: Text(
                                   statusLabel,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    fontSize: 11,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    fontSize: 9,
                                     color: statusColor,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -827,7 +1173,7 @@ class _ProductTile extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                 ],
               ),
             ),
