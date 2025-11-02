@@ -192,7 +192,7 @@ class _$ProductImpl implements _Product {
       this.description,
       @JsonKey(name: 'image_url') this.imageUrl,
       @JsonKey(name: 'category_id') required this.categoryId,
-      @JsonKey(name: 'is_available') this.isAvailable = true});
+      @JsonKey(name: 'is_available') required this.isAvailable});
 
   factory _$ProductImpl.fromJson(Map<String, dynamic> json) =>
       _$$ProductImplFromJson(json);
@@ -261,13 +261,14 @@ class _$ProductImpl implements _Product {
 
 abstract class _Product implements Product {
   const factory _Product(
-      {required final String id,
-      required final String name,
-      required final double price,
-      final String? description,
-      @JsonKey(name: 'image_url') final String? imageUrl,
-      @JsonKey(name: 'category_id') required final String categoryId,
-      @JsonKey(name: 'is_available') final bool isAvailable}) = _$ProductImpl;
+          {required final String id,
+          required final String name,
+          required final double price,
+          final String? description,
+          @JsonKey(name: 'image_url') final String? imageUrl,
+          @JsonKey(name: 'category_id') required final String categoryId,
+          @JsonKey(name: 'is_available') required final bool isAvailable}) =
+      _$ProductImpl;
 
   factory _Product.fromJson(Map<String, dynamic> json) = _$ProductImpl.fromJson;
 
@@ -510,7 +511,7 @@ class _$ProductWithCategoryImpl implements _ProductWithCategory {
       this.description,
       @JsonKey(name: 'image_url') this.imageUrl,
       @JsonKey(name: 'category_id') required this.categoryId,
-      @JsonKey(name: 'is_available') this.isAvailable = true,
+      @JsonKey(name: 'is_available') required this.isAvailable,
       this.category = null});
 
   factory _$ProductWithCategoryImpl.fromJson(Map<String, dynamic> json) =>
@@ -592,7 +593,7 @@ abstract class _ProductWithCategory implements ProductWithCategory {
       final String? description,
       @JsonKey(name: 'image_url') final String? imageUrl,
       @JsonKey(name: 'category_id') required final String categoryId,
-      @JsonKey(name: 'is_available') final bool isAvailable,
+      @JsonKey(name: 'is_available') required final bool isAvailable,
       final Category? category}) = _$ProductWithCategoryImpl;
 
   factory _ProductWithCategory.fromJson(Map<String, dynamic> json) =
@@ -623,5 +624,323 @@ abstract class _ProductWithCategory implements ProductWithCategory {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ProductWithCategoryImplCopyWith<_$ProductWithCategoryImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+ProductDraft _$ProductDraftFromJson(Map<String, dynamic> json) {
+  return _ProductDraft.fromJson(json);
+}
+
+/// @nodoc
+mixin _$ProductDraft {
+  String? get id => throw _privateConstructorUsedError;
+  String get name => throw _privateConstructorUsedError;
+  double get price => throw _privateConstructorUsedError;
+  String? get description => throw _privateConstructorUsedError;
+  @JsonKey(name: 'image_url')
+  String? get imageUrl => throw _privateConstructorUsedError;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  String? get imageStoragePath => throw _privateConstructorUsedError;
+  @JsonKey(name: 'category_id')
+  String? get categoryId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_available')
+  bool get isAvailable => throw _privateConstructorUsedError;
+
+  /// Serializes this ProductDraft to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of ProductDraft
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $ProductDraftCopyWith<ProductDraft> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ProductDraftCopyWith<$Res> {
+  factory $ProductDraftCopyWith(
+          ProductDraft value, $Res Function(ProductDraft) then) =
+      _$ProductDraftCopyWithImpl<$Res, ProductDraft>;
+  @useResult
+  $Res call(
+      {String? id,
+      String name,
+      double price,
+      String? description,
+      @JsonKey(name: 'image_url') String? imageUrl,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      String? imageStoragePath,
+      @JsonKey(name: 'category_id') String? categoryId,
+      @JsonKey(name: 'is_available') bool isAvailable});
+}
+
+/// @nodoc
+class _$ProductDraftCopyWithImpl<$Res, $Val extends ProductDraft>
+    implements $ProductDraftCopyWith<$Res> {
+  _$ProductDraftCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of ProductDraft
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = freezed,
+    Object? name = null,
+    Object? price = null,
+    Object? description = freezed,
+    Object? imageUrl = freezed,
+    Object? imageStoragePath = freezed,
+    Object? categoryId = freezed,
+    Object? isAvailable = null,
+  }) {
+    return _then(_value.copyWith(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String?,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      price: null == price
+          ? _value.price
+          : price // ignore: cast_nullable_to_non_nullable
+              as double,
+      description: freezed == description
+          ? _value.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String?,
+      imageUrl: freezed == imageUrl
+          ? _value.imageUrl
+          : imageUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      imageStoragePath: freezed == imageStoragePath
+          ? _value.imageStoragePath
+          : imageStoragePath // ignore: cast_nullable_to_non_nullable
+              as String?,
+      categoryId: freezed == categoryId
+          ? _value.categoryId
+          : categoryId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isAvailable: null == isAvailable
+          ? _value.isAvailable
+          : isAvailable // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$ProductDraftImplCopyWith<$Res>
+    implements $ProductDraftCopyWith<$Res> {
+  factory _$$ProductDraftImplCopyWith(
+          _$ProductDraftImpl value, $Res Function(_$ProductDraftImpl) then) =
+      __$$ProductDraftImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String? id,
+      String name,
+      double price,
+      String? description,
+      @JsonKey(name: 'image_url') String? imageUrl,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      String? imageStoragePath,
+      @JsonKey(name: 'category_id') String? categoryId,
+      @JsonKey(name: 'is_available') bool isAvailable});
+}
+
+/// @nodoc
+class __$$ProductDraftImplCopyWithImpl<$Res>
+    extends _$ProductDraftCopyWithImpl<$Res, _$ProductDraftImpl>
+    implements _$$ProductDraftImplCopyWith<$Res> {
+  __$$ProductDraftImplCopyWithImpl(
+      _$ProductDraftImpl _value, $Res Function(_$ProductDraftImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of ProductDraft
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = freezed,
+    Object? name = null,
+    Object? price = null,
+    Object? description = freezed,
+    Object? imageUrl = freezed,
+    Object? imageStoragePath = freezed,
+    Object? categoryId = freezed,
+    Object? isAvailable = null,
+  }) {
+    return _then(_$ProductDraftImpl(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String?,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      price: null == price
+          ? _value.price
+          : price // ignore: cast_nullable_to_non_nullable
+              as double,
+      description: freezed == description
+          ? _value.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String?,
+      imageUrl: freezed == imageUrl
+          ? _value.imageUrl
+          : imageUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      imageStoragePath: freezed == imageStoragePath
+          ? _value.imageStoragePath
+          : imageStoragePath // ignore: cast_nullable_to_non_nullable
+              as String?,
+      categoryId: freezed == categoryId
+          ? _value.categoryId
+          : categoryId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isAvailable: null == isAvailable
+          ? _value.isAvailable
+          : isAvailable // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$ProductDraftImpl extends _ProductDraft {
+  const _$ProductDraftImpl(
+      {this.id,
+      required this.name,
+      required this.price,
+      this.description,
+      @JsonKey(name: 'image_url') this.imageUrl,
+      @JsonKey(includeFromJson: false, includeToJson: false)
+      this.imageStoragePath,
+      @JsonKey(name: 'category_id') this.categoryId,
+      @JsonKey(name: 'is_available') required this.isAvailable})
+      : super._();
+
+  factory _$ProductDraftImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ProductDraftImplFromJson(json);
+
+  @override
+  final String? id;
+  @override
+  final String name;
+  @override
+  final double price;
+  @override
+  final String? description;
+  @override
+  @JsonKey(name: 'image_url')
+  final String? imageUrl;
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final String? imageStoragePath;
+  @override
+  @JsonKey(name: 'category_id')
+  final String? categoryId;
+  @override
+  @JsonKey(name: 'is_available')
+  final bool isAvailable;
+
+  @override
+  String toString() {
+    return 'ProductDraft(id: $id, name: $name, price: $price, description: $description, imageUrl: $imageUrl, imageStoragePath: $imageStoragePath, categoryId: $categoryId, isAvailable: $isAvailable)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ProductDraftImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.price, price) || other.price == price) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
+            (identical(other.imageUrl, imageUrl) ||
+                other.imageUrl == imageUrl) &&
+            (identical(other.imageStoragePath, imageStoragePath) ||
+                other.imageStoragePath == imageStoragePath) &&
+            (identical(other.categoryId, categoryId) ||
+                other.categoryId == categoryId) &&
+            (identical(other.isAvailable, isAvailable) ||
+                other.isAvailable == isAvailable));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, id, name, price, description,
+      imageUrl, imageStoragePath, categoryId, isAvailable);
+
+  /// Create a copy of ProductDraft
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ProductDraftImplCopyWith<_$ProductDraftImpl> get copyWith =>
+      __$$ProductDraftImplCopyWithImpl<_$ProductDraftImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$ProductDraftImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _ProductDraft extends ProductDraft {
+  const factory _ProductDraft(
+          {final String? id,
+          required final String name,
+          required final double price,
+          final String? description,
+          @JsonKey(name: 'image_url') final String? imageUrl,
+          @JsonKey(includeFromJson: false, includeToJson: false)
+          final String? imageStoragePath,
+          @JsonKey(name: 'category_id') final String? categoryId,
+          @JsonKey(name: 'is_available') required final bool isAvailable}) =
+      _$ProductDraftImpl;
+  const _ProductDraft._() : super._();
+
+  factory _ProductDraft.fromJson(Map<String, dynamic> json) =
+      _$ProductDraftImpl.fromJson;
+
+  @override
+  String? get id;
+  @override
+  String get name;
+  @override
+  double get price;
+  @override
+  String? get description;
+  @override
+  @JsonKey(name: 'image_url')
+  String? get imageUrl;
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  String? get imageStoragePath;
+  @override
+  @JsonKey(name: 'category_id')
+  String? get categoryId;
+  @override
+  @JsonKey(name: 'is_available')
+  bool get isAvailable;
+
+  /// Create a copy of ProductDraft
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ProductDraftImplCopyWith<_$ProductDraftImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

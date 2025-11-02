@@ -17,6 +17,7 @@ class DatabaseSchema {
   static const OrdersTable orders = OrdersTable();
   static const OrderItemsTable orderItems = OrderItemsTable();
   static const PaymentsTable payments = PaymentsTable();
+  static const StorageBuckets storage = StorageBuckets();
 }
 
 /// Tên các bảng trong database

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../models/cart_item.dart';
-import '../../../services/order_calculation_service.dart';
+import '../../models/cart_item.dart';
+import '../../services/order_calculation_service.dart';
 import 'address_picker_screen.dart';
-import 'payment_screen.dart';
+import '../checkout/views/payment_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final List<CartItem> cartItems;

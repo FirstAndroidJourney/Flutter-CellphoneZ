@@ -304,13 +304,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         itemCount: demoProducts.length,
         itemBuilder: (context, index) => Padding(
           padding: EdgeInsets.only(
-              left: defaultPadding,
-              right: index == demoProducts.length - 1 ? defaultPadding : 0),
-          child: ProductCard.fromProduct(
-            product: demoProducts[index],
-            priceAfterDiscount: index.isEven ? 20.99 : null,
-            discountPercent: index.isEven ? 25 : null,
-            onPressed: () {},
+            left: defaultPadding,
+            right: index == demoProducts.length - 1 ? defaultPadding : 0,
+          ),
+          child: SizedBox(
+            width: 160,
+            child: ProductCard.fromProduct(
+              product: demoProducts[index],
+              priceAfterDiscount: index.isEven ? 20.99 : null,
+              discountPercent: index.isEven ? 25 : null,
+              onPressed: () {},
+            ),
           ),
         ),
       );
@@ -322,21 +326,26 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       itemCount: _relatedProducts.length,
       itemBuilder: (context, index) => Padding(
         padding: EdgeInsets.only(
-            left: defaultPadding,
-            right: index == _relatedProducts.length - 1 ? defaultPadding : 0),
-        child: ProductCard.fromProduct(
-          product: _relatedProducts[index],
-          onPressed: () {
-            // Điều hướng đến chi tiết sản phẩm
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ProductDetailScreen(
-                  productId: _relatedProducts[index].id,
+          left: defaultPadding,
+          right:
+              index == _relatedProducts.length - 1 ? defaultPadding : 0,
+        ),
+        child: SizedBox(
+          width: 160,
+          child: ProductCard.fromProduct(
+            product: _relatedProducts[index],
+            onPressed: () {
+              // Điều hướng đến chi tiết sản phẩm
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProductDetailScreen(
+                    productId: _relatedProducts[index].id,
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -533,16 +542,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ),
 
                   // Thông tin sản phẩm
-                  SliverToBoxAdapter(
-                    child: ProductInfo(
-                      brand: product.categoryId,
-                      title: product.name,
-                      isAvailable: isAvailable,
-                      description: product.description ??
-                          "Không có mô tả chi tiết cho sản phẩm này.",
-                      rating: 4.5,
-                      numOfReviews: 120,
-                    ),
+                  ProductInfo(
+                    brand: product.categoryId,
+                    title: product.name,
+                    isAvailable: isAvailable,
+                    description: product.description ??
+                        "Không có mô tả chi tiết cho sản phẩm này.",
+                    rating: 4.5,
+                    numOfReviews: 120,
                   ),
 
                   // Các mục chi tiết sản phẩm

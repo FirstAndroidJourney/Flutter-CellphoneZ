@@ -7,6 +7,7 @@ import 'package:shop/route/route_constants.dart';
 import 'package:shop/route/router.dart' as router;
 import 'package:shop/services/dependency_injection.dart';
 import 'package:shop/theme/app_theme.dart';
+import 'package:shop/route/route_constants.dart';
 // import 'package:supabase_flutter/supabase_flutter.dart';
 // import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -40,7 +41,12 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.lightTheme(context),
       themeMode: ThemeMode.light,
       onGenerateRoute: router.generateRoute,
+<<<<<<< HEAD
       initialRoute: entryPointScreenRoute, // Dùng named route thay vì home
+=======
+      home: const MainScreen(),
+      initialRoute: onbordingScreenRoute,
+>>>>>>> 83f3ec855f7257e4156f7830626c4d3c3e7aceb8
     );
   }
 }

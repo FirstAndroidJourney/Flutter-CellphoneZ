@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../constants.dart';
@@ -26,6 +25,8 @@ class ReviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final normalizedRating = rating.clamp(0.0, 5.0);
+
     return Container(
       padding: const EdgeInsets.all(defaultPadding),
       width: double.infinity,
@@ -42,7 +43,7 @@ class ReviewCard extends StatelessWidget {
               children: [
                 Text.rich(
                   TextSpan(
-                    text: "$rating ",
+                    text: "${normalizedRating.toStringAsFixed(1)} ",
                     style: Theme.of(context)
                         .textTheme
                         .headlineSmall!
@@ -57,22 +58,41 @@ class ReviewCard extends StatelessWidget {
                 ),
                 Text("Based on $numOfReviews Reviews"),
                 const SizedBox(height: defaultPadding),
-                RatingBar.builder(
-                  initialRating: rating,
-                  itemSize: 20,
-                  itemPadding: const EdgeInsets.only(right: defaultPadding / 4),
-                  unratedColor: Theme.of(context)
-                      .textTheme
-                      .bodyLarge!
-                      .color!
-                      .withOpacity(0.08),
-                  glow: false,
-                  allowHalfRating: true,
-                  ignoreGestures: true,
-                  onRatingUpdate: (value) {},
-                  itemBuilder: (context, index) =>
-                      SvgPicture.asset("assets/icons/Star_filled.svg"),
-                ),
+                Row(
+                  children: List.generate(
+                    5,
+                    (index) {
+                      final starIndex = index + 1;
+                      final isHalf = normalizedRating >= starIndex - 0.5 &&
+                          normalizedRating < starIndex;
+                      final isFilled = normalizedRating >= starIndex;
+                      Color iconColor;
+                      if (isFilled) {
+                        iconColor = warningColor;
+                      } else if (isHalf) {
+                        iconColor = warningColor.withOpacity(0.6);
+                      } else {
+                        iconColor = Theme.of(context)
+                            .textTheme
+                            .bodyLarge!
+                            .color!
+                            .withOpacity(0.2);
+                      }
+
+                      return Padding(
+                        padding:
+                            const EdgeInsets.only(right: defaultPadding / 4),
+                        child: SvgPicture.asset(
+                          "assets/icons/Star_filled.svg",
+                          colorFilter:
+                              ColorFilter.mode(iconColor, BlendMode.srcIn),
+                          height: 20,
+                          width: 20,
+                        ),
+                      );
+                    },
+                  ),
+                )
               ],
             ),
           ),
@@ -106,6 +126,10 @@ class RateBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final clampedValue = value.isNaN || value.isInfinite
+        ? 0.0
+        : value.clamp(0.0, 1.0);
+
     return Padding(
       padding: EdgeInsets.only(bottom: star == 1 ? 0 : defaultPadding / 2),
       child: Row(
@@ -132,7 +156,7 @@ class RateBar extends StatelessWidget {
                     .bodyLarge!
                     .color!
                     .withOpacity(0.05),
-                value: value,
+                value: clampedValue,
               ),
             ),
           ),

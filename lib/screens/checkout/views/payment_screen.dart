@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../services/order_calculation_service.dart';
 import '../../../models/cart_item.dart';
-import 'address_picker_screen.dart';
+import '../../payment/address_picker_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
   final OrderCalculationResult orderSummary;

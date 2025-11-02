@@ -22,51 +22,53 @@ class ProductInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          brand.toUpperCase(),
+          style: const TextStyle(fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: defaultPadding / 2),
+        Text(
+          title,
+          maxLines: 2,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: defaultPadding),
+        Row(
+          children: [
+            ProductAvailabilityTag(isAvailable: isAvailable),
+            const Spacer(),
+            SvgPicture.asset("assets/icons/Star_filled.svg"),
+            const SizedBox(width: defaultPadding / 4),
+            Text(
+              "$rating ",
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            Text("($numOfReviews Reviews)")
+          ],
+        ),
+        const SizedBox(height: defaultPadding),
+        Text(
+          "Product info",
+          style: Theme.of(context)
+              .textTheme
+              .titleMedium!
+              .copyWith(fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: defaultPadding / 2),
+        Text(
+          description,
+          style: const TextStyle(height: 1.4),
+        ),
+        const SizedBox(height: defaultPadding / 2),
+      ],
+    );
+
+    return SliverPadding(
       padding: const EdgeInsets.all(defaultPadding),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            brand.toUpperCase(),
-            style: const TextStyle(fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: defaultPadding / 2),
-          Text(
-            title,
-            maxLines: 2,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: defaultPadding),
-          Row(
-            children: [
-              ProductAvailabilityTag(isAvailable: isAvailable),
-              const Spacer(),
-              SvgPicture.asset("assets/icons/Star_filled.svg"),
-              const SizedBox(width: defaultPadding / 4),
-              Text(
-                "$rating ",
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              Text("($numOfReviews Reviews)")
-            ],
-          ),
-          const SizedBox(height: defaultPadding),
-          Text(
-            "Product info",
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium!
-                .copyWith(fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: defaultPadding / 2),
-          Text(
-            description,
-            style: const TextStyle(height: 1.4),
-          ),
-          const SizedBox(height: defaultPadding / 2),
-        ],
-      ),
+      sliver: SliverToBoxAdapter(child: content),
     );
   }
 }
