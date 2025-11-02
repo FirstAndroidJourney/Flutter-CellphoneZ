@@ -9,7 +9,9 @@ import 'package:shop/models/product.dart';
 import 'package:shop/providers/cart_provider.dart';
 import 'package:shop/services/product_service.dart';
 import 'package:shop/services/auth_service.dart';
+import 'package:shop/services/order_calculation_service.dart';
 import 'package:shop/route/route_constants.dart';
+import 'package:shop/models/cart_item.dart';
 import 'package:shop/screens/product/views/product_returns_screen.dart';
 import 'package:shop/components/review_card.dart';
 import 'components/notify_me_card.dart';
@@ -193,11 +195,39 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
 
     try {
-      final cartProvider = context.read<CartProvider>();
-      await cartProvider.addToCart(productId, 1);
+      // Lấy thông tin sản phẩm hiện tại
+      final product = await _productFuture;
+      if (product == null) {
+        throw Exception('Không tìm thấy thông tin sản phẩm');
+      }
+
+      // Tạo CartItem tạm thời cho sản phẩm này
+      final tempCartItem = CartItem(
+        id: 'temp_${DateTime.now().millisecondsSinceEpoch}',
+        userId: _authService.currentUser?.id ?? '',
+        productId: productId,
+        quantity: 1,
+        unitPrice: product.price,
+        productName: product.name,
+        productImage: product.imageUrl,
+      );
+
+      // Tính toán đơn hàng
+      final orderSummary = OrderCalculationService().calculateOrder(
+        items: [tempCartItem],
+        deliveryLocation: '', // Sẽ chọn sau ở màn thanh toán
+      );
 
       if (mounted) {
-        Navigator.pushNamed(context, paymentScreenRoute);
+        Navigator.pushNamed(
+          context,
+          paymentScreenRoute,
+          arguments: {
+            'orderSummary': orderSummary,
+            'deliveryAddress': '',
+            'items': [tempCartItem],
+          },
+        );
       }
     } catch (e) {
       if (mounted) {

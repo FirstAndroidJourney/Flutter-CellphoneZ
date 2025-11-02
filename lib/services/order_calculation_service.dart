@@ -42,10 +42,8 @@ class OrderCalculationService {
     required String deliveryLocation,
     String? couponCode,
   }) {
-    // Chỉ tính những item được chọn
-    final selectedItems = items.where((item) => item.isSelected).toList();
-    
-    final subtotal = calculateSubtotal(selectedItems);
+    // items đã được filter trước khi truyền vào (từ UI layer)
+    final subtotal = calculateSubtotal(items);
     final tax = calculateTax(subtotal);
     final shipping = calculateShipping(deliveryLocation);
     final discount = calculateDiscount(couponCode, subtotal);

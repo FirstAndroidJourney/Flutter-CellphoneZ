@@ -7,7 +7,6 @@ import '../../route/route_constants.dart';
 import '../../services/order_calculation_service.dart';
 import '../../models/cart_item.dart';
 import 'address_picker_screen.dart';
-import 'package:uuid/uuid.dart';
 
 final supabase = Supabase.instance.client;
 
@@ -151,74 +150,40 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   Future<void> _handlePayment() async {
     if (_isProcessing) return;
-    setState(() => _isProcessing = true);
 
-    try {
-      // 🧾 1️⃣ Luôn tạo đơn hàng trong Supabase trước
-      final orderId = await _createOrderWithItemsAndPayment(
-        method: _selectedMethod,
-        status: _selectedMethod == 'vnpay' ? 'pending' : 'success',
-      );
+    switch (_selectedMethod) {
+      case 'vnpay':
+        // TODO: Tạo order trước, lấy orderId
+        final tempOrderId = 'order_${DateTime.now().millisecondsSinceEpoch}';
+        await _startVNPayPayment(tempOrderId, _orderSummary.total);
+        break;
 
-      if (orderId == null) {
+      case 'ship_cod':
+        await _handleCODPayment();
+        break;
+
+      case 'store_pickup':
+        await _handleStorePickup();
+        break;
+
+      case 'qr_transfer':
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Không thể tạo đơn hàng')),
+            const SnackBar(
+              content: Text('Chức năng chuyển khoản QR đang được phát triển'),
+            ),
           );
         }
-        return;
-      }
+        break;
 
-      // 💳 2️⃣ Thực hiện hành động tương ứng với từng phương thức
-      switch (_selectedMethod) {
-        // 🟢 VNPay: mở cổng thanh toán
-        case 'vnpay':
-          await _startVNPayPayment(orderId, _orderSummary.total);
-          break;
-
-        // 🟡 COD: xác nhận đơn hàng rồi chuyển đến màn hình kết quả
-        case 'ship_cod':
-          await _handleCODPayment();
-          break;
-
-        // 🔵 Nhận tại cửa hàng
-        case 'store_pickup':
-          await _handleStorePickup();
-          break;
-
-        // 🟣 Chuyển khoản QR
-        case 'qr_transfer':
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Chức năng chuyển khoản QR đang được phát triển'),
-              ),
-            );
-          }
-          break;
-
-        // 🔴 Phương thức không hợp lệ
-        default:
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Phương thức thanh toán chưa được hỗ trợ'),
-              ),
-            );
-          }
-      }
-    } catch (e) {
-      debugPrint('❌ Lỗi trong handlePayment: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Lỗi khi xử lý thanh toán: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isProcessing = false);
+      default:
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Phương thức thanh toán chưa được hỗ trợ'),
+            ),
+          );
+        }
     }
   }
 
@@ -325,64 +290,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
           'purchasedItemIds': widget.items.map((e) => e.id).toList(),
         },
       );
-    }
-  }
-
-  Future<String?> _createOrderWithItemsAndPayment({
-    required String method,
-    required String status,
-  }) async {
-    try {
-      final user = supabase.auth.currentUser;
-      if (user == null) throw Exception('Chưa đăng nhập');
-
-      final orderId =
-          const Uuid().v4(); // Cần import: import 'package:uuid/uuid.dart';
-      final paymentId = const Uuid().v4();
-
-      // 🧾 1️⃣ Tạo đơn hàng
-      await supabase.from('orders').insert({
-        'id': orderId,
-        'user_id': user.id,
-        'status': status == 'success' ? 'paid' : 'pending',
-        'total_amount': _orderSummary.total,
-        'shipping_address': _deliveryAddress,
-        'payment_method': method,
-      });
-
-      // 🛍️ 2️⃣ Tạo các sản phẩm trong order_items
-      final orderItems = widget.items
-          .map((item) => {
-                'id': const Uuid().v4(),
-                'order_id': orderId,
-                'product_id': item.productId,
-                'quantity': item.quantity,
-                'price': item.unitPrice,
-              })
-          .toList();
-
-      await supabase.from('order_items').insert(orderItems);
-
-      // 💳 3️⃣ Tạo bản ghi thanh toán
-      await supabase.from('payments').insert({
-        'id': paymentId,
-        'order_id': orderId,
-        'user_id': user.id,
-        'amount': _orderSummary.total,
-        'status': status,
-        'method': method,
-      });
-
-      // 🗑️ 4️⃣ Xóa các item khỏi giỏ hàng
-      for (final item in widget.items) {
-        await supabase.from('cart_items').delete().eq('id', item.id);
-      }
-
-      debugPrint('✅ Đã tạo order + order_items + payment + xóa giỏ hàng');
-      return orderId;
-    } catch (e) {
-      debugPrint('❌ Lỗi tạo đơn hàng: $e');
-      return null;
     }
   }
 

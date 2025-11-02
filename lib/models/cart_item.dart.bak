@@ -9,9 +9,10 @@ class CartItem with _$CartItem {
     @JsonKey(name: 'user_id') required String userId,
     @JsonKey(name: 'product_id') required String productId,
     required int quantity,
-    @JsonKey(name: 'unit_price') @Default(0.0) double unitPrice,
-    @JsonKey(name: 'product_name') @Default('') String productName,
+    @JsonKey(name: 'unit_price') required double unitPrice,
+    @JsonKey(name: 'product_name') required String productName,
     @JsonKey(name: 'product_image') String? productImage,
+    @Default(false) bool isSelected,
   }) = _CartItem;
 
   const CartItem._();
@@ -20,4 +21,5 @@ class CartItem with _$CartItem {
       _$CartItemFromJson(json);
 
   double get totalPrice => quantity * unitPrice;
+      
 }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../../../services/location_service.dart';
-import '../../../components/map_picker.dart';
-import '../../../components/address_form.dart';
+import '../../services/location_service.dart';
+import '../../components/map_picker.dart';
+import '../../components/address_form.dart';
 
 class AddressPickerScreen extends StatefulWidget {
   final String? initialAddress;
@@ -37,7 +37,8 @@ class _AddressPickerScreenState extends State<AddressPickerScreen> {
     if (widget.initialAddress != null && widget.initialAddress!.isNotEmpty) {
       _addressController.text = widget.initialAddress!;
       // try to split into components (street, ward, district, city)
-      final parts = widget.initialAddress!.split(',').map((s) => s.trim()).toList();
+      final parts =
+          widget.initialAddress!.split(',').map((s) => s.trim()).toList();
       if (parts.isNotEmpty) _streetController.text = parts[0];
       if (parts.length > 1) _wardController.text = parts[1];
       if (parts.length > 2) _districtController.text = parts[2];
@@ -67,7 +68,7 @@ class _AddressPickerScreenState extends State<AddressPickerScreen> {
         Marker(
           markerId: const MarkerId('selected_location'),
           position: location,
-            infoWindow: const InfoWindow(title: 'Địa điểm giao hàng'),
+          infoWindow: const InfoWindow(title: 'Địa điểm giao hàng'),
         ),
       };
     });
@@ -83,33 +84,34 @@ class _AddressPickerScreenState extends State<AddressPickerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: const Text('Chọn địa chỉ giao hàng'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                if (_useManualInput) {
-                  if (_formKey.currentState!.validate()) {
-                    final address = '${_streetController.text}, '
-                        '${_wardController.text}, '
-                        '${_districtController.text}, '
-                        '${_cityController.text}';
-                    Navigator.pop(context, {'address': address, 'type': 'manual'});
-                  }
-                } else if (_selectedLocation != null) {
-                  Navigator.pop(context, {
-                    'address': _addressController.text,
-                    'location': _selectedLocation!,
-                    'type': 'map'
-                  });
+        title: const Text('Chọn địa chỉ giao hàng'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              if (_useManualInput) {
+                if (_formKey.currentState!.validate()) {
+                  final address = '${_streetController.text}, '
+                      '${_wardController.text}, '
+                      '${_districtController.text}, '
+                      '${_cityController.text}';
+                  Navigator.pop(
+                      context, {'address': address, 'type': 'manual'});
                 }
-              },
-              child: const Text('Xác nhận'),
-            ),
-          ],
+              } else if (_selectedLocation != null) {
+                Navigator.pop(context, {
+                  'address': _addressController.text,
+                  'location': _selectedLocation!,
+                  'type': 'map'
+                });
+              }
+            },
+            child: const Text('Xác nhận'),
+          ),
+        ],
       ),
-        body: SingleChildScrollView(
-          child: Column(
-        children: [
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
             // Toggle buttons for input method
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -118,7 +120,8 @@ class _AddressPickerScreenState extends State<AddressPickerScreen> {
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _useManualInput ? Colors.blue : Colors.grey,
+                        backgroundColor:
+                            _useManualInput ? Colors.blue : Colors.grey,
                       ),
                       onPressed: () => setState(() => _useManualInput = true),
                       child: const Text('Nhập địa chỉ'),
@@ -128,7 +131,8 @@ class _AddressPickerScreenState extends State<AddressPickerScreen> {
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: !_useManualInput ? Colors.blue : Colors.grey,
+                        backgroundColor:
+                            !_useManualInput ? Colors.blue : Colors.grey,
                       ),
                       onPressed: () => setState(() => _useManualInput = false),
                       child: const Text('Chọn trên bản đồ'),
@@ -157,12 +161,12 @@ class _AddressPickerScreenState extends State<AddressPickerScreen> {
                     ? const Center(child: CircularProgressIndicator())
                     : MapPicker(
                         initialLocation: _selectedLocation!,
-                          markers: _markers,
-                          onLocationSelected: _updateSelectedLocation,
+                        markers: _markers,
+                        onLocationSelected: _updateSelectedLocation,
                       ),
               ),
-        ],
-          ),
+          ],
+        ),
       ),
     );
   }
@@ -170,10 +174,10 @@ class _AddressPickerScreenState extends State<AddressPickerScreen> {
   @override
   void dispose() {
     _addressController.dispose();
-      _streetController.dispose();
-      _wardController.dispose();
-      _districtController.dispose();
-      _cityController.dispose();
+    _streetController.dispose();
+    _wardController.dispose();
+    _districtController.dispose();
+    _cityController.dispose();
     super.dispose();
   }
 }

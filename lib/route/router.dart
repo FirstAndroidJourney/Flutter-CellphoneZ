@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shop/admin/views/category_management.dart';
-import 'package:shop/entry_point.dart';
+import 'package:shop/screens/main_screen.dart';
 import 'package:shop/screens/product/views/product_detail_screen.dart';
 
 import 'screen_export.dart';
@@ -56,7 +56,7 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       );
     case entryPointScreenRoute:
       return MaterialPageRoute(
-        builder: (context) => const EntryPoint(),
+        builder: (context) => const MainScreen(),
       );
     case profileScreenRoute:
       return MaterialPageRoute(
@@ -107,19 +107,26 @@ Route<dynamic> generateRoute(RouteSettings settings) {
         builder: (context) => const CartScreen(),
       );
     case paymentScreenRoute:
+      final args = settings.arguments as Map<String, dynamic>?;
       return MaterialPageRoute(
-        builder: (context) => const PaymentScreen(),
+        builder: (context) => PaymentScreen(
+          orderSummary: args?['orderSummary'],
+          deliveryAddress: args?['deliveryAddress'] ?? '',
+          items: args?['items'] ?? [],
+          customerNote: args?['customerNote'],
+        ),
       );
     case paymentResultScreenRoute:
-      final args = settings.arguments
-          as Map<String, dynamic>?; // nhận tham số truyền từ deeplink
+      final args = settings.arguments as Map<String, dynamic>?;
       final orderId = args?['orderId'] ?? 'unknown';
       final status = args?['status'] ?? 'pending';
+      final purchasedItemIds = args?['purchasedItemIds'] as List<String>?;
 
       return MaterialPageRoute(
         builder: (context) => PaymentResultScreen(
           orderId: orderId,
           status: status,
+          purchasedItemIds: purchasedItemIds,
         ),
       );
 
@@ -130,14 +137,20 @@ Route<dynamic> generateRoute(RouteSettings settings) {
 
     case orderConfirmationScreenRoute:
       final args = settings.arguments as Map<String, dynamic>?;
-      final order = args?['order'];
-      final orderItems = args?['orderItems'];
-      
+      final orderId = args?['orderId'] as String?;
+
+      if (orderId == null) {
+        return MaterialPageRoute(
+          builder: (context) => Scaffold(
+            appBar: AppBar(title: const Text('Lỗi')),
+            body:
+                const Center(child: Text('Không tìm thấy thông tin đơn hàng')),
+          ),
+        );
+      }
+
       return MaterialPageRoute(
-        builder: (context) => OrderConfirmationScreen(
-          order: order,
-          orderItems: orderItems,
-        ),
+        builder: (context) => OrderConfirmationScreen(orderId: orderId),
       );
 
     case orderHistoryScreenRoute:

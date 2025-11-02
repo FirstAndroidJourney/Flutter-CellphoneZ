@@ -32,7 +32,6 @@ mixin _$CartItem {
   String get productName => throw _privateConstructorUsedError;
   @JsonKey(name: 'product_image')
   String? get productImage => throw _privateConstructorUsedError;
-  bool get isSelected => throw _privateConstructorUsedError;
 
   /// Serializes this CartItem to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -56,8 +55,7 @@ abstract class $CartItemCopyWith<$Res> {
       int quantity,
       @JsonKey(name: 'unit_price') double unitPrice,
       @JsonKey(name: 'product_name') String productName,
-      @JsonKey(name: 'product_image') String? productImage,
-      bool isSelected});
+      @JsonKey(name: 'product_image') String? productImage});
 }
 
 /// @nodoc
@@ -82,7 +80,6 @@ class _$CartItemCopyWithImpl<$Res, $Val extends CartItem>
     Object? unitPrice = null,
     Object? productName = null,
     Object? productImage = freezed,
-    Object? isSelected = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -113,10 +110,6 @@ class _$CartItemCopyWithImpl<$Res, $Val extends CartItem>
           ? _value.productImage
           : productImage // ignore: cast_nullable_to_non_nullable
               as String?,
-      isSelected: null == isSelected
-          ? _value.isSelected
-          : isSelected // ignore: cast_nullable_to_non_nullable
-              as bool,
     ) as $Val);
   }
 }
@@ -136,8 +129,7 @@ abstract class _$$CartItemImplCopyWith<$Res>
       int quantity,
       @JsonKey(name: 'unit_price') double unitPrice,
       @JsonKey(name: 'product_name') String productName,
-      @JsonKey(name: 'product_image') String? productImage,
-      bool isSelected});
+      @JsonKey(name: 'product_image') String? productImage});
 }
 
 /// @nodoc
@@ -160,7 +152,6 @@ class __$$CartItemImplCopyWithImpl<$Res>
     Object? unitPrice = null,
     Object? productName = null,
     Object? productImage = freezed,
-    Object? isSelected = null,
   }) {
     return _then(_$CartItemImpl(
       id: null == id
@@ -191,10 +182,6 @@ class __$$CartItemImplCopyWithImpl<$Res>
           ? _value.productImage
           : productImage // ignore: cast_nullable_to_non_nullable
               as String?,
-      isSelected: null == isSelected
-          ? _value.isSelected
-          : isSelected // ignore: cast_nullable_to_non_nullable
-              as bool,
     ));
   }
 }
@@ -207,10 +194,9 @@ class _$CartItemImpl extends _CartItem {
       @JsonKey(name: 'user_id') required this.userId,
       @JsonKey(name: 'product_id') required this.productId,
       required this.quantity,
-      @JsonKey(name: 'unit_price') required this.unitPrice,
-      @JsonKey(name: 'product_name') required this.productName,
-      @JsonKey(name: 'product_image') this.productImage,
-      this.isSelected = false})
+      @JsonKey(name: 'unit_price') this.unitPrice = 0.0,
+      @JsonKey(name: 'product_name') this.productName = '',
+      @JsonKey(name: 'product_image') this.productImage})
       : super._();
 
   factory _$CartItemImpl.fromJson(Map<String, dynamic> json) =>
@@ -235,13 +221,10 @@ class _$CartItemImpl extends _CartItem {
   @override
   @JsonKey(name: 'product_image')
   final String? productImage;
-  @override
-  @JsonKey()
-  final bool isSelected;
 
   @override
   String toString() {
-    return 'CartItem(id: $id, userId: $userId, productId: $productId, quantity: $quantity, unitPrice: $unitPrice, productName: $productName, productImage: $productImage, isSelected: $isSelected)';
+    return 'CartItem(id: $id, userId: $userId, productId: $productId, quantity: $quantity, unitPrice: $unitPrice, productName: $productName, productImage: $productImage)';
   }
 
   @override
@@ -260,15 +243,13 @@ class _$CartItemImpl extends _CartItem {
             (identical(other.productName, productName) ||
                 other.productName == productName) &&
             (identical(other.productImage, productImage) ||
-                other.productImage == productImage) &&
-            (identical(other.isSelected, isSelected) ||
-                other.isSelected == isSelected));
+                other.productImage == productImage));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, userId, productId, quantity,
-      unitPrice, productName, productImage, isSelected);
+      unitPrice, productName, productImage);
 
   /// Create a copy of CartItem
   /// with the given fields replaced by the non-null parameter values.
@@ -288,14 +269,14 @@ class _$CartItemImpl extends _CartItem {
 
 abstract class _CartItem extends CartItem {
   const factory _CartItem(
-      {required final String id,
-      @JsonKey(name: 'user_id') required final String userId,
-      @JsonKey(name: 'product_id') required final String productId,
-      required final int quantity,
-      @JsonKey(name: 'unit_price') required final double unitPrice,
-      @JsonKey(name: 'product_name') required final String productName,
-      @JsonKey(name: 'product_image') final String? productImage,
-      final bool isSelected}) = _$CartItemImpl;
+          {required final String id,
+          @JsonKey(name: 'user_id') required final String userId,
+          @JsonKey(name: 'product_id') required final String productId,
+          required final int quantity,
+          @JsonKey(name: 'unit_price') final double unitPrice,
+          @JsonKey(name: 'product_name') final String productName,
+          @JsonKey(name: 'product_image') final String? productImage}) =
+      _$CartItemImpl;
   const _CartItem._() : super._();
 
   factory _CartItem.fromJson(Map<String, dynamic> json) =
@@ -320,8 +301,6 @@ abstract class _CartItem extends CartItem {
   @override
   @JsonKey(name: 'product_image')
   String? get productImage;
-  @override
-  bool get isSelected;
 
   /// Create a copy of CartItem
   /// with the given fields replaced by the non-null parameter values.

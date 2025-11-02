@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:shop/constants.dart';
 import 'package:shop/components/network_image_with_loader.dart';
 import 'package:shop/providers/cart_provider.dart';
+import 'package:shop/services/auth_service.dart';
+import 'package:shop/route/route_constants.dart';
+import 'package:shop/services/order_calculation_service.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -12,6 +15,7 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
+  final AuthService _authService = AuthService();
   // Track selected items
   Set<String> selectedItems = {};
 
@@ -35,6 +39,111 @@ class _CartScreenState extends State<CartScreen> {
       }
     }
     return total;
+  }
+
+  // Show login dialog
+  void _showLoginDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.lock_outline,
+                color: cellphoneZRed,
+                size: 28,
+              ),
+              const SizedBox(width: 8),
+              const Text('Yêu cầu đăng nhập'),
+            ],
+          ),
+          content: const Text(
+            'Bạn cần đăng nhập để xem giỏ hàng và thanh toán.',
+            style: TextStyle(fontSize: 14),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                'Để sau',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.pushNamed(context, logInScreenRoute);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: cellphoneZRed,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('Đăng nhập'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Handle checkout button
+  void _handleCheckout(CartProvider cartProvider) {
+    // Check authentication
+    if (!_authService.isAuthenticated) {
+      _showLoginDialog();
+      return;
+    }
+
+    if (selectedItems.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vui lòng chọn sản phẩm để thanh toán'),
+          backgroundColor: cellphoneZRed,
+        ),
+      );
+      return;
+    }
+
+    // Get selected cart items
+    final selectedCartItems = cartProvider.items
+        .where((entry) => selectedItems.contains(entry.cartItem.id))
+        .map((entry) => entry.cartItem)
+        .toList();
+
+    // Calculate order summary
+    final orderSummary = OrderCalculationService().calculateOrder(
+      items: selectedCartItems,
+      deliveryLocation: '', // Sẽ chọn ở payment screen
+    );
+
+    // Navigate to payment screen
+    Navigator.pushNamed(
+      context,
+      paymentScreenRoute,
+      arguments: {
+        'orderSummary': orderSummary,
+        'deliveryAddress': '',
+        'items': selectedCartItems,
+      },
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Check auth when screen loads
+    if (!_authService.isAuthenticated) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showLoginDialog();
+      });
+    }
   }
 
   @override
@@ -306,17 +415,7 @@ class _CartScreenState extends State<CartScreen> {
                             child: ElevatedButton(
                               onPressed: selectedItems.isEmpty
                                   ? null
-                                  : () {
-                                      // TODO: chuyển đến trang checkout / payment
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                              'Thanh toán ${selectedItems.length} sản phẩm'),
-                                          backgroundColor: cellphoneZRed,
-                                        ),
-                                      );
-                                    },
+                                  : () => _handleCheckout(cartProvider),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: cellphoneZRed,
                                 foregroundColor: Colors.white,
