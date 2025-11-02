@@ -16,6 +16,7 @@ class PaymentScreen extends StatefulWidget {
   final String deliveryAddress;
   final List<CartItem> items;
   final String? customerNote;
+  final bool isBuyNow; // Flag để biết có phải mua ngay không
 
   const PaymentScreen({
     super.key,
@@ -23,6 +24,7 @@ class PaymentScreen extends StatefulWidget {
     required this.deliveryAddress,
     required this.items,
     this.customerNote,
+    this.isBuyNow = false, // Default là false (từ cart)
   });
 
   @override
@@ -93,15 +95,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _startVNPayPayment(String orderId, double amount) async {
-    if (_isProcessing) return;
-
-    setState(() => _isProcessing = true);
+    debugPrint(
+        '🚀 Bắt đầu _startVNPayPayment với orderId: $orderId, amount: $amount');
 
     try {
       // 1️⃣ Gọi Supabase Edge Function để tạo URL thanh toán
+      debugPrint('📡 Đang gọi Supabase Edge Function vnpay_create...');
       final response = await supabase.functions.invoke(
         'vnpay_create?order_id=$orderId&amount=$amount',
       );
+
+      debugPrint('📦 Response từ Edge Function: ${response.data}');
 
       final paymentUrl = response.data['paymentUrl'] as String?;
       if (paymentUrl == null) {
@@ -125,13 +129,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
           // ✅ Đợi WebView đóng hoàn toàn
           Future.delayed(const Duration(milliseconds: 300), () {
+            // Chỉ gửi IDs hợp lệ (không rỗng) - cho trường hợp từ cart
+            final validItemIds = widget.items
+                .where((e) => e.id.isNotEmpty)
+                .map((e) => e.id)
+                .toList();
+
             navigatorKey.currentState?.pushNamedAndRemoveUntil(
               paymentResultScreenRoute,
               (route) => false,
               arguments: {
                 'orderId': orderId,
                 'status': 'success',
-                'purchasedItemIds': widget.items.map((e) => e.id).toList(),
+                'purchasedItemIds':
+                    validItemIds.isNotEmpty ? validItemIds : null,
               },
             );
           });
@@ -169,15 +180,22 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _handlePayment() async {
-    if (_isProcessing) return;
+    debugPrint('🎯 _handlePayment được gọi');
+    if (_isProcessing) {
+      debugPrint('⚠️ Đang xử lý, bỏ qua');
+      return;
+    }
     setState(() => _isProcessing = true);
+    debugPrint('🔒 Đã set _isProcessing = true');
 
     try {
+      debugPrint('📝 Phương thức thanh toán: $_selectedMethod');
       // 🧾 1️⃣ Luôn tạo đơn hàng trong Supabase trước
       final orderId = await _createOrderWithItemsAndPayment(
         method: _selectedMethod,
         status: _selectedMethod == 'vnpay' ? 'pending' : 'success',
       );
+      debugPrint('📦 Order ID nhận được: $orderId');
 
       if (orderId == null) {
         if (mounted) {
@@ -189,20 +207,25 @@ class _PaymentScreenState extends State<PaymentScreen> {
       }
 
       // 💳 2️⃣ Thực hiện hành động tương ứng với từng phương thức
+      debugPrint('💳 Phương thức thanh toán được chọn: $_selectedMethod');
       switch (_selectedMethod) {
         // 🟢 VNPay: mở cổng thanh toán
         case 'vnpay':
+          debugPrint('🔵 Case VNPay - chuẩn bị gọi _startVNPayPayment');
+          // VNPay cần giữ _isProcessing = true cho đến khi webview đóng
+          // Không reset ở finally để tránh conflict
           await _startVNPayPayment(orderId, _orderSummary.total);
-          break;
+          debugPrint('✅ _startVNPayPayment đã hoàn thành');
+          return; // Return sớm, không chạy finally
 
         // 🟡 COD: xác nhận đơn hàng rồi chuyển đến màn hình kết quả
         case 'ship_cod':
-          await _handleCODPayment();
+          await _handleCODPayment(orderId);
           break;
 
         // 🔵 Nhận tại cửa hàng
         case 'store_pickup':
-          await _handleStorePickup();
+          await _handleStorePickup(orderId);
           break;
 
         // 🟣 Chuyển khoản QR
@@ -237,11 +260,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
         );
       }
     } finally {
-      if (mounted) setState(() => _isProcessing = false);
+      // Chỉ reset _isProcessing cho các phương thức khác VNPay
+      if (mounted && _selectedMethod != 'vnpay') {
+        setState(() => _isProcessing = false);
+      }
     }
   }
 
-  Future<void> _handleCODPayment() async {
+  Future<void> _handleCODPayment(String orderId) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -279,41 +305,24 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
 
     if (confirmed == true && mounted) {
-      setState(() => _isProcessing = true);
-      
-      // Create order in database
-      final orderId = await _createOrderWithItemsAndPayment(
-        method: 'ship_cod',
-        status: 'success',
-      );
-
-      if (orderId == null) {
-        if (mounted) {
-          setState(() => _isProcessing = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Không thể tạo đơn hàng')),
-          );
-        }
-        return;
-      }
+      // Chỉ gửi IDs hợp lệ
+      final validItemIds =
+          widget.items.where((e) => e.id.isNotEmpty).map((e) => e.id).toList();
 
       // Navigate to result screen
-      if (mounted) {
-        setState(() => _isProcessing = false);
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          paymentResultScreenRoute,
-          (route) => false,
-          arguments: {
-            'orderId': orderId,
-            'status': 'success',
-            'purchasedItemIds': widget.items.map((e) => e.id).toList(),
-          },
-        );
-      }
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        paymentResultScreenRoute,
+        (route) => false,
+        arguments: {
+          'orderId': orderId, // Dùng orderId thật từ DB
+          'status': 'success',
+          'purchasedItemIds': validItemIds.isNotEmpty ? validItemIds : null,
+        },
+      );
     }
   }
 
-  Future<void> _handleStorePickup() async {
+  Future<void> _handleStorePickup(String orderId) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -349,37 +358,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
 
     if (confirmed == true && mounted) {
-      setState(() => _isProcessing = true);
-      
-      // Create order in database
-      final orderId = await _createOrderWithItemsAndPayment(
-        method: 'store_pickup',
-        status: 'success',
-      );
-
-      if (orderId == null) {
-        if (mounted) {
-          setState(() => _isProcessing = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Không thể tạo đơn hàng')),
-          );
-        }
-        return;
-      }
+      // Chỉ gửi IDs hợp lệ
+      final validItemIds =
+          widget.items.where((e) => e.id.isNotEmpty).map((e) => e.id).toList();
 
       // Navigate to result screen
-      if (mounted) {
-        setState(() => _isProcessing = false);
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          paymentResultScreenRoute,
-          (route) => false,
-          arguments: {
-            'orderId': orderId,
-            'status': 'success',
-            'purchasedItemIds': widget.items.map((e) => e.id).toList(),
-          },
-        );
-      }
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        paymentResultScreenRoute,
+        (route) => false,
+        arguments: {
+          'orderId': orderId, // Dùng orderId thật từ DB
+          'status': 'success',
+          'purchasedItemIds': validItemIds.isNotEmpty ? validItemIds : null,
+        },
+      );
     }
   }
 
@@ -428,15 +420,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
         'method': method,
       });
 
-      // 🗑️ 4️⃣ Xóa các item khỏi giỏ hàng (chỉ xóa nếu không phải item tạm)
-      for (final item in widget.items) {
-        // Chỉ xóa cart items thật (không xóa temp items từ mua trực tiếp)
-        if (!item.id.startsWith('temp_')) {
-          await supabase.from('cart_items').delete().eq('id', item.id);
+      // 🗑️ 4️⃣ Xóa các item khỏi giỏ hàng (CHỈ khi từ cart, không phải buy now)
+      if (!widget.isBuyNow) {
+        for (final item in widget.items) {
+          // Chỉ xóa nếu có ID hợp lệ
+          if (item.id.isNotEmpty) {
+            await supabase.from('cart_items').delete().eq('id', item.id);
+          }
         }
+        debugPrint('✅ Đã xóa ${widget.items.length} items khỏi giỏ hàng');
+      } else {
+        debugPrint('ℹ️ Buy now - không cần xóa giỏ hàng');
       }
 
-      debugPrint('✅ Đã tạo order + order_items + payment + xóa giỏ hàng');
+      debugPrint('✅ Đã tạo order + order_items + payment');
       return orderId;
     } catch (e) {
       debugPrint('❌ Lỗi tạo đơn hàng: $e');

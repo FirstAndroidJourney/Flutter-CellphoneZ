@@ -115,6 +115,7 @@ Route<dynamic> generateRoute(RouteSettings settings) {
           deliveryAddress: args?['deliveryAddress'] ?? '',
           items: args?['items'] ?? [],
           customerNote: args?['customerNote'],
+          isBuyNow: args?['isBuyNow'] ?? false,
         ),
       );
     case paymentResultScreenRoute:

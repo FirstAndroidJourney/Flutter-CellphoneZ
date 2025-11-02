@@ -195,9 +195,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
 
     try {
-      // Tạo CartItem tạm thời cho sản phẩm này
+      // Lấy thông tin sản phẩm hiện tại
+      final product = await _productFuture;
+      if (product == null) {
+        throw Exception('Không tìm thấy thông tin sản phẩm');
+      }
+
+      // Tạo CartItem tạm thời cho sản phẩm này (không có ID từ DB)
       final tempCartItem = CartItem(
-        id: 'temp_${DateTime.now().millisecondsSinceEpoch}',
+        id: '', // Empty ID để biết đây là buy now, không phải từ cart
         userId: _authService.currentUser?.id ?? '',
         productId: product.id,
         quantity: 1,
@@ -212,16 +218,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         deliveryLocation: '', // Sẽ chọn sau ở màn thanh toán
       );
 
-      Navigator.pushNamed(
-        context,
-        paymentScreenRoute,
-        arguments: {
-          'orderSummary': orderSummary,
-          'deliveryAddress': '',
-          'items': [tempCartItem],
-          'customerNote': null,
-        },
-      );
+      if (mounted) {
+        Navigator.pushNamed(
+          context,
+          paymentScreenRoute,
+          arguments: {
+            'orderSummary': orderSummary,
+            'deliveryAddress': '',
+            'items': [tempCartItem],
+            'isBuyNow': true, // Flag để biết đây là mua ngay, không từ cart
+          },
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -318,8 +326,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       itemBuilder: (context, index) => Padding(
         padding: EdgeInsets.only(
           left: defaultPadding,
-          right:
-              index == _relatedProducts.length - 1 ? defaultPadding : 0,
+          right: index == _relatedProducts.length - 1 ? defaultPadding : 0,
         ),
         child: SizedBox(
           width: 160,
