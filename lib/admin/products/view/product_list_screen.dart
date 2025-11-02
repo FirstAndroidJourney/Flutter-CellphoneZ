@@ -95,6 +95,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   int get _totalProducts => _products.length;
 
+  int get _totalBrands => _products
+      .map((product) => product.categoryId.trim())
+      .where((categoryId) => categoryId.isNotEmpty)
+      .toSet()
+      .length;
+
   int get _availableProducts =>
       _products.where((product) => product.isAvailable).length;
 
@@ -389,6 +395,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
           SliverToBoxAdapter(
               child: _StatsSection(
             totalProducts: _totalProducts,
+            totalBrands: _totalBrands,
             availableProducts: _availableProducts,
             unavailableProducts: _unavailableProducts,
             totalInventoryValue: _totalInventoryValue,
@@ -468,12 +475,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
 class _StatsSection extends StatelessWidget {
   const _StatsSection({
     required this.totalProducts,
+    required this.totalBrands,
     required this.availableProducts,
     required this.unavailableProducts,
     required this.totalInventoryValue,
   });
 
   final int totalProducts;
+  final int totalBrands;
   final int availableProducts;
   final int unavailableProducts;
   final double totalInventoryValue;
@@ -490,48 +499,83 @@ class _StatsSection extends StatelessWidget {
 
     final totalValueLabel = currency.format(totalInventoryValue);
 
+    final totalProductsCard = _StatCard(
+      icon: Icons.inventory_2_outlined,
+      label: 'Tổng sản phẩm',
+      value: totalProducts.toString(),
+      iconColor: colorScheme.primary,
+    );
+
+    final totalBrandsCard = _StatCard(
+      icon: Icons.loyalty_outlined,
+      label: 'Tổng thương hiệu',
+      value: totalBrands.toString(),
+      iconColor: colorScheme.tertiary,
+    );
+
+    final availableCard = _StatCard(
+      icon: Icons.store_mall_directory_outlined,
+      label: 'Đang bán',
+      value: availableProducts.toString(),
+      iconColor: colorScheme.secondary,
+    );
+
+    final unavailableCard = _StatCard(
+      icon: Icons.pause_circle_outline,
+      label: 'Tạm ngưng',
+      value: unavailableProducts.toString(),
+      iconColor: colorScheme.error,
+    );
+
+    final totalValueCard = _StatCard(
+      icon: Icons.payments_outlined,
+      label: 'Tổng giá niêm yết',
+      value: totalValueLabel,
+      iconColor: colorScheme.tertiary,
+      isFullWidth: true,
+    );
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final stackCards = constraints.maxWidth < 720;
-          final children = [
-            _StatCard(
-              icon: Icons.inventory_2_outlined,
-              label: 'Tổng sản phẩm',
-              value: totalProducts.toString(),
-              iconColor: colorScheme.primary,
-            ),
-            _StatCard(
-              icon: Icons.store_mall_directory_outlined,
-              label: 'Đang bán',
-              value: availableProducts.toString(),
-              iconColor: colorScheme.secondary,
-            ),
-            _StatCard(
-              icon: Icons.pause_circle_outline,
-              label: 'Tạm ngưng',
-              value: unavailableProducts.toString(),
-              iconColor: colorScheme.error,
-            ),
-          ];
+          final isCompact = constraints.maxWidth < 720;
 
-          if (stackCards) {
+          if (isCompact) {
+            const wrapSpacing = 12.0;
+            const wrapRunSpacing = 12.0;
+            final availableWidth = constraints.maxWidth;
+            final cardWidth = availableWidth > wrapSpacing
+                ? (availableWidth - wrapSpacing) / 2
+                : availableWidth;
+
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                for (int i = 0; i < children.length; i++) ...[
-                  children[i],
-                  if (i != children.length - 1) const SizedBox(height: 12),
-                ],
-                const SizedBox(height: 16),
-                _StatCard(
-                  icon: Icons.payments_outlined,
-                  label: 'Tổng giá niêm yết',
-                  value: totalValueLabel,
-                  iconColor: colorScheme.tertiary,
-                  isFullWidth: true,
+                Wrap(
+                  spacing: wrapSpacing,
+                  runSpacing: wrapRunSpacing,
+                  children: [
+                    SizedBox(
+                      width: cardWidth,
+                      child: totalProductsCard,
+                    ),
+                    SizedBox(
+                      width: cardWidth,
+                      child: totalBrandsCard,
+                    ),
+                    SizedBox(
+                      width: cardWidth,
+                      child: availableCard,
+                    ),
+                    SizedBox(
+                      width: cardWidth,
+                      child: unavailableCard,
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 16),
+                totalValueCard,
               ],
             );
           }
@@ -541,20 +585,21 @@ class _StatsSection extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  for (int i = 0; i < children.length; i++) ...[
-                    Expanded(child: children[i]),
-                    if (i != children.length - 1) const SizedBox(width: 16),
-                  ],
+                  Expanded(child: totalProductsCard),
+                  const SizedBox(width: 16),
+                  Expanded(child: totalBrandsCard),
                 ],
               ),
               const SizedBox(height: 12),
-              _StatCard(
-                icon: Icons.payments_outlined,
-                label: 'Tổng giá niêm yết',
-                value: totalValueLabel,
-                iconColor: colorScheme.tertiary,
-                isFullWidth: true,
+              Row(
+                children: [
+                  Expanded(child: availableCard),
+                  const SizedBox(width: 16),
+                  Expanded(child: unavailableCard),
+                ],
               ),
+              const SizedBox(height: 12),
+              totalValueCard,
             ],
           );
         },
