@@ -777,92 +777,87 @@ class _CategoryFilterBar extends StatelessWidget {
 
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final parentId = selectedCategoryId;
-    final currentSubcategories =
-        parentId != null ? (subcategories[parentId] ?? const []) : const [];
+    final selectedParentId = selectedCategoryId;
+    final currentSubcategories = selectedParentId != null
+        ? (subcategories[selectedParentId] ?? const <Category>[])
+        : const <Category>[];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
+    final chips = <Widget>[];
+
+    void addChip(Widget chip, {double spacing = 8}) {
+      if (chips.isNotEmpty) {
+        chips.add(SizedBox(width: spacing));
+      }
+      chips.add(chip);
+    }
+
+    addChip(
+      _FilterChip(
+        label: 'Default',
+        selected: selectedCategoryId == null && selectedSubcategoryId == null,
+        onSelected: () => onCategorySelected(null),
+        colorScheme: colorScheme,
+        textTheme: textTheme,
+      ),
+    );
+
+    for (final category in categories) {
+      addChip(
+        _FilterChip(
+          label: category.name,
+          selected: selectedCategoryId == category.id,
+          onSelected: () => onCategorySelected(category.id),
+          colorScheme: colorScheme,
+          textTheme: textTheme,
+        ),
+      );
+
+      if (category.id == selectedParentId) {
+        if (isSubcategoryLoading) {
+          addChip(
+            const SizedBox(
+              width: 12,
+              height: 12,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            spacing: 3,
+          );
+        } else if (currentSubcategories.isNotEmpty) {
+          addChip(
+            _FilterChip(
+              label: 'Tất cả',
+              selected: selectedSubcategoryId == null,
+              onSelected: () => onSubcategorySelected(null),
+              colorScheme: colorScheme,
+              textTheme: textTheme,
+              dense: true,
+              isSubcategory: true,
+            ),
+            spacing: 3,
+          );
+
+          for (final subcategory in currentSubcategories) {
+            addChip(
               _FilterChip(
-                label: 'Default',
-                selected:
-                    selectedCategoryId == null && selectedSubcategoryId == null,
-                onSelected: () => onCategorySelected(null),
+                label: subcategory.name,
+                selected: selectedSubcategoryId == subcategory.id,
+                onSelected: () => onSubcategorySelected(subcategory.id),
                 colorScheme: colorScheme,
                 textTheme: textTheme,
+                dense: true,
+                isSubcategory: true,
               ),
-              const SizedBox(width: 8),
-              for (final category in categories) ...[
-                _FilterChip(
-                  label: category.name,
-                  selected: selectedCategoryId == category.id,
-                  onSelected: () => onCategorySelected(category.id),
-                  colorScheme: colorScheme,
-                  textTheme: textTheme,
-                ),
-                const SizedBox(width: 8),
-              ],
-            ],
-          ),
-        ),
-        if (parentId != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: isSubcategoryLoading
-                ? const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                        SizedBox(width: 8),
-                        Text('Đang tải danh mục con...'),
-                      ],
-                    ),
-                  )
-                : currentSubcategories.isEmpty
-                    ? const SizedBox.shrink()
-                    : SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          children: [
-                            _FilterChip(
-                              label: 'Tất cả',
-                              selected: selectedSubcategoryId == null,
-                              onSelected: () => onSubcategorySelected(null),
-                              colorScheme: colorScheme,
-                              textTheme: textTheme,
-                              dense: true,
-                            ),
-                            const SizedBox(width: 8),
-                            for (final subcategory in currentSubcategories) ...[
-                              _FilterChip(
-                                label: subcategory.name,
-                                selected:
-                                    selectedSubcategoryId == subcategory.id,
-                                onSelected: () =>
-                                    onSubcategorySelected(subcategory.id),
-                                colorScheme: colorScheme,
-                                textTheme: textTheme,
-                                dense: true,
-                              ),
-                              const SizedBox(width: 8),
-                            ],
-                          ],
-                        ),
-                      ),
-          ),
-      ],
+              spacing: 3,
+            );
+          }
+        }
+      }
+    }
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: Row(children: chips),
     );
   }
 }
@@ -875,6 +870,7 @@ class _FilterChip extends StatelessWidget {
     required this.colorScheme,
     required this.textTheme,
     this.dense = false,
+    this.isSubcategory = false,
   });
 
   final String label;
@@ -883,31 +879,65 @@ class _FilterChip extends StatelessWidget {
   final ColorScheme colorScheme;
   final TextTheme textTheme;
   final bool dense;
+  final bool isSubcategory;
 
   @override
   Widget build(BuildContext context) {
-    return ChoiceChip(
-      label: Text(label),
+    final textStyle =
+        (isSubcategory ? textTheme.bodySmall : textTheme.bodyMedium) ??
+            const TextStyle();
+    final baseStyle = textStyle.copyWith(
+      fontSize: isSubcategory ? 11 : (dense ? 12 : textStyle.fontSize),
+      color: selected
+          ? (isSubcategory ? colorScheme.onSecondary : colorScheme.onPrimary)
+          : colorScheme.onSurfaceVariant,
+      fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+    );
+
+    final labelWidget = isSubcategory
+        ? ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 120),
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: baseStyle,
+            ),
+          )
+        : Text(label, style: baseStyle);
+
+    final selectedColor =
+        isSubcategory ? colorScheme.secondary : colorScheme.primary;
+    final unselectedBackground = isSubcategory
+        ? colorScheme.secondaryContainer.withValues(alpha: 0.4)
+        : colorScheme.surface;
+    final unselectedBorder = isSubcategory
+        ? colorScheme.secondary.withValues(alpha: 0.5)
+        : colorScheme.outlineVariant.withValues(alpha: 0.6);
+
+    final chip = ChoiceChip(
+      label: labelWidget,
       selected: selected,
       onSelected: (_) => onSelected(),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(isSubcategory ? 8 : 18),
+      ),
       padding: EdgeInsets.symmetric(
-        horizontal: dense ? 8 : 12,
-        vertical: dense ? 2 : 4,
+        horizontal: isSubcategory ? 6 : (dense ? 8 : 12),
+        vertical: isSubcategory ? 1 : (dense ? 2 : 4),
       ),
-      labelStyle: textTheme.bodyMedium?.copyWith(
-        fontSize: dense ? 12 : null,
-        color: selected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
-        fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-      ),
-      selectedColor: colorScheme.primary,
-      backgroundColor: colorScheme.surface,
+      labelStyle: baseStyle,
+      selectedColor: selectedColor,
+      backgroundColor: selected ? selectedColor : unselectedBackground,
       side: BorderSide(
-        color: selected
-            ? colorScheme.primary
-            : colorScheme.outlineVariant.withValues(alpha: 0.6),
+        color: selected ? selectedColor : unselectedBorder,
       ),
+      showCheckmark: !isSubcategory,
     );
+
+    if (!isSubcategory) return chip;
+
+    return chip;
   }
 }
 
