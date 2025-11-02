@@ -1,0 +1,66 @@
+name: Build Debug APK (Disposable)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-debug:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Cache pub
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      # Xóa TẤT CẢ artifact cũ
+      - name: Delete ALL previous artifacts (repo-wide)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            let page = 1;
+            let deleted = 0;
+            while (true) {
+              const res = await github.rest.actions.listArtifactsForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                per_page: 100,
+                page
+              });
+              const arts = res.data.artifacts || [];
+              if (arts.length === 0) break;
+              for (const a of arts) {
+                await github.rest.actions.deleteArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: a.id
+                });
+                deleted++;
+                core.info(`Deleted artifact: ${a.name} (id=${a.id})`);
+              }
+              page++;
+            }
+            core.info(`Total deleted artifacts: ${deleted}`);
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Debug APK
+        run: flutter build apk --debug
+
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-latest
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          retention-days: 7
