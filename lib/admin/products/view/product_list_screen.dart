@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 
+import '../../../constants.dart';
 import '../../../models/category.dart';
 import '../../../models/product.dart';
 import '../../../services/product_service.dart';
@@ -164,7 +165,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
         message: content,
         confirmLabel: confirmLabel,
         confirmColor: shouldEnable
-            ? Theme.of(context).colorScheme.primary
+            ? cellphoneZRed
             : Theme.of(context).colorScheme.error,
       ),
     );
@@ -297,7 +298,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
   Widget build(BuildContext context) {
     final Widget content;
     if (_isLoading) {
-      content = const Center(child: CircularProgressIndicator());
+      content = const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(cellphoneZRed),
+        ),
+      );
     } else if (_errorMessage != null) {
       content = _ErrorView(
         message: _errorMessage!,
@@ -371,6 +376,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openForm(),
+        backgroundColor: cellphoneZRed,
         child: const Icon(Icons.add),
       ),
       body: Column(
@@ -503,35 +509,35 @@ class _StatsSection extends StatelessWidget {
       icon: Icons.inventory_2_outlined,
       label: 'Tổng sản phẩm',
       value: totalProducts.toString(),
-      iconColor: colorScheme.primary,
+      iconColor: cellphoneZRed,
     );
 
     final totalBrandsCard = _StatCard(
       icon: Icons.loyalty_outlined,
       label: 'Tổng thương hiệu',
       value: totalBrands.toString(),
-      iconColor: colorScheme.tertiary,
+      iconColor: cellphoneZRed,
     );
 
     final availableCard = _StatCard(
       icon: Icons.store_mall_directory_outlined,
       label: 'Đang bán',
       value: availableProducts.toString(),
-      iconColor: colorScheme.secondary,
+      iconColor: cellphoneZRed,
     );
 
     final unavailableCard = _StatCard(
       icon: Icons.pause_circle_outline,
       label: 'Tạm ngưng',
       value: unavailableProducts.toString(),
-      iconColor: colorScheme.error,
+      iconColor: cellphoneZRed,
     );
 
     final totalValueCard = _StatCard(
       icon: Icons.payments_outlined,
       label: 'Tổng giá niêm yết',
       value: totalValueLabel,
-      iconColor: colorScheme.tertiary,
+      iconColor: cellphoneZRed,
       isFullWidth: true,
     );
 
@@ -731,7 +737,7 @@ class _SearchBar extends StatelessWidget {
             controller: controller,
             onChanged: onChanged,
             textInputAction: TextInputAction.search,
-            cursorColor: colorScheme.primary,
+            cursorColor: cellphoneZRed,
             decoration: InputDecoration(
               border: InputBorder.none,
               prefixIcon: const Icon(Icons.search),
@@ -782,7 +788,13 @@ class _CategoryFilterBar extends StatelessWidget {
     if (isLoading) {
       return const Padding(
         padding: EdgeInsets.only(bottom: 16),
-        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        child: Center(
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor:
+                const AlwaysStoppedAnimation<Color>(cellphoneZRed),
+          ),
+        ),
       );
     }
 
@@ -853,7 +865,11 @@ class _CategoryFilterBar extends StatelessWidget {
             const SizedBox(
               width: 12,
               height: 12,
-              child: CircularProgressIndicator(strokeWidth: 2),
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor:
+                    const AlwaysStoppedAnimation<Color>(cellphoneZRed),
+              ),
             ),
             spacing: 3,
           );
@@ -921,11 +937,15 @@ class _FilterChip extends StatelessWidget {
     final textStyle =
         (isSubcategory ? textTheme.bodySmall : textTheme.bodyMedium) ??
             const TextStyle();
+    final selectedColor = cellphoneZRed;
+    final unselectedBackground = Colors.transparent;
+    final unselectedBorder =
+        cellphoneZRed.withOpacity(isSubcategory ? 0.35 : 0.45);
+    final textColor =
+        selected ? Colors.white : Colors.black;
     final baseStyle = textStyle.copyWith(
       fontSize: isSubcategory ? 11 : (dense ? 12 : textStyle.fontSize),
-      color: selected
-          ? (isSubcategory ? colorScheme.onSecondary : colorScheme.onPrimary)
-          : colorScheme.onSurfaceVariant,
+      color: textColor,
       fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
     );
 
@@ -940,15 +960,6 @@ class _FilterChip extends StatelessWidget {
             ),
           )
         : Text(label, style: baseStyle);
-
-    final selectedColor =
-        isSubcategory ? colorScheme.secondary : colorScheme.primary;
-    final unselectedBackground = isSubcategory
-        ? colorScheme.secondaryContainer.withValues(alpha: 0.4)
-        : colorScheme.surface;
-    final unselectedBorder = isSubcategory
-        ? colorScheme.secondary.withValues(alpha: 0.5)
-        : colorScheme.outlineVariant.withValues(alpha: 0.6);
 
     final chip = ChoiceChip(
       label: labelWidget,
@@ -967,6 +978,7 @@ class _FilterChip extends StatelessWidget {
       side: BorderSide(
         color: selected ? selectedColor : unselectedBorder,
       ),
+      checkmarkColor: Colors.white,
       showCheckmark: !isSubcategory,
     );
 
@@ -1048,6 +1060,8 @@ class _AvailabilityDialog extends StatelessWidget {
                   Expanded(
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
+                        foregroundColor: cellphoneZRed,
+                        side: const BorderSide(color: cellphoneZRed),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -1176,7 +1190,7 @@ class _ProductTile extends StatelessWidget {
     final imageUrl = product.imageUrl;
     final isAvailable = product.isAvailable;
     final priceText = _priceFormatter.format(product.price);
-    final statusColor = isAvailable ? colorScheme.primary : colorScheme.error;
+    final statusColor = isAvailable ? cellphoneZRed : colorScheme.error;
     final statusLabel = isAvailable ? 'Đang bán' : 'Ngừng bán';
     final nameStyle = theme.textTheme.titleSmall?.copyWith(
       fontWeight: FontWeight.w600,
@@ -1248,7 +1262,7 @@ class _ProductTile extends StatelessWidget {
                   Text(
                     priceText,
                     style: theme.textTheme.titleMedium?.copyWith(
-                      color: colorScheme.primary,
+                      color: cellphoneZRed,
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
                     ),
@@ -1263,10 +1277,10 @@ class _ProductTile extends StatelessWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: statusColor.withValues(alpha: 0.1),
+                            color: Colors.transparent,
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: statusColor.withValues(alpha: 0.18),
+                              color: statusColor,
                             ),
                           ),
                           child: Row(
@@ -1301,7 +1315,7 @@ class _ProductTile extends StatelessWidget {
                       _TileActionButton(
                         tooltip: 'Chỉnh sửa',
                         icon: Icons.edit_outlined,
-                        color: colorScheme.primary,
+                        color: cellphoneZRed,
                         onPressed: actionsEnabled ? onEdit : null,
                       ),
                       const SizedBox(width: 4),
@@ -1410,6 +1424,10 @@ class _EmptyView extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: cellphoneZRed,
+                foregroundColor: Colors.white,
+              ),
               onPressed: onReload,
               icon: const Icon(Icons.refresh),
               label: const Text('Tải lại'),
@@ -1470,6 +1488,10 @@ class _ErrorView extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: cellphoneZRed,
+                  foregroundColor: Colors.white,
+                ),
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh),
                 label: const Text('Thử lại'),

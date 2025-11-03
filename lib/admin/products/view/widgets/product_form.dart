@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../constants.dart';
 import '../../../../models/category.dart';
 import '../../../../models/product.dart';
 import '../../../../services/category_service.dart';
@@ -188,6 +189,7 @@ class _ProductFormState extends State<ProductForm> {
               title: const Text('Trạng thái bán'),
               subtitle: Text(_isAvailable ? 'Đang bán' : 'Ngừng bán'),
               value: _isAvailable,
+              activeColor: cellphoneZRed,
               onChanged: (value) {
                 setState(() {
                   _isAvailable = value;
@@ -207,6 +209,10 @@ class _ProductFormState extends State<ProductForm> {
             _buildImageSection(),
             const SizedBox(height: 24),
             FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: cellphoneZRed,
+                foregroundColor: Colors.white,
+              ),
               onPressed: _isSubmitting ? null : _handleSubmit,
               child: Text(
                 widget.product == null ? 'Tạo sản phẩm' : 'Cập nhật',
@@ -222,7 +228,11 @@ class _ProductFormState extends State<ProductForm> {
     if (_loadingCategories) {
       return const SizedBox(
         height: 56,
-        child: Center(child: CircularProgressIndicator()),
+        child: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(cellphoneZRed),
+          ),
+        ),
       );
     }
 
@@ -328,7 +338,11 @@ class _ProductFormState extends State<ProductForm> {
                 ? progress.cumulativeBytesLoaded / expected
                 : null;
             return Center(
-              child: CircularProgressIndicator(value: value),
+              child: CircularProgressIndicator(
+                value: value,
+                valueColor:
+                    const AlwaysStoppedAnimation<Color>(cellphoneZRed),
+              ),
             );
           },
           errorBuilder: (_, __, ___) => placeholder,
@@ -356,12 +370,19 @@ class _ProductFormState extends State<ProductForm> {
           runSpacing: 8,
           children: [
             ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: cellphoneZRed,
+                foregroundColor: Colors.white,
+              ),
               onPressed: _isSubmitting ? null : _pickImage,
               icon: const Icon(Icons.photo_library_outlined),
               label: const Text('Chọn ảnh'),
             ),
             if (_pickedImageBytes != null || _existingImageUrl != null)
               TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: cellphoneZRed,
+                ),
                 onPressed: _isSubmitting ? null : _clearSelectedImage,
                 child: const Text('Xoá ảnh'),
               ),
@@ -490,7 +511,7 @@ class _CategoryDropdownTile extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final indent = level * 16.0;
     final background = isSubcategory
-        ? colorScheme.secondaryContainer.withValues(alpha: 0.2)
+        ? cellphoneZRed.withOpacity(0.08)
         : colorScheme.surfaceContainerHighest;
 
     return Container(
@@ -507,7 +528,7 @@ class _CategoryDropdownTile extends StatelessWidget {
                 ? Icons.arrow_right_alt_rounded
                 : Icons.category_outlined,
             size: 18,
-            color: isSubcategory ? colorScheme.secondary : colorScheme.primary,
+            color: cellphoneZRed,
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -554,7 +575,7 @@ class _CategorySelectedTile extends StatelessWidget {
         children: [
           if (indent > 0) SizedBox(width: indent),
           if (isSubcategory)
-            Icon(Icons.chevron_right, size: 16, color: colorScheme.secondary),
+            Icon(Icons.chevron_right, size: 16, color: cellphoneZRed),
           if (isSubcategory) const SizedBox(width: 4),
           Flexible(
             child: Text(
