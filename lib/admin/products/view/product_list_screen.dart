@@ -376,7 +376,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openForm(),
-        backgroundColor: cellphoneZRed,
+        backgroundColor: Colors.white,
         child: const Icon(Icons.add),
       ),
       body: Column(
@@ -1277,10 +1277,10 @@ class _ProductTile extends StatelessWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.transparent,
+                            color: statusColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: statusColor,
+                              color: statusColor.withValues(alpha: 0.18),
                             ),
                           ),
                           child: Row(
