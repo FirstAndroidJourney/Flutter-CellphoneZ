@@ -19,6 +19,7 @@ mixin SchemaAccessor {
 
   // Getter tiện ích để truy cập schema các bảng
   UsersTable get usersSchema => DatabaseSchema.users;
+  UserRolesTable get userRolesSchema => DatabaseSchema.userRoles;
   ProductsTable get productsSchema => DatabaseSchema.products;
   CategoriesTable get categoriesSchema => DatabaseSchema.categories;
   CartItemsTable get cartItemsSchema => DatabaseSchema.cartItems;

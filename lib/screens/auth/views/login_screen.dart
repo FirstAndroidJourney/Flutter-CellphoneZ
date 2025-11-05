@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:shop/common/app_logger.dart';
 import 'package:shop/constants.dart';
 import 'package:shop/repository/auth_repository.dart';
 import 'package:shop/route/route_constants.dart';
+import 'package:shop/services/role_service.dart';
 
 import 'components/login_form.dart';
 
@@ -15,6 +17,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final AuthRepository _authRepository = AuthRepository();
+  final RoleService _roleService = RoleService();
+  final AppLogger _logger = AppLogger.instance;
 
   String? _email;
   String? _password;
@@ -29,6 +33,8 @@ class _LoginScreenState extends State<LoginScreen> {
   void _checkAuthStatus() {
     // Kiểm tra xem người dùng đã đăng nhập chưa
     if (_authRepository.isAuthenticated) {
+      _logger.d(
+          '🔒 [LoginScreen] Existing session found, redirecting to entry point');
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushNamedAndRemoveUntil(
           context,
@@ -51,20 +57,34 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      await _authRepository.signIn(
+      _logger.d('🔒 [LoginScreen] Attempting sign in for $_email');
+      final authResponse = await _authRepository.signIn(
         email: _email!,
         password: _password!,
       );
 
-      if (mounted) {
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          entryPointScreenRoute,
-          ModalRoute.withName(logInScreenRoute),
-        );
-      }
+      _logger.d(
+        '🔒 [LoginScreen] Sign in succeeded. Supabase user: ${authResponse.user?.id ?? 'null'} (current: ${_authRepository.currentUser?.id ?? 'null'})',
+      );
+
+      final role = await _roleService.resolveCurrentUserRole();
+
+      if (!mounted) return;
+
+      final targetRoute =
+          role == 'admin' ? adminProductListScreenRoute : entryPointScreenRoute;
+
+      _logger.d(
+        '🔒 [LoginScreen] Role resolved as "$role". Navigating to $targetRoute',
+      );
+
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        targetRoute,
+        ModalRoute.withName(logInScreenRoute),
+      );
     } catch (e) {
-      print("Login error: $e");
+      _logger.e('🔒 [LoginScreen] Login error', e);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
