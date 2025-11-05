@@ -86,7 +86,7 @@ class _CategoryProductsSectionState extends State<CategoryProductsSection> {
         ),
         const SizedBox(height: defaultPadding / 2),
         SizedBox(
-          height: 220,
+          height: 250,
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : ListView.builder(

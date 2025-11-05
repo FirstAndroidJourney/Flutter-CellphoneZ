@@ -29,13 +29,11 @@ class _PopularProductsState extends State<PopularProducts> {
   Future<List<Product>> _loadPopularProducts() async {
     try {
       debugPrint('Loading popular products...');
-      // Lấy danh sách sản phẩm nổi bật từ ProductService
       var popularProducts =
           await _productService.getFeaturedProducts(limit: 10);
       debugPrint('Loaded ${popularProducts.length} popular products.');
       return popularProducts;
     } catch (e) {
-      // Xử lý lỗi và hiển thị thông báo
       debugPrint('Error loading popular products: $e');
       return [];
     }
@@ -58,21 +56,16 @@ class _PopularProductsState extends State<PopularProducts> {
           future: _popularProductsFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              // Hiển thị skeleton loader khi đang tải
               return const ProductsSkelton();
             } else if (snapshot.hasError) {
-              // Hiển thị thông báo lỗi
               return Center(child: Text('Error: ${snapshot.error}'));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              // Hiển thị thông báo khi không có dữ liệu
               return const Center(child: Text('No products available'));
             }
-
-            // Lấy danh sách sản phẩm từ kết quả
             final products = snapshot.data!;
 
             return SizedBox(
-              height: 220,
+              height: 250,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: products.length,
