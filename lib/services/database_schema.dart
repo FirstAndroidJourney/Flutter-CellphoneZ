@@ -16,6 +16,7 @@ class DatabaseSchema {
   static const CartItemsTable cartItems = CartItemsTable();
   static const OrdersTable orders = OrdersTable();
   static const OrderItemsTable orderItems = OrderItemsTable();
+  static const UserRolesTable userRoles = UserRolesTable();
   static const PaymentsTable payments = PaymentsTable();
   static const StorageBuckets storage = StorageBuckets();
 }
@@ -25,6 +26,7 @@ class TableNames {
   const TableNames();
 
   final String users = 'user_profiles';
+  final String userRoles = 'user_roles';
   final String products = 'products';
   final String categories = 'categories';
   final String cartItems = 'cart_items';
@@ -152,4 +154,13 @@ class PaymentsTable {
   final String method = 'method';
   final String transactionId = 'transaction_id';
   final String createdAt = 'created_at';
+}
+
+/// Schema cho bảng User Roles
+class UserRolesTable {
+  const UserRolesTable();
+
+  final String table = 'user_roles';
+  final String userId = 'user_id';
+  final String role = 'role';
 }
