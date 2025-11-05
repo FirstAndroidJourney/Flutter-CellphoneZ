@@ -14,7 +14,7 @@ Future<void> payWithVNPay() async {
     final response = await http.post(url, headers: {
       'Content-Type': 'application/json',
       'Authorization':
-          'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxZm5tdXR0ampwZGFscnd2YXV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5NjcxNTMsImV4cCI6MjA3NjU0MzE1M30.AI5q4aP88w2HSW1-ik8RxwiOBh3gwfjjcgSs0F9-h-4', // 🔑 thêm dòng này
+          'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxZm5tdXR0ampwZGFscnd2YXV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5NjcxNTMsImV4cCI6MjA3NjU0MzE1M30.AI5q4aP88w2HSW1-ik8RxwiOBh3gwfjjcgSs0F9-h-4'
     });
 
     if (response.statusCode == 200) {

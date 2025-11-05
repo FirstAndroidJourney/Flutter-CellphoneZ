@@ -60,7 +60,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ),
           title: Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.lock_outline,
                 color: cellphoneZRed,
                 size: 28,
@@ -80,8 +80,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               const SizedBox(height: 8),
               _buildBenefitItem('Thêm sản phẩm vào giỏ hàng'),
               _buildBenefitItem('Mua sản phẩm'),
-              _buildBenefitItem('Theo dõi đơn hàng'),
-              _buildBenefitItem('Lưu sản phẩm yêu thích'),
               const SizedBox(height: 16),
               const Text(
                 'Bạn có muốn đăng nhập ngay bây giờ?',
@@ -283,37 +281,27 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    // Nếu không có sản phẩm liên quan, hiển thị sản phẩm mẫu
     if (_relatedProducts.isEmpty) {
-      // Tạo danh sách sản phẩm mẫu
-      List<Product> demoProducts = List.generate(
-        5,
-        (index) => Product(
-          id: 'demo-$index',
-          name: "Sleeveless Tiered Dobby Swing Dress",
-          price: 24.65,
-          categoryId: "LIPSY LONDON",
-          imageUrl: productDemoImg2,
-          isAvailable: true,
-        ),
-      );
-
-      return ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: demoProducts.length,
-        itemBuilder: (context, index) => Padding(
-          padding: EdgeInsets.only(
-            left: defaultPadding,
-            right: index == demoProducts.length - 1 ? defaultPadding : 0,
-          ),
-          child: SizedBox(
-            width: 160,
-            child: ProductCard.fromProduct(
-              product: demoProducts[index],
-              priceAfterDiscount: index.isEven ? 20.99 : null,
-              discountPercent: index.isEven ? 25 : null,
-              onPressed: () {},
-            ),
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.info_outline,
+                color: Colors.grey,
+                size: 36,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Không có sản phẩm liên quan',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: Colors.grey),
+              ),
+            ],
           ),
         ),
       );
@@ -533,7 +521,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ? ProductImages(
                               images: [product.imageUrl!],
                             )
-                          : ProductImages(
+                          : const ProductImages(
                               images: [productDemoImg1, productDemoImg2],
                             ),
                     ),
@@ -566,7 +554,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                   ),
 
-                  // Chính sách đổi trả
                   SliverToBoxAdapter(
                     child: ProductListTile(
                       svgSrc: "assets/icons/Return.svg",
@@ -582,7 +569,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                   ),
 
-                  // Đánh giá sản phẩm
                   const SliverToBoxAdapter(
                     child: Padding(
                       padding: EdgeInsets.all(defaultPadding),

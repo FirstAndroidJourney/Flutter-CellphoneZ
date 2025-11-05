@@ -15,7 +15,7 @@ class NewsItem {
 }
 
 class NewsAndServicesSection extends StatelessWidget {
-  NewsAndServicesSection({super.key});
+  const NewsAndServicesSection({super.key});
 
   final List<NewsItem> _news = const [
     NewsItem(

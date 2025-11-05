@@ -1,8 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shop/admin/products/view/product_list_screen.dart';
-import 'package:shop/admin/views/category_management.dart';
-import 'package:shop/screens/main_screen.dart';
-import 'package:shop/screens/product/views/product_detail_screen.dart';
 
 import 'screen_export.dart';
 
@@ -47,10 +43,6 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder: (context) => const OnSaleScreen(),
       );
-    case kidsScreenRoute:
-      return MaterialPageRoute(
-        builder: (context) => const KidsScreen(),
-      );
     case searchScreenRoute:
       return MaterialPageRoute(
         builder: (context) => const SearchScreen(),
@@ -83,10 +75,6 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder: (context) => const NotificationOptionsScreen(),
       );
-    case addressesScreenRoute:
-      return MaterialPageRoute(
-        builder: (context) => const AddressesScreen(),
-      );
     case ordersScreenRoute:
       return MaterialPageRoute(
         builder: (context) => const OrdersScreen(),
@@ -94,14 +82,6 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case preferencesScreenRoute:
       return MaterialPageRoute(
         builder: (context) => const PreferencesScreen(),
-      );
-    case emptyWalletScreenRoute:
-      return MaterialPageRoute(
-        builder: (context) => const EmptyWalletScreen(),
-      );
-    case walletScreenRoute:
-      return MaterialPageRoute(
-        builder: (context) => const WalletScreen(),
       );
     case cartScreenRoute:
       return MaterialPageRoute(

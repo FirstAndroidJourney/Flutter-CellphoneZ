@@ -6,8 +6,6 @@ import 'package:shop/route/screen_export.dart';
 import 'package:shop/services/category_service.dart';
 import 'components/category_chips.dart';
 import 'components/category_products_section.dart';
-import 'components/flash_sale_section.dart';
-import 'components/flagship_highlights.dart';
 import 'components/hero_carousel.dart';
 import 'components/news_and_services.dart';
 import 'components/popular_products.dart';
@@ -35,12 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadFeaturedCategories() async {
     try {
-      print('🔄 Loading featured categories...');
       final categories = await _categoryService.getFeaturedCategories();
-      print('✅ Loaded ${categories.length} featured categories');
-      for (var cat in categories) {
-        print('  - ${cat.name} (id: ${cat.id}, popular: ${cat.isPopular})');
-      }
       if (mounted) {
         setState(() {
           _featuredCategories = categories;
@@ -53,7 +46,6 @@ class _HomeScreenState extends State<HomeScreen> {
           _isLoading = false;
         });
       }
-      print('❌ Error loading featured categories: $e');
     }
   }
 
@@ -98,15 +90,13 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
             const SliverToBoxAdapter(child: CellphoneZHeroCarousel()),
-            SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
+            const SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
             SliverToBoxAdapter(child: CellphoneZQuickActions()),
-            SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
+            const SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
             const SliverToBoxAdapter(child: CellphoneZCategoryChips()),
-            SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
-            const SliverToBoxAdapter(child: FlashSaleSection()),
-            SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
+            const SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
             const SliverToBoxAdapter(child: PopularProducts()),
-            SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
+            const SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
             if (_isLoading)
               const SliverToBoxAdapter(
                 child: Center(child: CircularProgressIndicator()),
@@ -116,16 +106,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       children: [
                         CategoryProductsSection(category: category),
-                        SizedBox(height: defaultPadding),
+                        const SizedBox(height: defaultPadding),
                       ],
                     ),
                   ))),
-            SliverToBoxAdapter(child: FlagshipHighlightsSection()),
-            SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
+            const SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
             SliverToBoxAdapter(child: RecommendationSection()),
-            SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
-            SliverToBoxAdapter(child: NewsAndServicesSection()),
-            SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
+            const SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
+            const SliverToBoxAdapter(child: NewsAndServicesSection()),
+            const SliverToBoxAdapter(child: SizedBox(height: defaultPadding)),
             const SliverToBoxAdapter(child: SupportFooter()),
             const SliverToBoxAdapter(
                 child: SizedBox(height: defaultPadding * 2)),

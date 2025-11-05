@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 
 // Just for demo
-const productDemoImg1 = "https://i.imgur.com/CGCyp1d.png";
-const productDemoImg2 = "https://i.imgur.com/AkzWQuJ.png";
-const productDemoImg3 = "https://i.imgur.com/J7mGZ12.png";
+const productDemoImg1 =
+    "https://cdn2.cellphones.com.vn/insecure/rs:fill:358:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/m/a/macbook-air-gold-select-201810_4_3_1_1_1.jpg";
+const productDemoImg2 =
+    "https://cdn.tgdd.vn/Products/Images/42/305658/iphone-15-pro-max-blue-thumbnew-600x600.jpg";
+const productDemoImg3 =
+    "https://thetekcoffee.com/wp-content/uploads/2024/11/samsung-z-fold-6-xach-tay-my.png";
 const productDemoImg4 = "https://i.imgur.com/q9oF9Yq.png";
 const productDemoImg5 = "https://i.imgur.com/MsppAcx.png";
 const productDemoImg6 = "https://i.imgur.com/JfyZlnO.png";

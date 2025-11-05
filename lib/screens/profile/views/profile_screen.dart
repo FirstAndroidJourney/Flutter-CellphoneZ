@@ -156,30 +156,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           },
         ),
         ProfileMenuListTile(
-          text: "Địa chỉ nhận hàng",
-          svgSrc: "assets/icons/Address.svg",
-          press: () {
-            Navigator.pushNamed(context, addressesScreenRoute);
-          },
-        ),
-        ProfileMenuListTile(
           text: "Phương thức thanh toán",
           svgSrc: "assets/icons/card.svg",
           press: () {
             Navigator.pushNamed(context, emptyPaymentScreenRoute);
           },
-        ),
-        ProfileMenuListTile(
-          text: "Ví của tôi",
-          svgSrc: "assets/icons/Wallet.svg",
-          press: () {
-            Navigator.pushNamed(context, walletScreenRoute);
-          },
-        ),
-        ProfileMenuListTile(
-          text: "Sản phẩm yêu thích",
-          svgSrc: "assets/icons/Wishlist.svg",
-          press: () {},
         ),
 
         // Support Section
