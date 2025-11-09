@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shop/constants.dart';
 import 'package:shop/models/category.dart';
 import 'package:shop/route/route_constants.dart';
@@ -64,11 +65,18 @@ class _HomeScreenState extends State<HomeScreen> {
               title: Row(
                 children: [
                   Text(
-                    "CellphoneZ",
+                    "Cellphone",
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w800,
                           color: cellphoneZRed,
+                          letterSpacing: -0.5,
                         ),
+                  ),
+                  const SizedBox(width: 8),
+                  SvgPicture.asset(
+                    'assets/logo/CellphoneZ.svg',
+                    height: 32,
+                    width: 32,
                   ),
                   const Spacer(),
                   IconButton(
