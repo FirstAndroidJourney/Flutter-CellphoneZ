@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shop/components/app_wrapper.dart';
 import 'package:shop/constants.dart';
 
 import 'screen_export.dart';
@@ -126,7 +127,7 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case entryPointScreenRoute:
       return _buildRoute(
         settings: settings,
-        child: const MainScreen(),
+        child: const AppWrapper(),
       );
     case profileScreenRoute:
       return _buildRoute(

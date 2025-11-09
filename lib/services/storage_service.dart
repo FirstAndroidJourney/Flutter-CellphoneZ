@@ -14,8 +14,7 @@ class StorageService {
     String? productBucket,
   })  : _client = client ?? Supabase.instance.client,
         _logger = logger ?? AppLogger.instance,
-        _productBucket =
-            productBucket ?? const StorageBuckets().productImages;
+        _productBucket = productBucket ?? const StorageBuckets().productImages;
 
   final SupabaseClient _client;
   final AppLogger _logger;
@@ -88,6 +87,17 @@ class StorageService {
   /// Generates the public URL for a stored product image.
   String getPublicUrl(String storagePath) {
     return _client.storage.from(_productBucket).getPublicUrl(storagePath);
+  }
+
+  /// Check if bucket exists and is accessible
+  Future<bool> checkBucketAccess() async {
+    try {
+      await _client.storage.from(_productBucket).list();
+      return true;
+    } catch (error) {
+      _logger.e('📸 [StorageService] Bucket access check failed', error);
+      return false;
+    }
   }
 }
 

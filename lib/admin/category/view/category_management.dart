@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:shop/constants.dart';
 import 'package:shop/services/category_service.dart';
 
 class CategoryManagement extends StatefulWidget {
@@ -42,7 +44,7 @@ class _CategoryManagementState extends State<CategoryManagement> {
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Failed to load categories: $e';
+        _errorMessage = 'Không thể tải danh mục: $e';
       });
       debugPrint('Error loading categories: $e');
     }
@@ -54,51 +56,86 @@ class _CategoryManagementState extends State<CategoryManagement> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title:
-              Text(parentId == null ? 'Add Root Category' : 'Add Subcategory'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            parentId == null ? 'Thêm danh mục gốc' : 'Thêm danh mục con',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (parentName != null) ...[
-                Text(
-                  'Parent: $parentName',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: cellphoneZRed.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: cellphoneZRed.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.folder,
+                        color: cellphoneZRed,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Danh mục cha: $parentName',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: cellphoneZRed,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
               ],
               TextField(
                 controller: nameController,
                 decoration: const InputDecoration(
-                  labelText: 'Category Name',
+                  labelText: 'Tên danh mục',
+                  hintText: 'Nhập tên danh mục...',
                   border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.category),
                 ),
                 autofocus: true,
+                textCapitalization: TextCapitalization.words,
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: const Text('Hủy'),
             ),
-            ElevatedButton(
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: cellphoneZRed,
+                foregroundColor: Colors.white,
+              ),
               onPressed: () async {
                 final name = nameController.text.trim();
                 if (name.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please enter category name')),
+                    const SnackBar(content: Text('Vui lòng nhập tên danh mục')),
                   );
                   return;
                 }
                 Navigator.pop(context);
                 await _addCategory(name, parentId: parentId);
               },
-              child: const Text('Add'),
+              child: const Text('Thêm'),
             ),
           ],
         );
@@ -113,7 +150,7 @@ class _CategoryManagementState extends State<CategoryManagement> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Category "$name" added successfully'),
+          content: Text('Đã thêm danh mục "$name" thành công'),
           backgroundColor: Colors.green,
           duration: const Duration(seconds: 2),
         ),
@@ -131,7 +168,7 @@ class _CategoryManagementState extends State<CategoryManagement> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to add category: $e'),
+          content: Text('Không thể thêm danh mục: $e'),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 3),
         ),
@@ -146,33 +183,49 @@ class _CategoryManagementState extends State<CategoryManagement> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Edit Category'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text(
+            'Chỉnh sửa danh mục',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
           content: TextField(
             controller: nameController,
             decoration: const InputDecoration(
-              labelText: 'Category Name',
+              labelText: 'Tên danh mục',
+              hintText: 'Nhập tên danh mục...',
               border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.edit),
             ),
             autofocus: true,
+            textCapitalization: TextCapitalization.words,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: const Text('Hủy'),
             ),
-            ElevatedButton(
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: cellphoneZRed,
+                foregroundColor: Colors.white,
+              ),
               onPressed: () async {
                 final name = nameController.text.trim();
                 if (name.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please enter category name')),
+                    const SnackBar(content: Text('Vui lòng nhập tên danh mục')),
                   );
                   return;
                 }
                 Navigator.pop(context);
                 await _editCategory(category.id, name);
               },
-              child: const Text('Save'),
+              child: const Text('Lưu'),
             ),
           ],
         );
@@ -186,7 +239,7 @@ class _CategoryManagementState extends State<CategoryManagement> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Category updated to "$name"'),
+          content: Text('Đã cập nhật danh mục thành "$name"'),
           backgroundColor: Colors.green,
         ),
       );
@@ -194,7 +247,7 @@ class _CategoryManagementState extends State<CategoryManagement> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to update category: $e'),
+          content: Text('Không thể cập nhật danh mục: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -235,8 +288,8 @@ class _CategoryManagementState extends State<CategoryManagement> {
               // Only allow adding subcategory to root categories
               if (isRoot)
                 ListTile(
-                  leading: const Icon(Icons.add, color: Colors.blue),
-                  title: const Text('Add Subcategory'),
+                  leading: const Icon(Icons.add, color: cellphoneZRed),
+                  title: const Text('Thêm danh mục con'),
                   onTap: () {
                     Navigator.pop(context);
                     _showAddCategoryDialog(
@@ -247,7 +300,7 @@ class _CategoryManagementState extends State<CategoryManagement> {
                 ),
               ListTile(
                 leading: const Icon(Icons.edit, color: Colors.orange),
-                title: const Text('Edit'),
+                title: const Text('Chỉnh sửa'),
                 onTap: () {
                   Navigator.pop(context);
                   _showEditCategoryDialog(category);
@@ -255,7 +308,7 @@ class _CategoryManagementState extends State<CategoryManagement> {
               ),
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text('Delete'),
+                title: const Text('Xóa'),
                 onTap: () {
                   Navigator.pop(context);
                   _showDeleteCategoryDialog(category);
@@ -276,12 +329,21 @@ class _CategoryManagementState extends State<CategoryManagement> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Delete Category'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text(
+            'Xác nhận xóa',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Are you sure you want to delete "${category.title}"?'),
+              Text('Bạn có chắc muốn xóa danh mục "${category.title}"?'),
               if (hasChildren) ...[
                 const SizedBox(height: 12),
                 Container(
@@ -298,7 +360,7 @@ class _CategoryManagementState extends State<CategoryManagement> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'This will also delete all ${category.subCategories!.length} subcategories',
+                          'Sẽ xóa cả ${category.subCategories!.length} danh mục con',
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.orange[900],
@@ -314,18 +376,18 @@ class _CategoryManagementState extends State<CategoryManagement> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: const Text('Hủy'),
             ),
-            ElevatedButton(
+            FilledButton(
               onPressed: () async {
                 Navigator.pop(context);
                 await _deleteCategory(category.id);
               },
-              style: ElevatedButton.styleFrom(
+              style: FilledButton.styleFrom(
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Delete'),
+              child: const Text('Xóa'),
             ),
           ],
         );
@@ -339,7 +401,7 @@ class _CategoryManagementState extends State<CategoryManagement> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Category deleted successfully'),
+          content: Text('Đã xóa danh mục thành công'),
           backgroundColor: Colors.green,
         ),
       );
@@ -347,7 +409,7 @@ class _CategoryManagementState extends State<CategoryManagement> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to delete category: $e'),
+          content: Text('Không thể xóa danh mục: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -385,12 +447,12 @@ class _CategoryManagementState extends State<CategoryManagement> {
             leading: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.blue[50],
+                color: cellphoneZRed.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.folder,
-                color: Colors.blue[700],
+                color: cellphoneZRed,
                 size: 24,
               ),
             ),
@@ -402,7 +464,7 @@ class _CategoryManagementState extends State<CategoryManagement> {
               ),
             ),
             subtitle: Text(
-              '${category.subCategories!.length} subcategories',
+              '${category.subCategories!.length} danh mục con',
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey[600],
@@ -440,12 +502,12 @@ class _CategoryManagementState extends State<CategoryManagement> {
           leading: Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.grey[100],
+              color: const Color.fromARGB(255, 248, 226, 226),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
-              Icons.folder_outlined,
-              color: Colors.grey[600],
+              Icons.category_outlined,
+              color: cellphoneZRed,
               size: 24,
             ),
           ),
@@ -457,7 +519,7 @@ class _CategoryManagementState extends State<CategoryManagement> {
             ),
           ),
           subtitle: Text(
-            'No subcategories',
+            'Không có danh mục con',
             style: TextStyle(
               fontSize: 12,
               color: Colors.grey[500],
@@ -481,15 +543,15 @@ class _CategoryManagementState extends State<CategoryManagement> {
       decoration: BoxDecoration(
         border: Border(
           left: BorderSide(
-            color: Colors.blue[200]!,
-            width: 2,
+            color: cellphoneZRed.withOpacity(0.1),
+            width: 3,
           ),
         ),
       ),
       child: Card(
         margin: const EdgeInsets.only(left: 8, top: 4, bottom: 4, right: 0),
-        elevation: 0,
-        color: Colors.grey[50],
+        elevation: 1,
+        color: const Color(0xFFFFF1F1),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
@@ -500,24 +562,26 @@ class _CategoryManagementState extends State<CategoryManagement> {
           leading: Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: const Color(0xFFFFF1F1),
               borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: Colors.grey[300]!),
+              border: Border.all(color: cellphoneZRed.withOpacity(0.3)),
             ),
-            child: Icon(
-              Icons.label,
-              color: Colors.grey[700],
+            child: const Icon(
+              Icons.arrow_right_alt_rounded,
+              color: cellphoneZRed,
               size: 18,
             ),
           ),
           title: Text(
             category.title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[700],
             ),
           ),
           trailing: IconButton(
-            icon: const Icon(Icons.more_vert, size: 18),
+            icon: const Icon(Icons.more_vert, size: 18, color: cellphoneZRed),
             onPressed: () => _showCategoryOptions(category, isRoot: false),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
@@ -530,10 +594,56 @@ class _CategoryManagementState extends State<CategoryManagement> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Category Management'),
-        elevation: 2,
+        toolbarHeight: 72,
+        titleSpacing: 24,
+        elevation: 0,
+        backgroundColor: colorScheme.surface,
+        surfaceTintColor: Colors.transparent,
+        shadowColor: Colors.transparent,
+        title: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.12),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    offset: const Offset(6, 6),
+                    blurRadius: 18,
+                  ),
+                  BoxShadow(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    offset: const Offset(-6, -6),
+                    blurRadius: 18,
+                  ),
+                ],
+              ),
+              child: SvgPicture.asset(
+                'assets/logo/CellphoneZ.svg',
+                fit: BoxFit.contain,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Text(
+              'Quản lý danh mục',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ],
+        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -555,9 +665,13 @@ class _CategoryManagementState extends State<CategoryManagement> {
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: cellphoneZRed,
+                          foregroundColor: Colors.white,
+                        ),
                         onPressed: _loadCategories,
                         icon: const Icon(Icons.refresh),
-                        label: const Text('Retry'),
+                        label: const Text('Thử lại'),
                       ),
                     ],
                   ),
@@ -568,20 +682,24 @@ class _CategoryManagementState extends State<CategoryManagement> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.category_outlined,
-                              size: 64, color: Colors.grey[400]),
+                              size: 64, color: cellphoneZRed.withOpacity(0.7)),
                           const SizedBox(height: 16),
                           Text(
-                            'No categories yet',
+                            'Chưa có danh mục nào',
                             style: TextStyle(
                               fontSize: 16,
                               color: Colors.grey[600],
                             ),
                           ),
                           const SizedBox(height: 24),
-                          ElevatedButton.icon(
+                          FilledButton.icon(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: cellphoneZRed,
+                              foregroundColor: Colors.white,
+                            ),
                             onPressed: () => _showAddCategoryDialog(),
                             icon: const Icon(Icons.add),
-                            label: const Text('Add First Category'),
+                            label: const Text('Thêm danh mục đầu tiên'),
                           ),
                         ],
                       ),
@@ -600,10 +718,11 @@ class _CategoryManagementState extends State<CategoryManagement> {
                       ),
                     ),
       floatingActionButton: _categories.isNotEmpty
-          ? FloatingActionButton.extended(
+          ? FloatingActionButton(
               onPressed: () => _showAddCategoryDialog(),
-              icon: const Icon(Icons.add),
-              label: const Text('Add Root Category'),
+              backgroundColor: cellphoneZRed,
+              foregroundColor: Colors.white,
+              child: const Icon(Icons.add),
             )
           : null,
     );

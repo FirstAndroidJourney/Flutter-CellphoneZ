@@ -90,7 +90,6 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
     );
 
     return Scaffold(
-      extendBody: true,
       body: IndexedStack(
         index: _selectedIndex,
         children: _screens,
@@ -101,7 +100,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
         color: Colors.white,
         buttonBackgroundColor: cellphoneZRed,
         backgroundColor: Colors.transparent,
-        height: 58,
+        height: 60,
         animationCurve: Curves.easeInOut,
         animationDuration: const Duration(milliseconds: 300),
         onTap: (index) {

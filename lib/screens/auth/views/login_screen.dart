@@ -4,7 +4,6 @@ import 'package:shop/common/app_logger.dart';
 import 'package:shop/constants.dart';
 import 'package:shop/repository/auth_repository.dart';
 import 'package:shop/route/route_constants.dart';
-import 'package:shop/services/role_service.dart';
 
 import 'components/login_form.dart';
 
@@ -18,7 +17,6 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final AuthRepository _authRepository = AuthRepository();
-  final RoleService _roleService = RoleService();
   final AppLogger _logger = AppLogger.instance;
 
   String? _email;
@@ -68,21 +66,17 @@ class _LoginScreenState extends State<LoginScreen> {
         '🔒 [LoginScreen] Sign in succeeded. Supabase user: ${authResponse.user?.id ?? 'null'} (current: ${_authRepository.currentUser?.id ?? 'null'})',
       );
 
-      final role = await _roleService.resolveCurrentUserRole();
-
       if (!mounted) return;
 
-      final targetRoute =
-          role == 'admin' ? adminProductListScreenRoute : entryPointScreenRoute;
-
       _logger.d(
-        '🔒 [LoginScreen] Role resolved as "$role". Navigating to $targetRoute',
+        '🔒 [LoginScreen] Login successful. Navigating to entryPoint for role detection.',
       );
 
+      // Always navigate to entryPoint - AppWrapper will handle role-based routing
       Navigator.pushNamedAndRemoveUntil(
         context,
-        targetRoute,
-        ModalRoute.withName(logInScreenRoute),
+        entryPointScreenRoute,
+        (route) => false,
       );
     } catch (e) {
       _logger.e('🔒 [LoginScreen] Login error', e);
