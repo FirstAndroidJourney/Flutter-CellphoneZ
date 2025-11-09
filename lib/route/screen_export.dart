@@ -24,6 +24,7 @@ export '/screens/user_info/views/user_info_screen.dart';
 export '/screens/payment/payment_screen.dart';
 export '/screens/payment/payment_result_screen.dart';
 export '/admin/products/view/product_list_screen.dart';
+export '/admin/view/admin_main_screen.dart';
 export '/screens/order_confirmation/views/order_confirmation_screen.dart';
 export '/screens/order_history/views/order_history_screen.dart';
 export '/screens/product/views/product_detail_screen.dart';

@@ -51,6 +51,17 @@ PageRoute<dynamic> _buildRoute({
   );
 }
 
+int? _resolveAdminInitialIndex(Object? args) {
+  if (args is int) return args;
+  if (args is Map<String, dynamic>) {
+    final value = args['initialIndex'];
+    if (value is int) {
+      return value;
+    }
+  }
+  return null;
+}
+
 Route<dynamic> generateRoute(RouteSettings settings) {
   switch (settings.name) {
     case onbordingScreenRoute:
@@ -190,15 +201,19 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       );
 
     case adminProductListScreenRoute:
+      final args = settings.arguments;
+      final initialIndex = _resolveAdminInitialIndex(args) ?? 0;
       return _buildRoute(
         settings: settings,
-        child: const ProductListScreen(),
+        child: AdminMainScreen(initialIndex: initialIndex),
       );
 
     case categoryManagementScreenRoute:
+      final args = settings.arguments;
+      final initialIndex = _resolveAdminInitialIndex(args) ?? 1;
       return _buildRoute(
         settings: settings,
-        child: const CategoryManagement(),
+        child: AdminMainScreen(initialIndex: initialIndex),
       );
 
     case orderConfirmationScreenRoute:
