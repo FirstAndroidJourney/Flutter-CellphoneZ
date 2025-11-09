@@ -104,6 +104,14 @@ Route<dynamic> generateRoute(RouteSettings settings) {
         settings: settings,
         child: const SearchScreen(),
       );
+    case searchResultsScreenRoute:
+      final args = settings.arguments as Map<String, dynamic>;
+      return _buildRoute(
+        settings: settings,
+        child: SearchResultsScreen(
+            query: args['query'] as String,
+            searchText: args['searchText'] as String),
+      );
     case entryPointScreenRoute:
       return _buildRoute(
         settings: settings,

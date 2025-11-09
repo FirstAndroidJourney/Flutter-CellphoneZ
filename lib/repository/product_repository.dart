@@ -173,6 +173,32 @@ class ProductRepository extends BaseRepository {
     }
   }
 
+  Future<List<Product>> searchBySlug(String slug) async {
+    final response = await client
+        .from(productsSchema.table)
+        .select('*, ${categoriesSchema.table}!inner(*)')
+        .ilike('slug', '%$slug%')
+        .eq('is_available', true);
+
+    return _parseProducts(response);
+  }
+
+  Future<Product?> getBySlug(String slug) async {
+    try {
+      final response = await client
+          .from(productsSchema.table)
+          .select()
+          .eq('slug', slug)
+          .eq('is_available', true)
+          .maybeSingle();
+
+      return response != null ? Product.fromJson(response) : null;
+    } catch (error, stackTrace) {
+      _logger.e('Failed to fetch product by slug $slug', error, stackTrace);
+      throw Exception('Failed to fetch product by slug: $error');
+    }
+  }
+
   List<Product> _parseProducts(dynamic response) {
     final data = List<Map<String, dynamic>>.from(response as List);
     return data.map(Product.fromJson).toList();

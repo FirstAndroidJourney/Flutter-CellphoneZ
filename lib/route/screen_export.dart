@@ -10,6 +10,7 @@ export '/screens/on_sale/views/on_sale_screen.dart';
 
 export '/screens/reviews/view/product_reviews_screen.dart';
 export '/screens/search/views/search_screen.dart';
+export '/screens/search/views/search_results_screen.dart';
 export '/screens/checkout/views/cart_screen.dart';
 
 export '/screens/notification/view/enable_notification_screen.dart';

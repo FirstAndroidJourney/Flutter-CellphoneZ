@@ -15,8 +15,7 @@ class ProductService {
     ProductRepository? productRepository,
     StorageService? storageService,
     AppLogger? logger,
-  })  : _productRepository =
-            productRepository ?? getIt<ProductRepository>(),
+  })  : _productRepository = productRepository ?? getIt<ProductRepository>(),
         _storageService = storageService ?? getIt<StorageService>(),
         _logger = logger ?? AppLogger.instance;
 
@@ -108,8 +107,7 @@ class ProductService {
         isAvailable: isAvailable,
       );
 
-      final result =
-          await _productRepository.updateProduct(current.id, draft);
+      final result = await _productRepository.updateProduct(current.id, draft);
 
       if (uploadResult != null && previousStoragePath != null) {
         await _safeRemoveImage(previousStoragePath);
@@ -227,12 +225,17 @@ class ProductService {
     final categoryProducts =
         await _productRepository.getProductsByCategory(product.categoryId);
 
-    final related =
-        categoryProducts.where((p) => p.id != productId).toList();
+    final related = categoryProducts.where((p) => p.id != productId).toList();
 
-    return related.length > limit
-        ? related.sublist(0, limit)
-        : related;
+    return related.length > limit ? related.sublist(0, limit) : related;
+  }
+
+  Future<List<Product>> searchProductsBySlug(String slug) async {
+    return await _productRepository.searchBySlug(slug);
+  }
+
+  Future<Product?> getProductBySlug(String slug) async {
+    return await _productRepository.getBySlug(slug);
   }
 
   // endregion
@@ -282,8 +285,8 @@ class ProductService {
         extension: ext == 'png' ? 'png' : 'jpg',
       );
     } catch (error, stackTrace) {
-      _logger.w('Image compression failed, using original bytes',
-          error, stackTrace);
+      _logger.w(
+          'Image compression failed, using original bytes', error, stackTrace);
       return _PreparedImage(bytes: image.bytes, extension: image.extension);
     }
   }

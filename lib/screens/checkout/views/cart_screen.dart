@@ -57,10 +57,10 @@ class _CartScreenState extends State<CartScreen> {
               Icon(
                 Icons.lock_outline,
                 color: cellphoneZRed,
-                size: 28,
+                size: 24,
               ),
-              const SizedBox(width: 8),
-              const Text('Yêu cầu đăng nhập'),
+              const SizedBox(width: 6),
+              const Text('Yêu cầu đăng nhập', style: TextStyle(fontSize: 20)),
             ],
           ),
           content: const Text(
