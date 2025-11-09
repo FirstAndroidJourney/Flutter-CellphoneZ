@@ -212,6 +212,57 @@ class OrderService {
       throw Exception('Failed to get user order stats: $e');
     }
   }
+
+  // Admin methods - Get all orders
+  Future<List<Order>> getAllOrders() async {
+    try {
+      return await _orderRepository.getAllOrders();
+    } catch (e) {
+      throw Exception('Failed to fetch all orders: $e');
+    }
+  }
+
+  // Admin - Get all orders by status
+  Future<List<Order>> getAllOrdersByStatus(OrderStatus status) async {
+    try {
+      return await _orderRepository.getOrdersByStatus(status);
+    } catch (e) {
+      throw Exception('Failed to fetch orders by status: $e');
+    }
+  }
+
+  // Admin methods with pagination
+  Future<List<Order>> getAllOrdersPaginated({
+    int page = 0,
+    int pageSize = 20,
+  }) async {
+    try {
+      final offset = page * pageSize;
+      return await _orderRepository.getAllOrdersPaginated(
+        offset: offset,
+        limit: pageSize,
+      );
+    } catch (e) {
+      throw Exception('Failed to fetch paginated orders: $e');
+    }
+  }
+
+  Future<List<Order>> getAllOrdersByStatusPaginated({
+    required OrderStatus status,
+    int page = 0,
+    int pageSize = 20,
+  }) async {
+    try {
+      final offset = page * pageSize;
+      return await _orderRepository.getOrdersByStatusPaginated(
+        status: status,
+        offset: offset,
+        limit: pageSize,
+      );
+    } catch (e) {
+      throw Exception('Failed to fetch paginated orders by status: $e');
+    }
+  }
 }
 
 // Helper classes

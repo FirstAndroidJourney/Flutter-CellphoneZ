@@ -2,6 +2,7 @@ import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 
 import 'package:shop/admin/category/view/category_management.dart';
+import 'package:shop/admin/orders/view/order_management.dart';
 import 'package:shop/admin/products/view/product_list_screen.dart';
 import 'package:shop/constants.dart';
 
@@ -29,6 +30,10 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
       icon: Icons.category_outlined,
       label: 'Danh mục',
     ),
+    _AdminNavItem(
+      icon: Icons.receipt_long_outlined,
+      label: 'Đơn hàng',
+    ),
   ];
 
   @override
@@ -37,6 +42,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
     _screens = const [
       ProductListScreen(),
       CategoryManagement(),
+      OrderManagement(),
     ];
     _selectedIndex = _normalizeIndex(widget.initialIndex);
   }

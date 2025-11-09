@@ -29,13 +29,14 @@ class OrderRepository extends BaseRepository {
       throw Exception('Failed to fetch user orders: $e');
     }
   }
-  
+
   // Helper method to safely map database JSON to Order model
   Order _mapToOrder(Map<String, dynamic> json) {
     return Order.fromJson({
       'id': json['id'] ?? '',
       'user_id': json['user_id'] ?? '',
-      'total_price': (json['total_amount'] ?? json['total_price'] ?? 0).toDouble(),
+      'total_price':
+          (json['total_amount'] ?? json['total_price'] ?? 0).toDouble(),
       'status': json['status'] ?? 'pending',
       'created_at': json['created_at'] ?? DateTime.now().toIso8601String(),
     });
@@ -137,19 +138,56 @@ class OrderRepository extends BaseRepository {
 
       final orderItemsData =
           List<Map<String, dynamic>>.from(orderItemsResponse);
-      final orderItems = orderItemsData.map((json) => OrderItem.fromJson({
-        'id': json['id'] ?? '',
-        'order_id': json['order_id'] ?? '',
-        'product_id': json['product_id'] ?? '',
-        'quantity': json['quantity'] ?? 1,
-        'price': (json['price'] ?? 0).toDouble(),
-      })).toList();
+      final orderItems = orderItemsData
+          .map((json) => OrderItem.fromJson({
+                'id': json['id'] ?? '',
+                'order_id': json['order_id'] ?? '',
+                'product_id': json['product_id'] ?? '',
+                'quantity': json['quantity'] ?? 1,
+                'price': (json['price'] ?? 0).toDouble(),
+              }))
+          .toList();
 
       // Create order with items
       final order = _mapToOrder(orderData);
       return order.copyWith(items: orderItems);
     } catch (e) {
       throw Exception('Failed to fetch order with items: $e');
+    }
+  }
+
+  // Paginated methods
+  Future<List<Order>> getAllOrdersPaginated({
+    required int offset,
+    required int limit,
+  }) async {
+    try {
+      final response = await queryBuilder
+          .select()
+          .order('created_at', ascending: false)
+          .range(offset, offset + limit - 1);
+      final data = List<Map<String, dynamic>>.from(response);
+      return data.map((json) => _mapToOrder(json)).toList();
+    } catch (e) {
+      throw Exception('Failed to fetch paginated orders: $e');
+    }
+  }
+
+  Future<List<Order>> getOrdersByStatusPaginated({
+    required OrderStatus status,
+    required int offset,
+    required int limit,
+  }) async {
+    try {
+      final response = await queryBuilder
+          .select()
+          .eq('status', status.name)
+          .order('created_at', ascending: false)
+          .range(offset, offset + limit - 1);
+      final data = List<Map<String, dynamic>>.from(response);
+      return data.map((json) => _mapToOrder(json)).toList();
+    } catch (e) {
+      throw Exception('Failed to fetch paginated orders by status: $e');
     }
   }
 }
