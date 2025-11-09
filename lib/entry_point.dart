@@ -1,4 +1,3 @@
-import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shop/constants.dart';
@@ -77,16 +76,27 @@ class _EntryPointState extends State<EntryPoint> {
         ],
       ),
       // body: _pages[_currentIndex],
-      body: PageTransitionSwitcher(
+      body: AnimatedSwitcher(
         duration: defaultDuration,
-        transitionBuilder: (child, animation, secondAnimation) {
-          return FadeThroughTransition(
-            animation: animation,
-            secondaryAnimation: secondAnimation,
-            child: child,
+        switchInCurve: Curves.easeOut,
+        switchOutCurve: Curves.easeIn,
+        transitionBuilder: (child, animation) {
+          final offsetAnimation = Tween<Offset>(
+            begin: const Offset(0, 0.04),
+            end: Offset.zero,
+          ).animate(animation);
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: offsetAnimation,
+              child: child,
+            ),
           );
         },
-        child: _pages[_currentIndex],
+        child: KeyedSubtree(
+          key: ValueKey<int>(_currentIndex),
+          child: _pages[_currentIndex],
+        ),
       ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.only(top: defaultPadding / 2),

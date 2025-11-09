@@ -241,35 +241,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           margin: const EdgeInsets.only(top: defaultPadding),
           child: ListTile(
             onTap: () async {
-              // Show confirmation dialog
-              final result = await showDialog<bool>(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    title: const Text('Xác nhận đăng xuất'),
-                    content: const Text('Bạn có chắc chắn muốn đăng xuất?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
-                        child: const Text('Hủy'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () => Navigator.of(context).pop(true),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: cellphoneZRed,
-                          foregroundColor: Colors.white,
-                        ),
-                        child: const Text('Đăng xuất'),
-                      ),
-                    ],
-                  );
-                },
-              );
+              final shouldLogout = await _showLogoutDialog();
 
-              if (result == true) {
+              if (shouldLogout == true) {
                 try {
                   await _authService.signOut();
                   if (mounted) {
@@ -315,6 +289,92 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         const SizedBox(height: defaultPadding),
       ],
+    );
+  }
+
+  Future<bool?> _showLogoutDialog() {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        final titleStyle = Theme.of(context)
+            .textTheme
+            .titleMedium
+            ?.copyWith(fontWeight: FontWeight.bold);
+
+        final captionStyle = Theme.of(context)
+            .textTheme
+            .bodySmall
+            ?.copyWith(color: Colors.grey[600]);
+
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 36),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: cellphoneZRed.withOpacity(0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  padding: const EdgeInsets.all(10),
+                  child: Icon(
+                    Icons.logout,
+                    color: cellphoneZRed,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Xác nhận đăng xuất',
+                  style: titleStyle,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Bạn sẽ cần đăng nhập lại để tiếp tục quản lý tài khoản và đơn hàng.',
+                  textAlign: TextAlign.center,
+                  style: captionStyle,
+                ),
+                const SizedBox(height: 22),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.black87,
+                          side: BorderSide(color: Colors.grey[300]!),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: const Text('Hủy'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: cellphoneZRed,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text('Đăng xuất'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
