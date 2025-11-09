@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shop/components/app_animated_switcher.dart';
 import 'package:shop/constants.dart';
 import 'package:shop/providers/cart_provider.dart';
 import 'package:shop/screens/category/views/categories_list_screen.dart';
@@ -27,24 +28,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AnimatedSwitcher(
-        duration: defaultDuration,
-        switchInCurve: Curves.easeOut,
-        switchOutCurve: Curves.easeIn,
-        transitionBuilder: (child, animation) {
-          final offsetAnimation = Tween<Offset>(
-            begin: const Offset(0, 0.04),
-            end: Offset.zero,
-          ).animate(animation);
-
-          return FadeTransition(
-            opacity: animation,
-            child: SlideTransition(
-              position: offsetAnimation,
-              child: child,
-            ),
-          );
-        },
+      body: AppAnimatedSwitcher(
         child: KeyedSubtree(
           key: ValueKey<int>(_selectedIndex),
           child: _screens[_selectedIndex],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:shop/components/app_animated_switcher.dart';
 import 'package:shop/constants.dart';
 import 'package:shop/route/screen_export.dart';
 
@@ -75,24 +76,7 @@ class _EntryPointState extends State<EntryPoint> {
           ),
         ],
       ),
-      // body: _pages[_currentIndex],
-      body: AnimatedSwitcher(
-        duration: defaultDuration,
-        switchInCurve: Curves.easeOut,
-        switchOutCurve: Curves.easeIn,
-        transitionBuilder: (child, animation) {
-          final offsetAnimation = Tween<Offset>(
-            begin: const Offset(0, 0.04),
-            end: Offset.zero,
-          ).animate(animation);
-          return FadeTransition(
-            opacity: animation,
-            child: SlideTransition(
-              position: offsetAnimation,
-              child: child,
-            ),
-          );
-        },
+      body: AppAnimatedSwitcher(
         child: KeyedSubtree(
           key: ValueKey<int>(_currentIndex),
           child: _pages[_currentIndex],
