@@ -35,7 +35,7 @@ class _MainScreenState extends State<MainScreen> {
     final Color iconColor = isActive ? Colors.white : Colors.black87;
 
     return SizedBox(
-      height: 42,
+      height: 50,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
@@ -76,7 +76,7 @@ class _MainScreenState extends State<MainScreen> {
           Text(
             label,
             style: TextStyle(
-              fontSize: 9,
+              fontSize: 6,
               fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
               color: iconColor,
             ),

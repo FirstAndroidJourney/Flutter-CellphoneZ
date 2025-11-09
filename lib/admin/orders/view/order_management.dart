@@ -249,7 +249,7 @@ class _OrderManagementState extends State<OrderManagement>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Đơn hàng',
+                    'Đơn hàng #${order.id.substring(0, 8).toUpperCase()}',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -267,13 +267,13 @@ class _OrderManagementState extends State<OrderManagement>
                 ),
               ),
               const SizedBox(height: 4),
-              // Text(
-              //   'Khách hàng: ${order.userId}',
-              //   style: TextStyle(
-              //     fontSize: 14,
-              //     color: Colors.grey[600],
-              //   ),
-              // ),
+              Text(
+                'Khách hàng: ${order.userId.substring(0, 8).toUpperCase()}',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -5,6 +5,7 @@ import 'package:shop/admin/category/view/category_management.dart';
 import 'package:shop/admin/orders/view/order_management.dart';
 import 'package:shop/admin/products/view/product_list_screen.dart';
 import 'package:shop/constants.dart';
+import 'package:shop/screens/profile/views/profile_screen.dart';
 
 class AdminMainScreen extends StatefulWidget {
   const AdminMainScreen({
@@ -34,6 +35,10 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
       icon: Icons.receipt_long_outlined,
       label: 'Đơn hàng',
     ),
+    _AdminNavItem(
+      icon: Icons.people_outline,
+      label: 'Tài khoản',
+    ),
   ];
 
   @override
@@ -43,6 +48,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
       ProductListScreen(),
       CategoryManagement(),
       OrderManagement(),
+      ProfileScreen(),
     ];
     _selectedIndex = _normalizeIndex(widget.initialIndex);
   }
@@ -71,7 +77,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
           Text(
             label,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 9,
               fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
               color: iconColor,
             ),
