@@ -8,6 +8,7 @@ class Product with _$Product {
   const factory Product({
     required String id,
     required String name,
+    required String slug,
     required double price,
     String? description,
     @JsonKey(name: 'image_url') String? imageUrl,
@@ -17,23 +18,6 @@ class Product with _$Product {
 
   factory Product.fromJson(Map<String, dynamic> json) =>
       _$ProductFromJson(json);
-}
-
-@freezed
-class ProductWithCategory with _$ProductWithCategory {
-  const factory ProductWithCategory({
-    required String id,
-    required String name,
-    required double price,
-    String? description,
-    @JsonKey(name: 'image_url') String? imageUrl,
-    @JsonKey(name: 'category_id') required String categoryId,
-    @JsonKey(name: 'is_available') required bool isAvailable,
-    @Default(null) Category? category,
-  }) = _ProductWithCategory;
-
-  factory ProductWithCategory.fromJson(Map<String, dynamic> json) =>
-      _$ProductWithCategoryFromJson(json);
 }
 
 @freezed
@@ -54,16 +38,6 @@ class ProductDraft with _$ProductDraft {
 
   factory ProductDraft.fromJson(Map<String, dynamic> json) =>
       _$ProductDraftFromJson(json);
-
-  factory ProductDraft.fromProduct(Product product) => ProductDraft(
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        description: product.description,
-        imageUrl: product.imageUrl,
-        categoryId: product.categoryId,
-        isAvailable: product.isAvailable,
-      );
 
   Map<String, dynamic> toPayload() {
     final data = <String, dynamic>{

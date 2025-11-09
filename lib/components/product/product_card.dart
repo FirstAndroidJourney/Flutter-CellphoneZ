@@ -116,7 +116,7 @@ class ProductCard extends StatelessWidget {
                       style: Theme.of(context)
                           .textTheme
                           .bodyMedium!
-                          .copyWith(fontSize: 16, height: 1.3),
+                          .copyWith(fontSize: 15, height: 1.2),
                     ),
                     const Spacer(),
                     if (priceAfterDiscount != null)

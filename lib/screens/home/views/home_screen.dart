@@ -72,12 +72,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Icons.qr_code_scanner),
-                    onPressed: () {},
-                  ),
-                  IconButton(
                     icon: const Icon(Icons.search),
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.pushNamed(context, searchScreenRoute);
+                    },
                   ),
                   IconButton(
                     icon: const Icon(Icons.shopping_bag_outlined),

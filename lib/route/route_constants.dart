@@ -20,6 +20,7 @@ const String brandScreenRoute = "brand";
 const String discoverScreenRoute = "discover";
 const String onSaleScreenRoute = "on_sale";
 const String searchScreenRoute = "search";
+const String searchResultsScreenRoute = "search_results";
 const String bookmarkScreenRoute = "bookmark";
 const String entryPointScreenRoute = "entry_point";
 const String profileScreenRoute = "profile";
