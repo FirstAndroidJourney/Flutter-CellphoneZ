@@ -7,17 +7,6 @@
     -- Enable Row Level Security
     ALTER DATABASE postgres SET "app.jwt_secret" TO 'your-jwt-secret';
 
-    -- User Profiles Table
-    CREATE TABLE user_profiles (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        email TEXT UNIQUE NOT NULL,
-        name TEXT,
-        avatar_url TEXT,
-        phone TEXT,
-        address TEXT,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-    );
 
     -- Categories Table
     CREATE TABLE categories (

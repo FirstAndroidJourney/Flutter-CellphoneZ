@@ -3,7 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shop/constants.dart';
 import 'package:shop/route/route_constants.dart';
 import 'package:shop/screens/auth/views/components/sign_up_form.dart';
-import 'package:shop/services/auth_service.dart';
+import 'package:shop/repository/auth_repository.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -14,7 +14,7 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final AuthService _authService = AuthService();
+  final AuthRepository _authRepository = AuthRepository();
 
   bool _agreedToTerms = false;
   bool _isLoading = false;
@@ -288,11 +288,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
     });
 
     try {
-      // Call AuthService to create account
-      await _authService.signUp(
+      // Call AuthRepository directly to create account
+      await _authRepository.signUp(
         email: _email!,
         password: _password!,
-        name: _fullName!,
+        data: {
+          'name': _fullName,
+          'email': _email,
+        },
       );
 
       // Show success message
