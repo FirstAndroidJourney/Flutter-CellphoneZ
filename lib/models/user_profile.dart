@@ -7,7 +7,7 @@ class UserProfile with _$UserProfile {
   const factory UserProfile({
     required String id,
     required String email,
-    String? name,
+    @JsonKey(name: 'full_name') String? name,
     @JsonKey(name: 'avatar_url') String? avatarUrl,
     String? phone,
     String? address,
