@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shop/theme/button_theme.dart';
 import 'package:shop/theme/input_decoration_theme.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../constants.dart';
 import 'checkbox_themedata.dart';
@@ -10,13 +11,19 @@ class AppTheme {
   static ThemeData lightTheme(BuildContext context) {
     return ThemeData(
       brightness: Brightness.light,
-      fontFamily: "Plus Jakarta",
+      fontFamily: GoogleFonts.inter().fontFamily,
       primarySwatch: primaryMaterialColor,
       primaryColor: primaryColor,
       scaffoldBackgroundColor: Colors.white,
       iconTheme: const IconThemeData(color: blackColor),
-      textTheme: const TextTheme(
-        bodyMedium: TextStyle(color: blackColor40),
+      textTheme: GoogleFonts.interTextTheme(
+        const TextTheme(
+          bodyMedium: TextStyle(color: blackColor80, fontSize: 18),
+          bodyLarge: TextStyle(fontSize: 20),
+          bodySmall: TextStyle(fontSize: 16),
+          titleMedium: TextStyle(fontSize: 22),
+          titleLarge: TextStyle(fontSize: 24),
+        ),
       ),
       elevatedButtonTheme: elevatedButtonThemeData,
       textButtonTheme: textButtonThemeData,
@@ -39,6 +46,4 @@ class AppTheme {
       ),
     );
   }
-
-  // Dark theme is inclided in the Full template
 }

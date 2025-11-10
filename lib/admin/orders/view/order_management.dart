@@ -5,6 +5,7 @@ import 'package:shop/models/order.dart';
 import 'package:shop/models/order_item.dart';
 import 'package:shop/services/order_service.dart';
 import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class OrderManagement extends StatefulWidget {
   const OrderManagement({Key? key}) : super(key: key);
@@ -17,6 +18,7 @@ class _OrderManagementState extends State<OrderManagement>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final OrderService _orderService = OrderService();
+  final supabase = Supabase.instance.client;
   late ScrollController _scrollController;
 
   bool _isLoading = true;
@@ -25,6 +27,10 @@ class _OrderManagementState extends State<OrderManagement>
   List<Order> _filteredOrders = [];
   OrderStatus? _selectedStatus;
   String? _errorMessage;
+
+  // Cache for user profiles and product details
+  Map<String, Map<String, dynamic>> _userProfiles = {};
+  Map<String, Map<String, dynamic>> _productDetails = {};
 
   // Pagination
   static const int _pageSize = 20;
@@ -70,6 +76,8 @@ class _OrderManagementState extends State<OrderManagement>
       _hasMoreData = true;
       _allOrders.clear();
       _filteredOrders.clear();
+      _userProfiles.clear();
+      _productDetails.clear();
     }
 
     if (_isLoading && !_isInitialLoad) return;
@@ -111,6 +119,44 @@ class _OrderManagementState extends State<OrderManagement>
           final orderWithItems =
               await _orderService.getOrderWithItems(order.id);
           ordersWithItems.add(orderWithItems ?? order);
+
+          // Load user profile if not cached
+          if (!_userProfiles.containsKey(order.userId)) {
+            try {
+              final userResponse = await supabase
+                  .from('user_profiles')
+                  .select('id, full_name, email, avatar_url')
+                  .eq('id', order.userId)
+                  .maybeSingle();
+
+              if (userResponse != null) {
+                _userProfiles[order.userId] = userResponse;
+              }
+            } catch (e) {
+              debugPrint('⚠️ Failed to load user ${order.userId}: $e');
+            }
+          }
+
+          // Load product details for order items
+          if (orderWithItems?.items != null) {
+            for (final item in orderWithItems!.items!) {
+              if (!_productDetails.containsKey(item.productId)) {
+                try {
+                  final productResponse = await supabase
+                      .from('products')
+                      .select('id, name, image_url')
+                      .eq('id', item.productId)
+                      .maybeSingle();
+
+                  if (productResponse != null) {
+                    _productDetails[item.productId] = productResponse;
+                  }
+                } catch (e) {
+                  debugPrint('⚠️ Failed to load product ${item.productId}: $e');
+                }
+              }
+            }
+          }
         } catch (e) {
           ordersWithItems.add(order);
         }
@@ -189,6 +235,8 @@ class _OrderManagementState extends State<OrderManagement>
       _hasMoreData = true;
       _allOrders.clear();
       _filteredOrders.clear();
+      _userProfiles.clear();
+      _productDetails.clear();
       _loadOrders(isRefresh: true);
     } else {
       _filterOrdersByStatus();
@@ -231,6 +279,11 @@ class _OrderManagementState extends State<OrderManagement>
   }
 
   Widget _buildOrderCard(Order order) {
+    final userProfile = _userProfiles[order.userId];
+    final customerName = userProfile?['full_name'] ??
+        userProfile?['email'] ??
+        'Khách hàng #${order.userId.substring(0, 8).toUpperCase()}';
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 2,
@@ -268,7 +321,7 @@ class _OrderManagementState extends State<OrderManagement>
               ),
               const SizedBox(height: 4),
               Text(
-                'Khách hàng: ${order.userId.substring(0, 8).toUpperCase()}',
+                'Khách hàng: $customerName',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey[600],
@@ -380,6 +433,12 @@ class _OrderManagementState extends State<OrderManagement>
   }
 
   Widget _buildOrderInfoSection(Order order) {
+    final userProfile = _userProfiles[order.userId];
+    final customerName = userProfile?['full_name'] ??
+        userProfile?['email'] ??
+        'Khách hàng #${order.userId.substring(0, 8).toUpperCase()}';
+    final customerEmail = userProfile?['email'] ?? 'N/A';
+
     return Card(
       elevation: 0,
       color: cellphoneZRed.withOpacity(0.05),
@@ -396,8 +455,10 @@ class _OrderManagementState extends State<OrderManagement>
               ),
             ),
             const SizedBox(height: 12),
-            _buildInfoRow('Mã đơn hàng:', order.id),
-            _buildInfoRow('Khách hàng:', order.userId),
+            _buildInfoRow(
+                'Mã đơn hàng:', '#${order.id.substring(0, 8).toUpperCase()}'),
+            _buildInfoRow('Khách hàng:', customerName),
+            if (customerEmail != 'N/A') _buildInfoRow('Email:', customerEmail),
             _buildInfoRow('Ngày đặt:', _formatDate(order.createdAt)),
             _buildInfoRow('Tổng tiền:', _formatPrice(order.totalPrice)),
           ],
@@ -454,6 +515,11 @@ class _OrderManagementState extends State<OrderManagement>
   }
 
   Widget _buildOrderItemCard(OrderItem item) {
+    final productInfo = _productDetails[item.productId];
+    final productName =
+        productInfo?['name'] ?? 'Sản phẩm #${item.productId.substring(0, 8)}';
+    final imageUrl = productInfo?['image_url'];
+
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 1,
@@ -461,18 +527,30 @@ class _OrderManagementState extends State<OrderManagement>
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
+            // Product Image
             Container(
               width: 60,
               height: 60,
               decoration: BoxDecoration(
                 color: Colors.grey[100],
                 borderRadius: BorderRadius.circular(8),
+                image: imageUrl != null && imageUrl.isNotEmpty
+                    ? DecorationImage(
+                        image: NetworkImage(imageUrl),
+                        fit: BoxFit.cover,
+                        onError: (exception, stackTrace) {
+                          // Handle image loading error
+                        },
+                      )
+                    : null,
               ),
-              child: Icon(
-                Icons.phone_android,
-                color: Colors.grey[400],
-                size: 30,
-              ),
+              child: imageUrl == null || imageUrl.isEmpty
+                  ? Icon(
+                      Icons.phone_android,
+                      color: Colors.grey[400],
+                      size: 30,
+                    )
+                  : null,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -480,11 +558,13 @@ class _OrderManagementState extends State<OrderManagement>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item.productId, // Using productId as product name for now
+                    productName,
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -494,16 +574,28 @@ class _OrderManagementState extends State<OrderManagement>
                       color: Colors.grey[600],
                     ),
                   ),
+                  Text(
+                    'Đơn giá: ${_formatPrice(item.price)}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
                 ],
               ),
             ),
-            Text(
-              _formatPrice(item.price),
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: cellphoneZRed,
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  _formatPrice(item.price * item.quantity),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: cellphoneZRed,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

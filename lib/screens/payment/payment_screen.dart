@@ -46,7 +46,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           items: widget.items,
           deliveryLocation: widget.deliveryAddress,
         );
-    
+
     // Debug: In ra thông tin giá
     debugPrint('🛒 Payment Screen initialized:');
     debugPrint('  - Items count: ${widget.items.length}');
@@ -392,7 +392,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         'id': orderId,
         'user_id': user.id,
         'status': status == 'success' ? 'paid' : 'pending',
-        'total_amount': _orderSummary.total,
+        'total_price': _orderSummary.total,
         'shipping_address': _deliveryAddress,
         'payment_method': method,
       });
