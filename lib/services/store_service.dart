@@ -60,8 +60,6 @@ class StoreService {
     required List<Store> stores,
     String query = '',
     latlng.LatLng? origin,
-    double? radiusKm,
-    bool onlyOpenNow = false,
     Set<String>? requiredServices,
   }) {
     Iterable<Store> results = stores;
@@ -80,32 +78,6 @@ class StoreService {
       results = results.where(
         (store) =>
             requiredServices.every((service) => store.services.contains(service)),
-      );
-    }
-
-    if (onlyOpenNow) {
-      results = results.where(isStoreOpenNow);
-    }
-
-    if (radiusKm != null && radiusKm > 0 && origin != null) {
-      results = results.where((store) {
-        final distance = store.distanceKm ??
-            _distance.as(
-              latlng.LengthUnit.Kilometer,
-              latlng.LatLng(store.latitude, store.longitude),
-              origin,
-            );
-        return distance <= radiusKm;
-      }).map(
-        (store) => store.distanceKm == null
-            ? store.copyWith(
-                distanceKm: _distance.as(
-                  latlng.LengthUnit.Kilometer,
-                  latlng.LatLng(store.latitude, store.longitude),
-                  origin,
-                ),
-              )
-            : store,
       );
     }
 

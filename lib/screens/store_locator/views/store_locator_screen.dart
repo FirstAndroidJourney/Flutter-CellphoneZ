@@ -77,21 +77,12 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
         builder: (context) {
           final cubit = context.read<StoreLocatorCubit>();
           return Scaffold(
+            extendBodyBehindAppBar: true,
             appBar: widget.showAppBar
                 ? AppBar(
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
                     title: Text(widget.title ?? 'Tìm cửa hàng'),
-                    actions: [
-                      IconButton(
-                        icon: const Icon(Icons.my_location),
-                        tooltip: 'Làm mới vị trí',
-                        onPressed: () => cubit.initialize(loadLocation: true),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.refresh),
-                        tooltip: 'Làm mới dữ liệu',
-                        onPressed: cubit.refresh,
-                      ),
-                    ],
                   )
                 : null,
             body: BlocConsumer<StoreLocatorCubit, StoreLocatorState>(
@@ -108,20 +99,20 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                return Column(
+                return Stack(
                   children: [
-                    _buildSearchBar(context, state, cubit),
-                    _buildFilters(context, state, cubit),
-                    Expanded(
-                      child: Column(
-                        children: [
-                          _buildMap(state, cubit),
-                          Expanded(
-                            child: _buildStoreList(context, state, cubit),
+                    Positioned.fill(child: _buildMap(state, cubit)),
+                    _buildTopControls(context, state, cubit),
+                    _buildBottomSheet(context, state, cubit),
+                    if (state.isLoading)
+                      Positioned.fill(
+                        child: Container(
+                          color: Colors.black12,
+                          child: const Center(
+                            child: CircularProgressIndicator(),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
                   ],
                 );
               },
@@ -132,105 +123,103 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
     );
   }
 
-  Widget _buildSearchBar(
+  Widget _buildTopControls(
     BuildContext context,
     StoreLocatorState state,
     StoreLocatorCubit cubit,
   ) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: TextField(
-        controller: _searchController,
-        onChanged: (value) => _onSearchChanged(value, cubit),
-        decoration: InputDecoration(
-          hintText: 'Tìm theo tên, thành phố, địa chỉ...',
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon: state.searchQuery.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    _searchController.clear();
-                    cubit.updateSearch('');
-                  },
-                )
-              : null,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+    final double topPadding = widget.showAppBar ? 0.0 : 12.0;
+    return Positioned(
+      left: 0,
+      right: 0,
+      child: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(16, topPadding, 16, 0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _SearchCard(
+                controller: _searchController,
+                state: state,
+                onChanged: (value) => _onSearchChanged(value, cubit),
+                onClear: () {
+                  _searchController.clear();
+                  cubit.updateSearch('');
+                },
+                onLocate: () => cubit.initialize(loadLocation: true),
+                onRefresh: cubit.refresh,
+              ),
+              const SizedBox(height: 12),
+              if (state.availableServices.isNotEmpty)
+                _FilterCard(
+                  state: state,
+                  onToggleService: cubit.toggleService,
+                ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildFilters(
+  Widget _buildBottomSheet(
     BuildContext context,
     StoreLocatorState state,
     StoreLocatorCubit cubit,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              FilterChip(
-                label: const Text('Đang mở cửa'),
-                selected: state.onlyOpenNow,
-                onSelected: (_) => cubit.toggleOpenNow(),
+    return DraggableScrollableSheet(
+      minChildSize: 0.2,
+      initialChildSize: 0.25,
+      maxChildSize: 0.85,
+      builder: (context, scrollController) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 20,
+                offset: const Offset(0, -4),
               ),
-              const SizedBox(width: 8),
-              for (final service in state.availableServices) ...[
-                FilterChip(
-                  label: Text(service),
-                  selected: state.selectedServices.contains(service),
-                  onSelected: (_) => cubit.toggleService(service),
+            ],
+          ),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 12, bottom: 8),
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade400,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                const SizedBox(width: 8),
-              ],
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Bán kính tìm kiếm',
-                style: TextStyle(fontWeight: FontWeight.w600),
               ),
-              Text('${state.radiusKm.toStringAsFixed(0)} km'),
+              Expanded(
+                child: _buildStoreList(
+                  context,
+                  state,
+                  cubit,
+                  scrollController,
+                ),
+              ),
             ],
           ),
-        ),
-        Slider(
-          value: state.radiusKm,
-          min: 2,
-          max: 50,
-          divisions: 12,
-          onChanged: (value) => cubit.updateRadius(value),
-        ),
-      ],
+        );
+      },
     );
   }
 
   Widget _buildMap(StoreLocatorState state, StoreLocatorCubit cubit) {
     if (!MapStyleConfig.hasValidKey) {
-      return Padding(
-        padding: const EdgeInsets.all(16),
-        child: Container(
-          height: 220,
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: const Center(
-            child: Text(
-              'Chưa cấu hình MAPTILER_API_KEY.\nVui lòng cập nhật .env để hiển thị bản đồ.',
-              textAlign: TextAlign.center,
-            ),
+      return Container(
+        color: Colors.grey.shade300,
+        child: const Center(
+          child: Text(
+            'Chưa cấu hình MAPTILER_API_KEY.\nVui lòng cập nhật .env để hiển thị bản đồ.',
+            textAlign: TextAlign.center,
           ),
         ),
       );
@@ -274,17 +263,6 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
       );
     }
 
-    final circleMarkers = <CircleMarker>[
-      if (state.userLocation != null)
-        CircleMarker(
-          point: state.userLocation!,
-          radius: state.radiusKm * 1000,
-          color: cellphoneZRed.withOpacity(0.08),
-          borderColor: cellphoneZRed.withOpacity(0.2),
-          borderStrokeWidth: 1,
-        ),
-    ];
-
     final center = state.userLocation ??
         (state.filteredStores.isNotEmpty
             ? latlng.LatLng(
@@ -293,41 +271,30 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
               )
             : latlng.LatLng(10.762622, 106.660172));
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      child: SizedBox(
-        height: 240,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: Stack(
-            children: [
-              FlutterMap(
-                mapController: _mapController,
-                options: MapOptions(
-                  center: center,
-                  zoom: 12,
-                  interactiveFlags: InteractiveFlag.all,
-                  onTap: (_, point) => cubit.setUserLocation(point),
-                ),
-                children: [
-                  TileLayer(
-                    urlTemplate: MapStyleConfig.rasterTileUrl(),
-                    userAgentPackageName: 'com.cellphonez.app',
-                  ),
-                  if (circleMarkers.isNotEmpty)
-                    CircleLayer(circles: circleMarkers),
-                  MarkerLayer(markers: markers),
-                ],
-              ),
-              const Positioned(
-                bottom: 12,
-                right: 12,
-                child: MapAttributionBadge(),
-              ),
-            ],
+    return Stack(
+      children: [
+        FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(
+            center: center,
+            zoom: 12,
+            interactiveFlags: InteractiveFlag.all,
+            onTap: (_, point) => cubit.setUserLocation(point),
           ),
+          children: [
+            TileLayer(
+              urlTemplate: MapStyleConfig.rasterTileUrl(),
+              userAgentPackageName: 'com.cellphonez.app',
+            ),
+            MarkerLayer(markers: markers),
+          ],
         ),
-      ),
+        const Positioned(
+          bottom: 16,
+          right: 16,
+          child: MapAttributionBadge(),
+        ),
+      ],
     );
   }
 
@@ -335,6 +302,7 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
     BuildContext context,
     StoreLocatorState state,
     StoreLocatorCubit cubit,
+    ScrollController scrollController,
   ) {
     if (state.filteredStores.isEmpty) {
       return const Center(
@@ -343,6 +311,7 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
     }
 
     return ListView.separated(
+      controller: scrollController,
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       itemCount: state.filteredStores.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
@@ -409,32 +378,26 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
                     ),
                   ],
                   const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
-                    children: [
-                      Chip(
-                        label: Text(
-                          store.isActive ? 'Đang hoạt động' : 'Tạm đóng',
-                          style: TextStyle(
-                            color: store.isActive ? Colors.green : Colors.grey,
-                          ),
-                        ),
-                        backgroundColor:
-                            store.isActive ? Colors.green.shade50 : Colors.grey.shade200,
-                      ),
-                      if (store.services.isNotEmpty)
-                        ...store.services.map(
-                          (service) => Chip(
-                            label: Text(service),
-                            backgroundColor: Colors.blueGrey.shade50,
-                          ),
-                        ),
-                    ],
-                  ),
+                  if (store.services.isNotEmpty)
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: store.services
+                          .map(
+                            (service) => Chip(
+                              label: Text(service),
+                              backgroundColor: Colors.blueGrey.shade50,
+                            ),
+                          )
+                          .toList(),
+                    ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
+                      Expanded(
+                        child: _StatusBadge(isActive: store.isActive),
+                      ),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () async {
@@ -485,5 +448,181 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
         );
       },
     );
+  }
+}
+
+class _SearchCard extends StatelessWidget {
+  const _SearchCard({
+    required this.controller,
+    required this.state,
+    required this.onChanged,
+    required this.onClear,
+    required this.onLocate,
+    required this.onRefresh,
+  });
+
+  final TextEditingController controller;
+  final StoreLocatorState state;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
+  final VoidCallback onLocate;
+  final VoidCallback onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      elevation: 6,
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: controller,
+                onChanged: onChanged,
+                decoration: InputDecoration(
+                  hintText: 'Tìm theo tên, thành phố, địa chỉ...',
+                  filled: true,
+                  fillColor: Colors.white,
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: state.searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: onClear,
+                        )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            _FloatingRoundButton(
+              icon: Icons.my_location,
+              tooltip: 'Định vị hiện tại',
+              onTap: onLocate,
+            ),
+            const SizedBox(width: 8),
+            _FloatingRoundButton(
+              icon: Icons.refresh,
+              tooltip: 'Làm mới',
+              onTap: onRefresh,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FilterCard extends StatelessWidget {
+  const _FilterCard({
+    required this.state,
+    required this.onToggleService,
+  });
+
+  final StoreLocatorState state;
+  final void Function(String service) onToggleService;
+
+  @override
+  Widget build(BuildContext context) {
+    if (state.availableServices.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Material(
+      elevation: 4,
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              for (final service in state.availableServices) ...[
+                FilterChip(
+                  label: Text(service),
+                  selected: state.selectedServices.contains(service),
+                  onSelected: (_) => onToggleService(service),
+                ),
+                const SizedBox(width: 8),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  const _StatusBadge({required this.isActive});
+
+  final bool isActive;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color accent = isActive ? Colors.green : Colors.grey;
+    return Container(
+      height: 46,
+      decoration: BoxDecoration(
+        color: isActive ? Colors.green.shade50 : Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: accent.withOpacity(0.4)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isActive ? Icons.check_circle : Icons.pause_circle_outline,
+            color: accent,
+            size: 20,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            isActive ? 'Đang hoạt động' : 'Tạm đóng',
+            style: TextStyle(
+              color: accent,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FloatingRoundButton extends StatelessWidget {
+  const _FloatingRoundButton({
+    required this.icon,
+    required this.onTap,
+    this.tooltip,
+  });
+
+  final IconData icon;
+  final VoidCallback onTap;
+  final String? tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    final button = Material(
+      color: Colors.white,
+      shape: const CircleBorder(),
+      elevation: 3,
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: SizedBox(
+          width: 44,
+          height: 44,
+          child: Icon(icon, color: cellphoneZRed),
+        ),
+      ),
+    );
+    return tooltip != null ? Tooltip(message: tooltip!, child: button) : button;
   }
 }

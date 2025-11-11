@@ -13,9 +13,7 @@ class StoreLocatorState extends Equatable {
     this.highlightedStore,
     this.selectedStore,
     this.userLocation,
-    this.radiusKm = 10,
     this.selectedServices = const <String>{},
-    this.onlyOpenNow = false,
     this.searchQuery = '',
   });
 
@@ -27,9 +25,7 @@ class StoreLocatorState extends Equatable {
   final Store? highlightedStore;
   final Store? selectedStore;
   final latlng.LatLng? userLocation;
-  final double radiusKm;
   final Set<String> selectedServices;
-  final bool onlyOpenNow;
   final String searchQuery;
 
   bool get hasError => errorMessage != null;
@@ -46,9 +42,7 @@ class StoreLocatorState extends Equatable {
     Store? selectedStore,
     bool clearSelection = false,
     latlng.LatLng? userLocation,
-    double? radiusKm,
     Set<String>? selectedServices,
-    bool? onlyOpenNow,
     String? searchQuery,
   }) {
     return StoreLocatorState(
@@ -60,9 +54,7 @@ class StoreLocatorState extends Equatable {
       highlightedStore: clearHighlight ? null : (highlightedStore ?? this.highlightedStore),
       selectedStore: clearSelection ? null : (selectedStore ?? this.selectedStore),
       userLocation: userLocation ?? this.userLocation,
-      radiusKm: radiusKm ?? this.radiusKm,
       selectedServices: selectedServices ?? this.selectedServices,
-      onlyOpenNow: onlyOpenNow ?? this.onlyOpenNow,
       searchQuery: searchQuery ?? this.searchQuery,
     );
   }
@@ -77,9 +69,7 @@ class StoreLocatorState extends Equatable {
         highlightedStore,
         selectedStore,
         userLocation,
-        radiusKm,
         selectedServices,
-        onlyOpenNow,
         searchQuery,
       ];
 }

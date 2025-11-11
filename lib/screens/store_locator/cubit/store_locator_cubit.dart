@@ -37,8 +37,6 @@ class StoreLocatorCubit extends Cubit<StoreLocatorState> {
       final filtered = _storeService.filterStores(
         stores: storesWithDistance,
         origin: position,
-        radiusKm: state.radiusKm,
-        onlyOpenNow: state.onlyOpenNow,
         requiredServices: state.selectedServices,
         query: state.searchQuery,
       );
@@ -85,16 +83,6 @@ class StoreLocatorCubit extends Cubit<StoreLocatorState> {
     _applyFilters();
   }
 
-  void toggleOpenNow() {
-    emit(state.copyWith(onlyOpenNow: !state.onlyOpenNow));
-    _applyFilters();
-  }
-
-  void updateRadius(double radiusKm) {
-    emit(state.copyWith(radiusKm: radiusKm));
-    _applyFilters();
-  }
-
   void highlightStore(Store store) {
     emit(state.copyWith(highlightedStore: store));
   }
@@ -125,8 +113,6 @@ class StoreLocatorCubit extends Cubit<StoreLocatorState> {
       stores: state.stores,
       query: state.searchQuery,
       origin: state.userLocation,
-      radiusKm: state.radiusKm,
-      onlyOpenNow: state.onlyOpenNow,
       requiredServices: state.selectedServices,
     );
 
