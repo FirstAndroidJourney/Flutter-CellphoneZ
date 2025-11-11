@@ -159,7 +159,10 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: const Text('Quản lý cửa hàng'),
         actions: [
           IconButton(
@@ -168,197 +171,307 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openStoreForm(),
-        label: const Text('Thêm cửa hàng'),
-        icon: const Icon(Icons.add_business),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: TextField(
-                    controller: _searchController,
-                    onChanged: (_) => setState(() {}),
-                    decoration: InputDecoration(
-                      hintText: 'Tìm kiếm cửa hàng...',
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: _searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                _searchController.clear();
-                                setState(() {});
-                              },
-                            )
-                          : null,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                ),
-                _buildMapSection(),
-                Expanded(
-                  child: _filteredStores.isEmpty
-                      ? const Center(child: Text('Không có cửa hàng nào'))
-                      : RefreshIndicator(
-                          onRefresh: _loadStores,
-                          child: ListView.builder(
-                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
-                            itemCount: _filteredStores.length,
-                            itemBuilder: (context, index) {
-                              final store = _filteredStores[index];
-                              return _StoreCard(
-                                store: store,
-                                isSelected: _selectedStore?.id == store.id,
-                                onSelect: () {
-                                  setState(() {
-                                    _selectedStore = store;
-                                    _mapController.move(
-                                      latlng.LatLng(
-                                        store.latitude,
-                                        store.longitude,
-                                      ),
-                                      15,
-                                    );
-                                  });
-                                },
-                                onEdit: () => _openStoreForm(store: store),
-                                onDelete: () => _deleteStore(store),
-                                onToggleActive: (value) =>
-                                    _toggleStore(store, value),
-                              );
-                            },
-                          ),
-                        ),
-                ),
-              ],
-            ),
-    );
-  }
-
-  Widget _buildMapSection() {
-    if (!MapStyleConfig.hasValidKey) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Container(
-          height: 200,
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: const Center(
-            child: Text('Chưa cấu hình MAPTILER_API_KEY'),
-          ),
-        ),
-      );
-    }
-
-    final markers = _stores
-        .map(
-          (store) => Marker(
-            width: 32,
-            height: 32,
-            point: latlng.LatLng(store.latitude, store.longitude),
-            child: GestureDetector(
-              onTap: () {
-                setState(() => _selectedStore = store);
-                _mapController.move(
-                  latlng.LatLng(store.latitude, store.longitude),
-                  15,
-                );
-              },
-              child: Icon(
-                Icons.location_on,
-                color: store.isActive ? cellphoneZRed : Colors.grey,
-                size: _selectedStore?.id == store.id ? 34 : 28,
-              ),
-            ),
-          ),
-        )
-        .toList();
-
-    final center = _selectedStore != null
-        ? latlng.LatLng(_selectedStore!.latitude, _selectedStore!.longitude)
-        : (markers.isNotEmpty
-            ? markers.first.point
-            : latlng.LatLng(10.762622, 106.660172));
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      body: Stack(
         children: [
-          SizedBox(
-            height: 220,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: Stack(
-                children: [
-                  FlutterMap(
-                    mapController: _mapController,
-                    options: MapOptions(
-                      center: center,
-                      zoom: 12,
-                      interactiveFlags: InteractiveFlag.all,
-                      onTap: (tapPosition, point) {
-                        setState(() {
-                          _pendingCoordinate = point;
-                        });
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Đã chọn toạ độ (${point.latitude.toStringAsFixed(5)}, '
-                              '${point.longitude.toStringAsFixed(5)}) cho cửa hàng mới',
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                    children: [
-                      TileLayer(
-                        urlTemplate: MapStyleConfig.rasterTileUrl(),
-                        userAgentPackageName: 'com.cellphonez.admin',
-                      ),
-                      MarkerLayer(markers: markers),
-                      if (_pendingCoordinate != null)
-                        MarkerLayer(markers: [
-                          Marker(
-                            width: 28,
-                            height: 28,
-                            point: _pendingCoordinate!,
-                            child: const Icon(
-                              Icons.push_pin,
-                              color: Colors.indigo,
-                            ),
-                          )
-                        ]),
-                    ],
-                  ),
-                  const Positioned(
-                    bottom: 12,
-                    right: 12,
-                    child: MapAttributionBadge(),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (_pendingCoordinate != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                'Toạ độ tạm: ${_pendingCoordinate!.latitude.toStringAsFixed(5)}, '
-                '${_pendingCoordinate!.longitude.toStringAsFixed(5)}',
-                style: const TextStyle(fontStyle: FontStyle.italic),
-              ),
+          Positioned.fill(child: _buildMap(context)),
+          _buildTopControls(context),
+          _buildBottomSheet(context),
+          if (_isLoading)
+            Container(
+              color: Colors.black12,
+              child: const Center(child: CircularProgressIndicator()),
             ),
         ],
       ),
     );
+  }
+
+  Widget _buildTopControls(BuildContext context) {
+    final mediaTop = MediaQuery.of(context).padding.top;
+    final double topPadding = mediaTop;
+    return Positioned(
+      left: 0,
+      right: 0,
+      child: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(16, topPadding, 16, 0),
+          child: _AdminSearchBar(
+            controller: _searchController,
+            onChanged: (_) => setState(() {}),
+            onClear: () {
+              _searchController.clear();
+              setState(() {});
+            },
+            onAdd: () => _openStoreForm(),
+            onRefresh: _loadStores,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomSheet(BuildContext context) {
+    return DraggableScrollableSheet(
+      minChildSize: 0.25,
+      initialChildSize: 0.3,
+      maxChildSize: 0.9,
+      builder: (context, scrollController) {
+        final stores = _filteredStores;
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 20,
+                offset: const Offset(0, -4),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 12, bottom: 8),
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade400,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: stores.isEmpty
+                    ? const Center(child: Text('Không có cửa hàng nào'))
+                    : RefreshIndicator(
+                        onRefresh: _loadStores,
+                        child: ListView.separated(
+                          controller: scrollController,
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                          itemCount: stores.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            final store = stores[index];
+                            return _StoreCard(
+                              store: store,
+                              isSelected: _selectedStore?.id == store.id,
+                              onSelect: () => _onSelectStore(store),
+                              onEdit: () => _openStoreForm(store: store),
+                              onDelete: () => _deleteStore(store),
+                              onToggleActive: (value) =>
+                                  _toggleStore(store, value),
+                            );
+                          },
+                        ),
+                      ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMap(BuildContext context) {
+    if (!MapStyleConfig.hasValidKey) {
+      return Container(
+        color: Colors.grey.shade300,
+        child: const Center(
+          child: Text('Chưa cấu hình MAPTILER_API_KEY'),
+        ),
+      );
+    }
+
+    final markers = <Marker>[
+      for (final store in _stores)
+        Marker(
+          width: 42,
+          height: 42,
+          point: latlng.LatLng(store.latitude, store.longitude),
+          child: GestureDetector(
+            onTap: () => _onSelectStore(store),
+            child: Icon(
+              Icons.location_on,
+              color:
+                  _selectedStore?.id == store.id ? cellphoneZRed : Colors.blue,
+              size: _selectedStore?.id == store.id ? 40 : 30,
+            ),
+          ),
+        ),
+      if (_pendingCoordinate != null)
+        Marker(
+          width: 32,
+          height: 32,
+          point: _pendingCoordinate!,
+          child: const Icon(
+            Icons.push_pin,
+            color: Colors.indigo,
+            size: 28,
+          ),
+        ),
+    ];
+
+    final latlng.LatLng center;
+    if (_selectedStore != null) {
+      center =
+          latlng.LatLng(_selectedStore!.latitude, _selectedStore!.longitude);
+    } else if (_stores.isNotEmpty) {
+      center = latlng.LatLng(_stores.first.latitude, _stores.first.longitude);
+    } else {
+      center = latlng.LatLng(10.762622, 106.660172);
+    }
+
+    return Stack(
+      children: [
+        FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(
+            center: center,
+            zoom: 12,
+            interactiveFlags: InteractiveFlag.all,
+            onTap: (tapPosition, point) => _handleMapTap(context, point),
+          ),
+          children: [
+            TileLayer(
+              urlTemplate: MapStyleConfig.rasterTileUrl(),
+              userAgentPackageName: 'com.cellphonez.admin',
+            ),
+            MarkerLayer(markers: markers),
+          ],
+        ),
+        const Positioned(
+          bottom: 16,
+          right: 16,
+          child: MapAttributionBadge(),
+        ),
+      ],
+    );
+  }
+
+  void _handleMapTap(BuildContext context, latlng.LatLng point) {
+    setState(() {
+      _pendingCoordinate = point;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Đã chọn tọa độ (${point.latitude.toStringAsFixed(5)}, '
+          '${point.longitude.toStringAsFixed(5)}) cho cửa hàng mới',
+        ),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _onSelectStore(Store store) {
+    setState(() {
+      _selectedStore = store;
+    });
+    _mapController.move(
+      latlng.LatLng(store.latitude, store.longitude),
+      15,
+    );
+  }
+}
+
+class _AdminSearchBar extends StatelessWidget {
+  const _AdminSearchBar({
+    required this.controller,
+    required this.onChanged,
+    required this.onClear,
+    required this.onAdd,
+    required this.onRefresh,
+  });
+
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
+  final VoidCallback onAdd;
+  final VoidCallback onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      elevation: 6,
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: controller,
+                onChanged: onChanged,
+                decoration: InputDecoration(
+                  hintText: 'Tìm kiếm cửa hàng...',
+                  filled: true,
+                  fillColor: Colors.white,
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: controller.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: onClear,
+                        )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            _RoundIconButton(
+              icon: Icons.add_business,
+              tooltip: 'Thêm cửa hàng',
+              onTap: onAdd,
+            ),
+            const SizedBox(width: 8),
+            _RoundIconButton(
+              icon: Icons.refresh,
+              tooltip: 'Làm mới',
+              onTap: onRefresh,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RoundIconButton extends StatelessWidget {
+  const _RoundIconButton({
+    required this.icon,
+    required this.onTap,
+    this.tooltip,
+  });
+
+  final IconData icon;
+  final VoidCallback onTap;
+  final String? tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    final button = Material(
+      color: Colors.white,
+      shape: const CircleBorder(),
+      elevation: 3,
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: SizedBox(
+          width: 44,
+          height: 44,
+          child: Icon(icon, color: cellphoneZRed),
+        ),
+      ),
+    );
+
+    return tooltip != null ? Tooltip(message: tooltip!, child: button) : button;
   }
 }
 
