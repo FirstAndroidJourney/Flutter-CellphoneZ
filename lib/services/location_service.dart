@@ -1,35 +1,105 @@
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart' as latlng;
+
 import '../constants.dart';
 
 class LocationService {
-  // Convert LatLng to address using reverse geocoding
   Future<String> getAddressFromLatLng(LatLng position) async {
-    // TODO: Implement reverse geocoding using Google Maps API
-    // For now, return a formatted string of coordinates
-    return '${position.latitude}, ${position.longitude}';
+    try {
+      final placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+        localeIdentifier: 'vi_VN',
+      );
+
+      if (placemarks.isEmpty) {
+        return '${position.latitude.toStringAsFixed(5)}, '
+            '${position.longitude.toStringAsFixed(5)}';
+      }
+
+      final place = placemarks.first;
+      final segments = [
+        place.street,
+        place.subLocality,
+        place.locality,
+        place.administrativeArea,
+      ].where((segment) => segment != null && segment!.isNotEmpty).toList();
+
+      if (segments.isEmpty) {
+        return '${position.latitude.toStringAsFixed(5)}, '
+            '${position.longitude.toStringAsFixed(5)}';
+      }
+
+      return segments.join(', ');
+    } catch (_) {
+      return '${position.latitude.toStringAsFixed(5)}, '
+          '${position.longitude.toStringAsFixed(5)}';
+    }
   }
 
-  // Get user's current location
   Future<LatLng> getCurrentLocation() async {
-    // TODO: Implement getting user's current location
-    // For now, return a default location (e.g., Ho Chi Minh City)
-    return const LatLng(10.762622, 106.660172);
+    final position = await _resolvePosition();
+    return LatLng(position.latitude, position.longitude);
   }
 
-  // Calculate shipping fee based on distance
+  Future<latlng.LatLng> getCurrentLocationLatLng2() async {
+    final position = await _resolvePosition();
+    return latlng.LatLng(position.latitude, position.longitude);
+  }
+
   double calculateShippingFee(LatLng source, LatLng destination) {
-    // TODO: Implement actual distance calculation and fee computation
-    return DEFAULT_SHIPPING_FEE;
+    final distanceMeters = Geolocator.distanceBetween(
+      source.latitude,
+      source.longitude,
+      destination.latitude,
+      destination.longitude,
+    );
+
+    final distanceKm = distanceMeters / 1000;
+    const thresholdKm = 3.0;
+    const surchargePerKm = 5000.0; // 5,000đ mỗi km bổ sung
+
+    if (distanceKm <= thresholdKm) {
+      return DEFAULT_SHIPPING_FEE;
+    }
+
+    final extraDistance = distanceKm - thresholdKm;
+    return DEFAULT_SHIPPING_FEE + (extraDistance.ceil() * surchargePerKm);
   }
 
-  // Save address to favorites
   Future<void> saveFavoriteAddress(String address) async {
-    // TODO: Implement saving address to local storage or database
+    // TODO: Persist to Supabase or local storage
   }
 
-  // Get list of favorite addresses
   Future<List<String>> getFavoriteAddresses() async {
-    // TODO: Implement getting saved addresses
+    // TODO: Retrieve from persistence layer
     return [];
+  }
+
+  Future<Position> _resolvePosition() async {
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.denied) {
+      return Future.error('Location permission denied');
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request permissions.');
+    }
+
+    return Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
   }
 }
