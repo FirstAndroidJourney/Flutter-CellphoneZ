@@ -89,7 +89,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
         _order = Order.fromJson({
           'id': orderResponse['id'] ?? '',
           'user_id': orderResponse['user_id'] ?? '',
-          'total_price': (orderResponse['total_amount'] ?? 0).toDouble(),
+          'total_price': (orderResponse['total_price'] ?? 0).toDouble(),
           'status': orderResponse['status'] ?? 'pending',
           'created_at': orderResponse['created_at'] ?? DateTime.now().toIso8601String(),
         });
