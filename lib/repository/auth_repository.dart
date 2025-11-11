@@ -18,16 +18,11 @@ class AuthRepository {
     required String password,
     Map<String, dynamic>? data,
   }) async {
-    try {
-      final response = await _client.auth.signUp(
-        email: email,
-        password: password,
-        data: data,
-      );
-      return response;
-    } catch (e) {
-      throw Exception('Sign up failed: $e');
-    }
+    return _client.auth.signUp(
+      email: email,
+      password: password,
+      data: data,
+    );
   }
 
   // Sign in with email and password
@@ -35,33 +30,20 @@ class AuthRepository {
     required String email,
     required String password,
   }) async {
-    try {
-      final response = await _client.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
-      return response;
-    } catch (e) {
-      throw Exception('Sign in failed: $e');
-    }
+    return _client.auth.signInWithPassword(
+      email: email,
+      password: password,
+    );
   }
 
   // Sign out
   Future<void> signOut() async {
-    try {
-      await _client.auth.signOut();
-    } catch (e) {
-      throw Exception('Sign out failed: $e');
-    }
+    await _client.auth.signOut();
   }
 
   // Reset password
   Future<void> resetPassword(String email) async {
-    try {
-      await _client.auth.resetPasswordForEmail(email);
-    } catch (e) {
-      throw Exception('Reset password failed: $e');
-    }
+    await _client.auth.resetPasswordForEmail(email);
   }
 
   // Update user
@@ -70,17 +52,12 @@ class AuthRepository {
     String? password,
     Map<String, dynamic>? data,
   }) async {
-    try {
-      final response = await _client.auth.updateUser(
-        UserAttributes(
-          email: email,
-          password: password,
-          data: data,
-        ),
-      );
-      return response;
-    } catch (e) {
-      throw Exception('Update user failed: $e');
-    }
+    return _client.auth.updateUser(
+      UserAttributes(
+        email: email,
+        password: password,
+        data: data,
+      ),
+    );
   }
 }

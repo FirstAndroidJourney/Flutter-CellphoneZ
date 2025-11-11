@@ -113,8 +113,9 @@ class OrdersTable {
   // Columns
   final String id = 'id';
   final String userId = 'user_id';
-  final String status = 'status';
-  final String totalPrice = 'total_price';
+  final String status =
+      'status'; // pending, processing, shipped, delivered, cancelled
+  final String totalAmount = 'total_price';
   final String shippingAddress = 'shipping_address';
   final String paymentMethod = 'payment_method';
   final String createdAt = 'created_at';

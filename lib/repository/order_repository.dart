@@ -36,7 +36,7 @@ class OrderRepository extends BaseRepository {
       'id': json['id'] ?? '',
       'user_id': json['user_id'] ?? '',
       'total_price':
-          (json['total_amount'] ?? json['total_price'] ?? 0).toDouble(),
+          (json['total_price'] ?? json['total_price'] ?? 0).toDouble(),
       'status': json['status'] ?? 'pending',
       'created_at': json['created_at'] ?? DateTime.now().toIso8601String(),
     });

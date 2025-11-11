@@ -50,7 +50,7 @@ class _CellphoneZHeroCarouselState extends State<CellphoneZHeroCarousel> {
       title: "Thu cũ đổi mới",
       subtitle: "Thêm đến 3 triệu",
       badge: "Trade-in",
-      description: "Đổi máy cũ lên đời Galaxy Z Fold6 Hoàn tiền trong ngày",
+      description: "Đổi máy cũ lên đời Galaxy Z Fold 6",
       image: productDemoImg3,
       gradient: [
         Color(0xFF330000),
@@ -61,7 +61,7 @@ class _CellphoneZHeroCarouselState extends State<CellphoneZHeroCarousel> {
       title: "Combo Workstation",
       subtitle: "Ưu đãi doanh nghiệp",
       badge: "Giao nhanh 2h",
-      description: "MacBook Pro + Apple Care + Giảm thêm 10% khi mua kèm iPad",
+      description: "MacBook Pro + Apple Care",
       image: productDemoImg1,
       gradient: [
         Color(0xFF102030),

@@ -36,12 +36,12 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
   Future<void> _loadOrderData() async {
     try {
       debugPrint('🔍 Loading order data for: ${widget.orderId}');
-      
+
       // Validate order ID format
       if (widget.orderId.isEmpty) {
         throw Exception('Order ID không hợp lệ');
       }
-      
+
       // Load order from database
       final orderResponse = await supabase
           .from('orders')
@@ -61,7 +61,8 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
           .select()
           .eq('order_id', widget.orderId);
 
-      final orderItemsData = List<Map<String, dynamic>>.from(orderItemsResponse);
+      final orderItemsData =
+          List<Map<String, dynamic>>.from(orderItemsResponse);
       debugPrint('✅ Order items: ${orderItemsData.length} items');
 
       // Load product details for each item
@@ -74,7 +75,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                 .select('id, name, image_url')
                 .eq('id', productId)
                 .maybeSingle();
-            
+
             if (productResponse != null) {
               _productDetails[productId] = productResponse;
               debugPrint('✅ Loaded product: ${productResponse['name']}');
@@ -91,9 +92,10 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
           'user_id': orderResponse['user_id'] ?? '',
           'total_price': (orderResponse['total_price'] ?? 0).toDouble(),
           'status': orderResponse['status'] ?? 'pending',
-          'created_at': orderResponse['created_at'] ?? DateTime.now().toIso8601String(),
+          'created_at':
+              orderResponse['created_at'] ?? DateTime.now().toIso8601String(),
         });
-        
+
         _orderItems = orderItemsData.map((json) {
           return OrderItem(
             id: json['id'] ?? '',
@@ -103,11 +105,12 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
             price: (json['price'] ?? 0).toDouble(),
           );
         }).toList();
-        
+
         _loading = false;
       });
-      
-      debugPrint('✅ Order loaded successfully: ${_order?.id} with ${_orderItems.length} items');
+
+      debugPrint(
+          '✅ Order loaded successfully: ${_order?.id} with ${_orderItems.length} items');
     } catch (e) {
       debugPrint('❌ Error loading order: $e');
       setState(() {
@@ -359,9 +362,11 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                                             arguments: user.id,
                                           );
                                         } else {
-                                          ScaffoldMessenger.of(context).showSnackBar(
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
                                             const SnackBar(
-                                              content: Text('Vui lòng đăng nhập để xem lịch sử đơn hàng'),
+                                              content: Text(
+                                                  'Vui lòng đăng nhập để xem lịch sử đơn hàng'),
                                             ),
                                           );
                                         }
@@ -433,7 +438,8 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
     NumberFormat currencyFormat,
   ) {
     final productInfo = _productDetails[item.productId];
-    final productName = productInfo?['name'] ?? 'Sản phẩm #${item.productId.substring(0, 8)}';
+    final productName =
+        productInfo?['name'] ?? 'Sản phẩm #${item.productId.substring(0, 8)}';
     final imageUrl = productInfo?['image_url'];
 
     return Padding(

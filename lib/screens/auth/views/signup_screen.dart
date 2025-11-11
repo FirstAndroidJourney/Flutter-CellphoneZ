@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shop/constants.dart';
 import 'package:shop/route/route_constants.dart';
 import 'package:shop/screens/auth/views/components/sign_up_form.dart';
+import 'package:shop/repository/auth_repository.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -13,7 +14,15 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final AuthRepository _authRepository = AuthRepository();
+
   bool _agreedToTerms = false;
+  bool _isLoading = false;
+
+  // Form data
+  String? _email;
+  String? _password;
+  String? _fullName;
 
   @override
   Widget build(BuildContext context) {
@@ -109,7 +118,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
           const SizedBox(height: defaultPadding * 1.2),
           Text(
-            "Create account",
+            "Tạo tài khoản",
             style: (theme.textTheme.headlineSmall ??
                     theme.textTheme.headlineMedium ??
                     const TextStyle())
@@ -120,7 +129,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
           const SizedBox(height: defaultPadding * 0.5),
           Text(
-            "Please enter your valid data in order to create an account.",
+            "Vui lòng nhập thông tin hợp lệ để tạo tài khoản.",
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7) ??
                   blackColor60,
@@ -136,7 +145,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 selectionHandleColor: buttonColor,
               ),
             ),
-            child: SignUpForm(formKey: _formKey),
+            child: SignUpForm(
+              formKey: _formKey,
+              onEmailSaved: (email) => _email = email,
+              onPasswordSaved: (password) => _password = password,
+              onFullNameSaved: (fullName) => _fullName = fullName,
+            ),
           ),
           const SizedBox(height: defaultPadding),
           Row(
@@ -158,7 +172,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   runSpacing: 4,
                   children: [
                     Text(
-                      "I agree with the",
+                      "Tôi đồng ý với",
                       style: theme.textTheme.bodyMedium,
                     ),
                     GestureDetector(
@@ -169,7 +183,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         );
                       },
                       child: Text(
-                        "Terms of service",
+                        "Điều khoản dịch vụ",
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: buttonColor,
                           fontWeight: FontWeight.w600,
@@ -177,7 +191,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                     ),
                     Text(
-                      "& privacy policy.",
+                      "& chính sách bảo mật.",
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.textTheme.bodyMedium?.color
                                 ?.withOpacity(0.7) ??
@@ -193,7 +207,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: _handleContinue,
+              onPressed: _isLoading ? null : _handleContinue,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 18),
                 backgroundColor: buttonColor,
@@ -203,13 +217,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 elevation: 8,
                 shadowColor: buttonColor.withOpacity(0.4),
               ),
-              child: const Text(
-                "Continue",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text(
+                      "Đăng ký",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
             ),
           ),
           const SizedBox(height: defaultPadding),
@@ -217,7 +240,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                "Do you have an account?",
+                "Bạn đã có tài khoản?",
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7) ??
                       blackColor60,
@@ -230,7 +253,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 style: TextButton.styleFrom(
                   foregroundColor: buttonColor,
                 ),
-                child: const Text("Log in"),
+                child: const Text("Đăng nhập"),
               )
             ],
           ),
@@ -239,20 +262,103 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  void _handleContinue() {
+  Future<void> _handleContinue() async {
+    // Validate form
     if (!_formKey.currentState!.validate()) return;
+
+    // Check terms agreement
     if (!_agreedToTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Please agree to the Terms of service & privacy policy to continue.',
-          ),
-        ),
+      _showErrorSnackBar(
+        'Vui lòng đồng ý với Điều khoản dịch vụ và chính sách bảo mật để tiếp tục.',
       );
       return;
     }
 
+    // Save form data
     _formKey.currentState!.save();
-    Navigator.pushNamed(context, entryPointScreenRoute);
+
+    // Validate data
+    if (_email == null || _password == null || _fullName == null) {
+      _showErrorSnackBar('Vui lòng điền đầy đủ thông tin.');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Call AuthRepository directly to create account
+      await _authRepository.signUp(
+        email: _email!,
+        password: _password!,
+        data: {
+          'name': _fullName,
+          'email': _email,
+        },
+      );
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đăng ký thành công! Chào mừng đến với CellphoneZ!'),
+            backgroundColor: successColor,
+            duration: Duration(seconds: 3),
+          ),
+        );
+
+        // Navigate to main screen
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          entryPointScreenRoute,
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      String errorMessage = 'Đăng ký thất bại. Vui lòng thử lại.';
+
+      // Handle specific errors
+      if (e.toString().contains('email')) {
+        if (e.toString().contains('already')) {
+          errorMessage = 'Email này đã được sử dụng. Vui lòng chọn email khác.';
+        } else if (e.toString().contains('invalid')) {
+          errorMessage = 'Địa chỉ email không hợp lệ.';
+        }
+      } else if (e.toString().contains('password')) {
+        errorMessage = 'Mật khẩu không đủ mạnh. Vui lòng chọn mật khẩu khác.';
+      } else if (e.toString().contains('network') ||
+          e.toString().contains('connection')) {
+        errorMessage =
+            'Lỗi kết nối mạng. Vui lòng kiểm tra internet và thử lại.';
+      }
+
+      if (mounted) {
+        _showErrorSnackBar(errorMessage);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 4),
+        action: SnackBarAction(
+          label: 'Đóng',
+          textColor: Colors.white,
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          },
+        ),
+      ),
+    );
   }
 }

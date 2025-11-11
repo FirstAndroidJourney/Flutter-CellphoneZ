@@ -34,7 +34,7 @@ CREATE TABLE public.orders (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   status character varying,
-  total_amount double precision DEFAULT '0'::double precision,
+  total_price double precision DEFAULT '0'::double precision,
   shipping_address character varying,
   payment_method character varying,
   user_id uuid,
