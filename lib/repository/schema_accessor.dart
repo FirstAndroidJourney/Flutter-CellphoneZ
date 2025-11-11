@@ -26,5 +26,6 @@ mixin SchemaAccessor {
   OrdersTable get ordersSchema => DatabaseSchema.orders;
   OrderItemsTable get orderItemsSchema => DatabaseSchema.orderItems;
   PaymentsTable get paymentsSchema => DatabaseSchema.payments;
+  StoresTable get storesSchema => DatabaseSchema.stores;
   StorageBuckets get storageBuckets => DatabaseSchema.storage;
 }

@@ -28,7 +28,9 @@ export '/admin/view/admin_main_screen.dart';
 export '/screens/order_confirmation/views/order_confirmation_screen.dart';
 export '/screens/order_history/views/order_history_screen.dart';
 export '/screens/product/views/product_detail_screen.dart';
+export '/screens/store_locator/views/store_locator_screen.dart';
 
 export '/admin/category/view/category_management.dart';
+export '/admin/stores/view/store_management_screen.dart';
 
 export '/screens/main_screen.dart';

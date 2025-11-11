@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shop/admin/category/view/category_management.dart';
 import 'package:shop/admin/orders/view/order_management.dart';
 import 'package:shop/admin/products/view/product_list_screen.dart';
+import 'package:shop/admin/stores/view/store_management_screen.dart';
 import 'package:shop/constants.dart';
 import 'package:shop/screens/profile/views/profile_screen.dart';
 
@@ -32,6 +33,10 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
       label: 'Danh mục',
     ),
     _AdminNavItem(
+      icon: Icons.store_mall_directory_outlined,
+      label: 'Cửa hàng',
+    ),
+    _AdminNavItem(
       icon: Icons.receipt_long_outlined,
       label: 'Đơn hàng',
     ),
@@ -47,6 +52,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
     _screens = const [
       ProductListScreen(),
       CategoryManagement(),
+      StoreManagementScreen(),
       OrderManagement(),
       ProfileScreen(),
     ];

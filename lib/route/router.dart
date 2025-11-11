@@ -216,6 +216,11 @@ Route<dynamic> generateRoute(RouteSettings settings) {
         settings: settings,
         child: AdminMainScreen(initialIndex: initialIndex),
       );
+    case adminStoreManagementScreenRoute:
+      return _buildRoute(
+        settings: settings,
+        child: const StoreManagementScreen(),
+      );
 
     case orderConfirmationScreenRoute:
       final args = settings.arguments as Map<String, dynamic>?;
@@ -242,6 +247,14 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return _buildRoute(
         settings: settings,
         child: OrderHistoryScreen(userId: userId),
+      );
+    case storeLocatorScreenRoute:
+      final enableSelection = (settings.arguments as Map<String, dynamic>?)
+              ?['enableSelection'] as bool? ??
+          true;
+      return _buildRoute(
+        settings: settings,
+        child: StoreLocatorScreen(enableSelection: enableSelection),
       );
 
     default:

@@ -8,6 +8,7 @@ import 'package:shop/screens/category/views/categories_list_screen.dart';
 import 'package:shop/screens/checkout/views/cart_screen.dart';
 import 'package:shop/screens/home/views/home_screen.dart';
 import 'package:shop/screens/profile/views/profile_screen.dart';
+import 'package:shop/screens/store_locator/views/store_locator_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -22,6 +23,10 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _screens = [
     const HomeScreen(),
     const CategoriesListScreen(),
+    const StoreLocatorScreen(
+      enableSelection: false,
+      title: 'Cửa hàng CellphoneZ',
+    ),
     const CartScreen(),
     const ProfileScreen(),
   ];
@@ -110,15 +115,20 @@ class _MainScreenState extends State<MainScreen> {
               isActive: _selectedIndex == 1,
             ),
             _buildNavItem(
+              icon: Icons.storefront,
+              label: 'Cửa hàng',
+              isActive: _selectedIndex == 2,
+            ),
+            _buildNavItem(
               icon: Icons.shopping_cart,
               label: 'Giỏ hàng',
-              isActive: _selectedIndex == 2,
+              isActive: _selectedIndex == 3,
               badgeCount: cartProvider.totalItems,
             ),
             _buildNavItem(
               icon: Icons.person,
               label: 'Tài khoản',
-              isActive: _selectedIndex == 3,
+              isActive: _selectedIndex == 4,
             ),
           ];
 

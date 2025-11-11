@@ -110,6 +110,7 @@ Responsive Flutter client for the CellphoneZ marketplace, enabling shoppers to b
 - After schema edits, run `melos run gen` to refresh generated clients/Freezed models.
 - Document migrations under `docs/` and coordinate Supabase migrations with backend teammates.
 - Keep `.env` and other secrets out of source control; leverage the secure vault when sharing configs.
+- Map features rely on `MAPTILER_API_KEY` in `.env`; without it the Store Locator/admin maps will show a placeholder instead of loading tiles.
 
 ---
 Need clarifications or more screenshots? Check `docs/assets/` for the full catalog or open an issue/PR describing the additions. Happy shipping!

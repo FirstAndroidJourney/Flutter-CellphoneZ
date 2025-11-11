@@ -6,6 +6,9 @@ import '../../main.dart';
 import '../../route/route_constants.dart';
 import '../../services/order_calculation_service.dart';
 import '../../models/cart_item.dart';
+import '../../models/store.dart';
+import '../../services/external_navigation_service.dart';
+import '../store_locator/views/store_locator_screen.dart';
 import 'address_picker_screen.dart';
 import 'package:uuid/uuid.dart';
 
@@ -36,6 +39,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
   late String _deliveryAddress;
   late OrderCalculationResult _orderSummary;
   bool _isProcessing = false;
+  Store? _selectedStore;
+  final ExternalNavigationService _navigationService =
+      ExternalNavigationService();
 
   @override
   void initState() {
@@ -91,6 +97,39 @@ class _PaymentScreenState extends State<PaymentScreen> {
           deliveryLocation: _deliveryAddress,
         );
       });
+    }
+  }
+
+  Future<void> _openStoreLocator() async {
+    final store = await Navigator.push<Store>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const StoreLocatorScreen(
+          enableSelection: true,
+          title: 'Chọn cửa hàng nhận hàng',
+        ),
+      ),
+    );
+
+    if (store != null) {
+      setState(() {
+        _selectedStore = store;
+      });
+    }
+  }
+
+  Future<void> _openDirectionsToStore() async {
+    final store = _selectedStore;
+    if (store == null) return;
+
+    try {
+      await _navigationService.openDirections(
+        destinationLat: store.latitude,
+        destinationLng: store.longitude,
+        label: store.name,
+      );
+    } catch (error) {
+      _showSnackBar('Không thể mở ứng dụng bản đồ: $error');
     }
   }
 
@@ -187,6 +226,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
     setState(() => _isProcessing = true);
     debugPrint('🔒 Đã set _isProcessing = true');
+
+    if (_selectedMethod == 'store_pickup' && !_validateStoreSelection()) {
+      setState(() => _isProcessing = false);
+      return;
+    }
 
     try {
       debugPrint('📝 Phương thức thanh toán: $_selectedMethod');
@@ -322,7 +366,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
   }
 
+  bool _validateStoreSelection() {
+    if (_selectedStore == null) {
+      _showSnackBar('Vui lòng chọn cửa hàng nhận hàng trước khi tiếp tục.');
+      return false;
+    }
+    return true;
+  }
+
   Future<void> _handleStorePickup(String orderId) async {
+    if (!_validateStoreSelection()) {
+      return;
+    }
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -332,6 +388,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
             children: [
               const Text('Bạn sẽ thanh toán và nhận hàng tại cửa hàng.'),
               const SizedBox(height: 8),
+              if (_selectedStore != null) ...[
+                Text(
+                  _selectedStore!.name,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(_selectedStore!.addressFull),
+                const SizedBox(height: 8),
+              ],
               Text(
                   'Tổng: ${OrderCalculationService().formatPrice(_orderSummary.total)}'),
               if (widget.customerNote != null &&
@@ -388,13 +453,18 @@ class _PaymentScreenState extends State<PaymentScreen> {
       final paymentId = const Uuid().v4();
 
       // 🧾 1️⃣ Tạo đơn hàng
+      final bool isStorePickup = method == 'store_pickup';
+
       await supabase.from('orders').insert({
         'id': orderId,
         'user_id': user.id,
         'status': status == 'success' ? 'paid' : 'pending',
         'total_price': _orderSummary.total,
-        'shipping_address': _deliveryAddress,
+        'shipping_address':
+            isStorePickup ? _selectedStore?.addressFull : _deliveryAddress,
         'payment_method': method,
+        'pickup_type': isStorePickup ? 'store_pickup' : 'delivery',
+        'pickup_store_id': isStorePickup ? _selectedStore?.id : null,
       });
 
       // 🛍️ 2️⃣ Tạo các sản phẩm trong order_items
@@ -456,6 +526,85 @@ class _PaymentScreenState extends State<PaymentScreen> {
             style: bold ? const TextStyle(fontWeight: FontWeight.bold) : null,
           ),
         ],
+      ),
+    );
+  }
+
+  void _showSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Widget _buildStorePickupCard() {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Cửa hàng nhận hàng',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (_selectedStore == null) ...[
+              const Text(
+                'Bạn chưa chọn cửa hàng nhận. Hãy chọn cửa hàng gần bạn nhất để nhận hàng.',
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton.icon(
+                onPressed: _openStoreLocator,
+                icon: const Icon(Icons.store_mall_directory),
+                label: const Text('Chọn cửa hàng'),
+              ),
+            ] else ...[
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.storefront),
+                title: Text(
+                  _selectedStore!.name,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                subtitle: Text(_selectedStore!.addressFull),
+                trailing: IconButton(
+                  icon: const Icon(Icons.edit_location_alt),
+                  onPressed: _openStoreLocator,
+                ),
+              ),
+              if (_selectedStore!.phone != null) ...[
+                const SizedBox(height: 4),
+                Text('Điện thoại: ${_selectedStore!.phone}'),
+              ],
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _openDirectionsToStore,
+                      icon: const Icon(Icons.directions),
+                      label: const Text('Chỉ đường'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _openStoreLocator,
+                      child: const Text('Chọn cửa hàng khác'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -552,6 +701,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ),
 
           const SizedBox(height: 16),
+
+          if (_selectedMethod == 'store_pickup') ...[
+            _buildStorePickupCard(),
+            const SizedBox(height: 16),
+          ],
 
           // Delivery Address & Order Summary Card
           Card(

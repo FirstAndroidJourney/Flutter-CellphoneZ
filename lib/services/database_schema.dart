@@ -18,6 +18,7 @@ class DatabaseSchema {
   static const OrderItemsTable orderItems = OrderItemsTable();
   static const UserRolesTable userRoles = UserRolesTable();
   static const PaymentsTable payments = PaymentsTable();
+  static const StoresTable stores = StoresTable();
   static const StorageBuckets storage = StorageBuckets();
 }
 
@@ -32,6 +33,7 @@ class TableNames {
   final String cartItems = 'cart_items';
   final String orders = 'orders';
   final String orderItems = 'order_items';
+  final String stores = 'stores';
 }
 
 /// Các cột phổ biến xuất hiện trong nhiều bảng
@@ -117,6 +119,9 @@ class OrdersTable {
   final String shippingAddress = 'shipping_address';
   final String paymentMethod = 'payment_method';
   final String createdAt = 'created_at';
+  final String pickupType = 'pickup_type';
+  final String pickupStoreId = 'pickup_store_id';
+  final String pickupWindow = 'pickup_window';
 }
 
 /// Schema cho bảng Order Items
@@ -163,4 +168,24 @@ class UserRolesTable {
   final String table = 'user_roles';
   final String userId = 'user_id';
   final String role = 'role';
+}
+
+/// Schema cho bảng Stores
+class StoresTable {
+  const StoresTable();
+
+  final String table = 'stores';
+
+  final String id = 'id';
+  final String name = 'name';
+  final String addressFull = 'address_full';
+  final String city = 'city';
+  final String latitude = 'latitude';
+  final String longitude = 'longitude';
+  final String phone = 'phone';
+  final String services = 'services';
+  final String openingHours = 'opening_hours';
+  final String isActive = 'is_active';
+  final String createdAt = 'created_at';
+  final String updatedAt = 'updated_at';
 }
