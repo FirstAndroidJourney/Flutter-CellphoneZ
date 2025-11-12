@@ -11,18 +11,18 @@ class AppTheme {
   static ThemeData lightTheme(BuildContext context) {
     return ThemeData(
       brightness: Brightness.light,
-      fontFamily: GoogleFonts.inter().fontFamily,
+      fontFamily: GoogleFonts.beVietnamPro().fontFamily,
       primarySwatch: primaryMaterialColor,
       primaryColor: primaryColor,
       scaffoldBackgroundColor: Colors.white,
       iconTheme: const IconThemeData(color: blackColor),
-      textTheme: GoogleFonts.interTextTheme(
+      textTheme: GoogleFonts.beVietnamProTextTheme(
         const TextTheme(
-          bodyMedium: TextStyle(color: blackColor80, fontSize: 18),
-          bodyLarge: TextStyle(fontSize: 20),
-          bodySmall: TextStyle(fontSize: 16),
-          titleMedium: TextStyle(fontSize: 22),
-          titleLarge: TextStyle(fontSize: 24),
+          bodyMedium: TextStyle(color: blackColor80, fontSize: 16),
+          bodyLarge: TextStyle(fontSize: 18),
+          bodySmall: TextStyle(fontSize: 14),
+          titleMedium: TextStyle(fontSize: 20),
+          titleLarge: TextStyle(fontSize: 22),
         ),
       ),
       elevatedButtonTheme: elevatedButtonThemeData,
