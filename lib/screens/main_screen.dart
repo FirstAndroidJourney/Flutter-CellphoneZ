@@ -135,7 +135,7 @@ class _MainScreenState extends State<MainScreen> {
           return CurvedNavigationBar(
             index: _selectedIndex,
             items: navItems,
-            color: Colors.white,
+            color: ivoryWhiteColor,
             buttonBackgroundColor: cellphoneZRed,
             backgroundColor: Colors.transparent,
             height: 58,

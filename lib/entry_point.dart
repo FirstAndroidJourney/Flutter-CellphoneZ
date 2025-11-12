@@ -90,7 +90,7 @@ class _EntryPointState extends State<EntryPoint> {
       bottomNavigationBar: Container(
         padding: const EdgeInsets.only(top: defaultPadding / 2),
         color: Theme.of(context).brightness == Brightness.light
-            ? Colors.white
+            ? ivoryWhiteColor
             : const Color(0xFF101015),
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
@@ -102,7 +102,7 @@ class _EntryPointState extends State<EntryPoint> {
             }
           },
           backgroundColor: Theme.of(context).brightness == Brightness.light
-              ? Colors.white
+              ? ivoryWhiteColor
               : const Color(0xFF101015),
           type: BottomNavigationBarType.fixed,
           // selectedLabelStyle: TextStyle(color: primaryColor),

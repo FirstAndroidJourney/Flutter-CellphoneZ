@@ -115,7 +115,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
       bottomNavigationBar: CurvedNavigationBar(
         index: _selectedIndex,
         items: items,
-        color: Colors.white,
+        color: ivoryWhiteColor,
         buttonBackgroundColor: cellphoneZRed,
         backgroundColor: Colors.transparent,
         height: 60,
