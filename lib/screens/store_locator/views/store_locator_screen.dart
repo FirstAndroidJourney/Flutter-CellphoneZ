@@ -44,8 +44,12 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
   final MapController _mapController = MapController();
   final ExternalNavigationService _navigationService =
       ExternalNavigationService();
+  final PageController _storeSliderController =
+      PageController(viewportFraction: 0.88);
 
   Timer? _searchDebounce;
+  bool _isAnimatingSlider = false;
+  int _currentSliderIndex = 0;
 
   @override
   void initState() {
@@ -59,6 +63,7 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
   void dispose() {
     _searchDebounce?.cancel();
     _searchController.dispose();
+    _storeSliderController.dispose();
     super.dispose();
   }
 
@@ -93,6 +98,7 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
                       latlng.LatLng(target.latitude, target.longitude);
                   _mapController.move(targetPoint, 14);
                 }
+                _syncSliderWithHighlight(state);
               },
               builder: (context, state) {
                 if (state.isLoading && state.stores.isEmpty) {
@@ -103,7 +109,7 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
                   children: [
                     Positioned.fill(child: _buildMap(state, cubit)),
                     _buildTopControls(context, state, cubit),
-                    _buildBottomSheet(context, state, cubit),
+                    _buildStoreSlider(context, state, cubit),
                     if (state.isLoading)
                       Positioned.fill(
                         child: Container(
@@ -162,53 +168,310 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
     );
   }
 
-  Widget _buildBottomSheet(
+  void _syncSliderWithHighlight(StoreLocatorState state) {
+    final highlighted = state.highlightedStore;
+    if (highlighted == null) {
+      return;
+    }
+    if (!_storeSliderController.hasClients) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _syncSliderWithHighlight(state);
+        }
+      });
+      return;
+    }
+    final index = state.filteredStores
+        .indexWhere((store) => store.id == highlighted.id);
+    if (index == -1 || index == _currentSliderIndex) {
+      return;
+    }
+
+    _isAnimatingSlider = true;
+    _currentSliderIndex = index;
+    _storeSliderController
+        .animateToPage(
+          index,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
+        )
+        .whenComplete(() => _isAnimatingSlider = false);
+  }
+
+  Widget _buildStoreSlider(
     BuildContext context,
     StoreLocatorState state,
     StoreLocatorCubit cubit,
   ) {
-    return DraggableScrollableSheet(
-      minChildSize: 0.2,
-      initialChildSize: 0.25,
-      maxChildSize: 0.85,
-      builder: (context, scrollController) {
-        return Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                blurRadius: 20,
-                offset: const Offset(0, -4),
-              ),
-            ],
+    final bottomInset =
+        MediaQuery.of(context).padding.bottom + kBottomNavigationBarHeight;
+    final sliderHeight = widget.enableSelection ? 280.0 : 250.0;
+
+    if (state.filteredStores.isEmpty) {
+      return Positioned(
+        left: 16,
+        right: 16,
+        bottom: bottomInset,
+        child: Material(
+          elevation: 4,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              'Không tìm thấy cửa hàng phù hợp.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
           ),
+        ),
+      );
+    }
+
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: Padding(
+        padding: EdgeInsets.only(bottom: bottomInset),
+        child: SizedBox(
+          height: sliderHeight,
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 12, bottom: 8),
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade400,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade400,
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
+              const SizedBox(height: 12),
               Expanded(
-                child: _buildStoreList(
-                  context,
-                  state,
-                  cubit,
-                  scrollController,
+                child: PageView.builder(
+                  controller: _storeSliderController,
+                  physics: const BouncingScrollPhysics(),
+                  padEnds: false,
+                  onPageChanged: (index) {
+                    _currentSliderIndex = index;
+                    if (_isAnimatingSlider ||
+                        index >= state.filteredStores.length) {
+                      return;
+                    }
+                    cubit.highlightStore(state.filteredStores[index]);
+                  },
+                  itemCount: state.filteredStores.length,
+                  itemBuilder: (context, index) {
+                    final store = state.filteredStores[index];
+                    final isHighlighted =
+                        state.highlightedStore?.id == store.id;
+
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        left: index == 0 ? 16 : 8,
+                        right: index == state.filteredStores.length - 1 ? 16 : 8,
+                      ),
+                      child: _buildStoreCard(
+                        context: context,
+                        store: store,
+                        state: state,
+                        cubit: cubit,
+                        isHighlighted: isHighlighted,
+                      ),
+                    );
+                  },
                 ),
               ),
             ],
           ),
-        );
-      },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStoreCard({
+    required BuildContext context,
+    required Store store,
+    required StoreLocatorState state,
+    required StoreLocatorCubit cubit,
+    required bool isHighlighted,
+  }) {
+    final borderRadius = BorderRadius.circular(20);
+    final services = store.services.take(4).toList();
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      decoration: BoxDecoration(
+        borderRadius: borderRadius,
+        border: Border.all(
+          color: isHighlighted ? cellphoneZRed : Colors.grey.shade200,
+          width: 1.2,
+        ),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isHighlighted ? 0.15 : 0.05),
+            blurRadius: isHighlighted ? 18 : 10,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: borderRadius,
+          onTap: () => cubit.highlightStore(store),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        store.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  store.addressFull,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.black54),
+                ),
+                if (store.phone != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    store.phone!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: Colors.black87),
+                  ),
+                ],
+                if (services.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      for (final service in services)
+                        Chip(
+                          label: Text(service),
+                          backgroundColor: Colors.blueGrey.shade50,
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      if (store.services.length > services.length)
+                        Chip(
+                          label: Text('+${store.services.length - services.length}'),
+                          backgroundColor: Colors.blueGrey.shade50,
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                    ],
+                  ),
+                ],
+                const Spacer(),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    if (store.distanceKm != null) ...[
+                      Flexible(
+                        flex: 3,
+                        child: _DistanceBadge(distanceKm: store.distanceKm!),
+                      ),
+                      const SizedBox(width: 10),
+                    ],
+                    Expanded(
+                      flex: 4,
+                      child: SizedBox(
+                        height: 44,
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 12,
+                            ),
+                            textStyle: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () async {
+                            try {
+                              await _navigationService.openDirections(
+                                destinationLat: store.latitude,
+                                destinationLng: store.longitude,
+                                originLat: state.userLocation?.latitude,
+                                originLng: state.userLocation?.longitude,
+                                label: store.name,
+                              );
+                            } catch (error) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Không thể mở ứng dụng bản đồ: $error',
+                                    ),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          icon: const Icon(Icons.directions),
+                          label: const Text('Chỉ đường'),
+                        ),
+                      ),
+                    ),
+                    if (widget.enableSelection) ...[
+                      const SizedBox(width: 10),
+                      Expanded(
+                        flex: 4,
+                        child: SizedBox(
+                          height: 44,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              cubit.selectStore(store);
+                              Navigator.of(context).pop(store);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 12,
+                              ),
+                              backgroundColor: cellphoneZRed,
+                              textStyle: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text('Chọn làm điểm lấy'),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -298,158 +561,8 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
     );
   }
 
-  Widget _buildStoreList(
-    BuildContext context,
-    StoreLocatorState state,
-    StoreLocatorCubit cubit,
-    ScrollController scrollController,
-  ) {
-    if (state.filteredStores.isEmpty) {
-      return const Center(
-        child: Text('Không tìm thấy cửa hàng phù hợp.'),
-      );
-    }
-
-    return ListView.separated(
-      controller: scrollController,
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      itemCount: state.filteredStores.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final store = state.filteredStores[index];
-        final isHighlighted = state.highlightedStore?.id == store.id;
-
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isHighlighted ? cellphoneZRed : Colors.grey.shade200,
-              width: 1.2,
-            ),
-            boxShadow: [
-              if (isHighlighted)
-                BoxShadow(
-                  color: cellphoneZRed.withOpacity(0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-            ],
-            color: Colors.white,
-          ),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: () => cubit.highlightStore(store),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          store.name,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      if (store.distanceKm != null)
-                        Text(
-                          '${store.distanceKm!.toStringAsFixed(1)} km',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    store.addressFull,
-                    style: const TextStyle(color: Colors.black54),
-                  ),
-                  if (store.phone != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      store.phone!,
-                      style: const TextStyle(color: Colors.black87),
-                    ),
-                  ],
-                  const SizedBox(height: 8),
-                  if (store.services.isNotEmpty)
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 4,
-                      children: store.services
-                          .map(
-                            (service) => Chip(
-                              label: Text(service),
-                              backgroundColor: Colors.blueGrey.shade50,
-                            ),
-                          )
-                          .toList(),
-                    ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _StatusBadge(isActive: store.isActive),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () async {
-                            try {
-                              await _navigationService.openDirections(
-                                destinationLat: store.latitude,
-                                destinationLng: store.longitude,
-                                originLat: state.userLocation?.latitude,
-                                originLng: state.userLocation?.longitude,
-                                label: store.name,
-                              );
-                            } catch (error) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Không thể mở ứng dụng bản đồ: $error',
-                                    ),
-                                  ),
-                                );
-                              }
-                            }
-                          },
-                          icon: const Icon(Icons.directions),
-                          label: const Text('Chỉ đường'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      if (widget.enableSelection)
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              cubit.selectStore(store);
-                              Navigator.of(context).pop(store);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: cellphoneZRed,
-                            ),
-                            child: const Text('Chọn làm điểm lấy'),
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
 }
+
 
 class _SearchCard extends StatelessWidget {
   const _SearchCard({
@@ -558,37 +671,59 @@ class _FilterCard extends StatelessWidget {
   }
 }
 
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.isActive});
+class _DistanceBadge extends StatelessWidget {
+  const _DistanceBadge({required this.distanceKm});
 
-  final bool isActive;
+  final double distanceKm;
 
   @override
   Widget build(BuildContext context) {
-    final Color accent = isActive ? Colors.green : Colors.grey;
+    final bool isFar = distanceKm >= 50;
+    final Color accent = isFar ? Colors.orange : cellphoneZRed;
+    final String formatted =
+        distanceKm >= 100 ? distanceKm.toStringAsFixed(0) : distanceKm.toStringAsFixed(1);
+
     return Container(
-      height: 46,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: isActive ? Colors.green.shade50 : Colors.grey.shade200,
+        gradient: LinearGradient(
+          colors: [
+            accent.withOpacity(0.12),
+            accent.withOpacity(0.02),
+          ],
+        ),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: accent.withOpacity(0.4)),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            isActive ? Icons.check_circle : Icons.pause_circle_outline,
+            Icons.near_me_rounded,
+            size: 16,
             color: accent,
-            size: 20,
           ),
           const SizedBox(width: 6),
-          Text(
-            isActive ? 'Đang hoạt động' : 'Tạm đóng',
-            style: TextStyle(
-              color: accent,
-              fontWeight: FontWeight.w600,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '$formatted km',
+                style: TextStyle(
+                  color: accent,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+              ),
+              Text(
+                'cách bạn',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey.shade700,
+                ),
+              ),
+            ],
           ),
         ],
       ),
