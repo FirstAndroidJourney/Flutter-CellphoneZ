@@ -396,13 +396,15 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen>
                   children: [
                     if (store.distanceKm != null) ...[
                       Flexible(
-                        flex: 3,
-                        child: _DistanceBadge(distanceKm: store.distanceKm!),
+                        fit: FlexFit.loose,
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: _DistanceBadge(distanceKm: store.distanceKm!),
+                        ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 12),
                     ],
                     Expanded(
-                      flex: 4,
                       child: SizedBox(
                         height: 44,
                         child: OutlinedButton.icon(
@@ -444,37 +446,35 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen>
                         ),
                       ),
                     ),
-                    if (widget.enableSelection) ...[
-                      const SizedBox(width: 10),
-                      Expanded(
-                        flex: 4,
-                        child: SizedBox(
-                          height: 44,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              cubit.selectStore(store);
-                              Navigator.of(context).pop(store);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 12,
-                              ),
-                              backgroundColor: cellphoneZRed,
-                              textStyle: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: const Text('Chọn làm điểm lấy'),
-                          ),
-                        ),
-                      ),
-                    ],
                   ],
                 ),
+                if (widget.enableSelection) ...[
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    height: 44,
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        cubit.selectStore(store);
+                        Navigator.of(context).pop(store);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 12,
+                        ),
+                        backgroundColor: cellphoneZRed,
+                        textStyle: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text('Chọn làm điểm lấy'),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
