@@ -4,6 +4,7 @@ import 'package:shop/common/app_logger.dart';
 import 'package:shop/constants.dart';
 import 'package:shop/repository/auth_repository.dart';
 import 'package:shop/route/route_constants.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'components/login_form.dart';
 
@@ -22,6 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _email;
   String? _password;
   bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -44,6 +46,30 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  String _resolveAuthErrorMessage(AuthException error) {
+    final normalizedMessage = error.message.toLowerCase();
+
+    if (normalizedMessage.contains('invalid login credentials') ||
+        normalizedMessage.contains('invalid credentials') ||
+        normalizedMessage.contains('wrong email or password') ||
+        normalizedMessage.contains('password')) {
+      return 'Email hoặc mật khẩu chưa đúng. Vui lòng thử lại.';
+    }
+
+    if (normalizedMessage.contains('not confirmed')) {
+      return 'Tài khoản chưa được xác nhận. Vui lòng kiểm tra email của bạn.';
+    }
+
+    if (normalizedMessage.contains('blocked') ||
+        normalizedMessage.contains('ban')) {
+      return 'Tài khoản của bạn đang bị khóa. Liên hệ hỗ trợ để được giúp đỡ.';
+    }
+
+    return error.message.isNotEmpty
+        ? error.message
+        : 'Đăng nhập thất bại. Vui lòng thử lại.';
+  }
+
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -53,6 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() {
       _isLoading = true;
+      _errorMessage = null;
     });
 
     try {
@@ -78,15 +105,23 @@ class _LoginScreenState extends State<LoginScreen> {
         entryPointScreenRoute,
         (route) => false,
       );
-    } catch (e) {
-      _logger.e('🔒 [LoginScreen] Login error', e);
+    } on AuthException catch (authError, stackTrace) {
+      _logger.w(
+        '🔒 [LoginScreen] Auth error while signing in: ${authError.message}',
+        authError,
+        stackTrace,
+      );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Login failed: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        setState(() {
+          _errorMessage = _resolveAuthErrorMessage(authError);
+        });
+      }
+    } catch (e, stackTrace) {
+      _logger.e('🔒 [LoginScreen] Login error', e, stackTrace);
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Đăng nhập thất bại. Vui lòng thử lại sau.';
+        });
       }
     } finally {
       if (mounted) {
@@ -261,6 +296,61 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
             ),
+          ),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            child: _errorMessage == null
+                ? const SizedBox.shrink()
+                : Container(
+                    key: ValueKey(_errorMessage),
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(top: defaultPadding * 0.5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: defaultPadding,
+                      vertical: defaultPadding * 0.75,
+                    ),
+                    decoration: BoxDecoration(
+                      color: cellphoneZRed.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.error_outline_rounded,
+                          color: cellphoneZRed,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            _errorMessage!,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: cellphoneZRed,
+                                  fontWeight: FontWeight.w600,
+                                ) ??
+                                const TextStyle(
+                                  color: cellphoneZRed,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              _errorMessage = null;
+                            });
+                          },
+                          icon: const Icon(
+                            Icons.close_rounded,
+                            size: 20,
+                          ),
+                          color: cellphoneZRed,
+                          splashRadius: 16,
+                          tooltip: 'Đóng thông báo lỗi',
+                        ),
+                      ],
+                    ),
+                  ),
           ),
           const SizedBox(height: defaultPadding / 2),
           Row(
