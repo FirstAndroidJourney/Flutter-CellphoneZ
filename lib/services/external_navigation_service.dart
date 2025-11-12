@@ -62,8 +62,7 @@ class ExternalNavigationService {
   }) {
     final queryParameters = <String, String>{
       'api': '1',
-      'destination':
-          '$destinationLat,$destinationLng${label != null ? '($label)' : ''}',
+      'destination': '$destinationLat,$destinationLng',
       'travelmode': 'driving',
     };
 

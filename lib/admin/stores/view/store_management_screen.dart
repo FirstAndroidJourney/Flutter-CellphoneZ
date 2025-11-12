@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_animations/flutter_map_animations.dart';
 import 'package:latlong2/latlong.dart' as latlng;
 
 import '../../../components/map_attribution_badge.dart';
@@ -17,25 +18,37 @@ class StoreManagementScreen extends StatefulWidget {
   State<StoreManagementScreen> createState() => _StoreManagementScreenState();
 }
 
-class _StoreManagementScreenState extends State<StoreManagementScreen> {
+class _StoreManagementScreenState extends State<StoreManagementScreen>
+    with TickerProviderStateMixin {
   final StoreService _storeService = StoreService();
-  final MapController _mapController = MapController();
   final TextEditingController _searchController = TextEditingController();
+  final PageController _storeSliderController =
+      PageController(viewportFraction: 0.9);
+  late final AnimatedMapController _animatedMapController;
 
   bool _isLoading = true;
   List<Store> _stores = [];
   Store? _selectedStore;
   latlng.LatLng? _pendingCoordinate;
+  int _currentSliderIndex = 0;
+  bool _isSliderAnimating = false;
 
   @override
   void initState() {
     super.initState();
+    _animatedMapController = AnimatedMapController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+    );
     _loadStores();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _storeSliderController.dispose();
+    _animatedMapController.dispose();
     super.dispose();
   }
 
@@ -47,6 +60,7 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
         _stores = stores;
         _isLoading = false;
       });
+      _resetSliderPosition();
     } catch (error) {
       setState(() => _isLoading = false);
       if (!mounted) return;
@@ -175,7 +189,7 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
         children: [
           Positioned.fill(child: _buildMap(context)),
           _buildTopControls(context),
-          _buildBottomSheet(context),
+          _buildStoreSlider(context),
           if (_isLoading)
             Container(
               color: Colors.black12,
@@ -197,10 +211,14 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
           padding: EdgeInsets.fromLTRB(16, topPadding, 16, 0),
           child: _AdminSearchBar(
             controller: _searchController,
-            onChanged: (_) => setState(() {}),
+            onChanged: (_) {
+              setState(() {});
+              _resetSliderPosition();
+            },
             onClear: () {
               _searchController.clear();
               setState(() {});
+              _resetSliderPosition();
             },
             onAdd: () => _openStoreForm(),
             onRefresh: _loadStores,
@@ -210,68 +228,85 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
     );
   }
 
-  Widget _buildBottomSheet(BuildContext context) {
-    return DraggableScrollableSheet(
-      minChildSize: 0.25,
-      initialChildSize: 0.3,
-      maxChildSize: 0.9,
-      builder: (context, scrollController) {
-        final stores = _filteredStores;
-        return Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                blurRadius: 20,
-                offset: const Offset(0, -4),
-              ),
-            ],
+  Widget _buildStoreSlider(BuildContext context) {
+    final stores = _filteredStores;
+    final bottomInset = MediaQuery.of(context).padding.bottom + 16;
+    const sliderHeight = 330.0;
+
+    if (stores.isEmpty) {
+      return Positioned(
+        left: 16,
+        right: 16,
+        bottom: bottomInset,
+        child: Material(
+          elevation: 4,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              'Không có cửa hàng nào',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
           ),
+        ),
+      );
+    }
+
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: Padding(
+        padding: EdgeInsets.only(bottom: bottomInset),
+        child: SizedBox(
+          height: sliderHeight,
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 12, bottom: 8),
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade400,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade400,
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
+              const SizedBox(height: 12),
               Expanded(
-                child: stores.isEmpty
-                    ? const Center(child: Text('Không có cửa hàng nào'))
-                    : RefreshIndicator(
-                        onRefresh: _loadStores,
-                        child: ListView.separated(
-                          controller: scrollController,
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                          itemCount: stores.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 12),
-                          itemBuilder: (context, index) {
-                            final store = stores[index];
-                            return _StoreCard(
-                              store: store,
-                              isSelected: _selectedStore?.id == store.id,
-                              onSelect: () => _onSelectStore(store),
-                              onEdit: () => _openStoreForm(store: store),
-                              onDelete: () => _deleteStore(store),
-                              onToggleActive: (value) =>
-                                  _toggleStore(store, value),
-                            );
-                          },
-                        ),
+                child: PageView.builder(
+                  controller: _storeSliderController,
+                  padEnds: false,
+                  physics: const BouncingScrollPhysics(),
+                  onPageChanged: (index) {
+                    if (index >= stores.length) return;
+                    _currentSliderIndex = index;
+                    _onSelectStore(stores[index], fromSlider: true);
+                  },
+                  itemCount: stores.length,
+                  itemBuilder: (context, index) {
+                    final store = stores[index];
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        left: index == 0 ? 16 : 8,
+                        right: index == stores.length - 1 ? 16 : 8,
                       ),
+                      child: _StoreCard(
+                        store: store,
+                        isSelected: _selectedStore?.id == store.id,
+                        onSelect: () => _onSelectStore(store),
+                        onEdit: () => _openStoreForm(store: store),
+                        onDelete: () => _deleteStore(store),
+                        onToggleActive: (value) => _toggleStore(store, value),
+                      ),
+                    );
+                  },
+                ),
               ),
             ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -327,7 +362,7 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
     return Stack(
       children: [
         FlutterMap(
-          mapController: _mapController,
+          mapController: _animatedMapController.mapController,
           options: MapOptions(
             center: center,
             zoom: 12,
@@ -366,14 +401,61 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
     );
   }
 
-  void _onSelectStore(Store store) {
+  void _onSelectStore(Store store, {bool fromSlider = false}) {
     setState(() {
       _selectedStore = store;
     });
-    _mapController.move(
-      latlng.LatLng(store.latitude, store.longitude),
-      15,
+    _animatedMapController.animateTo(
+      dest: latlng.LatLng(store.latitude, store.longitude),
+      zoom: 15,
     );
+    if (!fromSlider) {
+      _animateSliderToStore(store);
+    }
+  }
+
+  void _animateSliderToStore(Store store) {
+    final stores = _filteredStores;
+    final targetIndex = stores.indexWhere((s) => s.id == store.id);
+    if (targetIndex == -1) return;
+    if (!_storeSliderController.hasClients) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _animateSliderToStore(store);
+        }
+      });
+      return;
+    }
+    if (_currentSliderIndex == targetIndex || _isSliderAnimating) {
+      return;
+    }
+    _isSliderAnimating = true;
+    _storeSliderController
+        .animateToPage(
+          targetIndex,
+          duration: const Duration(milliseconds: 280),
+          curve: Curves.easeInOut,
+        )
+        .whenComplete(() {
+          _currentSliderIndex = targetIndex;
+          _isSliderAnimating = false;
+        });
+  }
+
+  void _resetSliderPosition() {
+    _currentSliderIndex = 0;
+    if (_filteredStores.isEmpty) {
+      return;
+    }
+    if (!_storeSliderController.hasClients) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _resetSliderPosition();
+        }
+      });
+      return;
+    }
+    _storeSliderController.jumpToPage(0);
   }
 }
 
@@ -494,76 +576,178 @@ class _StoreCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: isSelected ? 4 : 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
+    final borderRadius = BorderRadius.circular(20);
+    final services = store.services.take(4).toList();
+    final hiddenServiceCount =
+        store.services.length > services.length ? store.services.length - services.length : 0;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      decoration: BoxDecoration(
+        borderRadius: borderRadius,
+        border: Border.all(
           color: isSelected ? cellphoneZRed : Colors.grey.shade200,
+          width: 1.2,
         ),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isSelected ? 0.12 : 0.04),
+            blurRadius: isSelected ? 18 : 10,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
-      child: InkWell(
-        onTap: onSelect,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      store.name,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: borderRadius,
+          onTap: onSelect,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        store.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                  ),
-                  Switch(
-                    value: store.isActive,
-                    onChanged: onToggleActive,
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  store.addressFull,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.black54),
+                ),
+                if (store.city != null && store.city!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Thành phố: ${store.city}',
+                    style: const TextStyle(color: Colors.black54),
                   ),
                 ],
-              ),
-              const SizedBox(height: 4),
-              Text(store.addressFull),
-              if (store.city != null) Text('Thành phố: ${store.city}'),
-              if (store.phone != null) Text('Điện thoại: ${store.phone}'),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 4,
-                runSpacing: 4,
-                children: store.services
-                    .map(
-                      (service) => Chip(
-                        label: Text(service),
-                        backgroundColor: Colors.grey.shade100,
-                      ),
-                    )
-                    .toList(),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  TextButton.icon(
-                    onPressed: onEdit,
-                    icon: const Icon(Icons.edit),
-                    label: const Text('Chỉnh sửa'),
-                  ),
-                  const SizedBox(width: 8),
-                  TextButton.icon(
-                    onPressed: onDelete,
-                    icon: const Icon(Icons.delete_outline),
-                    label: const Text('Xoá'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.redAccent,
+                if (store.phone != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Điện thoại: ${store.phone}',
+                    style: const TextStyle(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
-              )
-            ],
+                if (services.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      for (final service in services)
+                        Chip(
+                          label: Text(service),
+                          backgroundColor: Colors.blueGrey.shade50,
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      if (hiddenServiceCount > 0)
+                        Chip(
+                          label: Text('+$hiddenServiceCount'),
+                          backgroundColor: Colors.blueGrey.shade50,
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 50,
+                        child: OutlinedButton.icon(
+                          onPressed: onEdit,
+                          style: OutlinedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          icon: const Icon(Icons.edit_outlined),
+                          label: const Text('Chỉnh sửa'),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: SizedBox(
+                        height: 50,
+                        child: ElevatedButton.icon(
+                          onPressed: onDelete,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.redAccent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          icon: const Icon(Icons.delete_outline),
+                          label: const Text('Xoá'),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  height: 40,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            store.isActive
+                                ? Icons.check_circle_outline
+                                : Icons.pause_circle_outline,
+                            color: store.isActive
+                                ? Colors.green
+                                : Colors.grey[600],
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            store.isActive ? 'Đang hoạt động' : 'Tạm đóng',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: store.isActive
+                                  ? Colors.green[800]
+                                  : Colors.grey[700],
+                            ),
+                          ),
+                        ],
+                      ),
+                      Switch(
+                        value: store.isActive,
+                        onChanged: onToggleActive,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
