@@ -177,7 +177,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                                     color: successColor.withOpacity(0.1),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: Icon(
+                                  child: const Icon(
                                     Icons.check_circle,
                                     size: 80,
                                     color: successColor,

@@ -1,5 +1,3 @@
-const String onbordingScreenRoute = "onbording";
-const String notificationPermissionScreenRoute = "notification_permission";
 const String preferredLanuageScreenRoute = "preferred_language";
 const String logInScreenRoute = "login";
 const String signUpScreenRoute = "signup";
@@ -33,7 +31,6 @@ const String noNotificationScreenRoute = "no_notifications";
 const String enableNotificationScreenRoute = "enable_notifications";
 const String notificationOptionsScreenRoute = "notification_options";
 const String selectLanguageScreenRoute = "select_language";
-const String ordersScreenRoute = "orders";
 const String orderProcessingScreenRoute = "order_processing";
 const String orderDetailsScreenRoute = "order_details";
 const String cancleOrderScreenRoute = "cancle_order";

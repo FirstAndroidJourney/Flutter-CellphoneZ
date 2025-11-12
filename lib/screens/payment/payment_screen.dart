@@ -719,7 +719,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Delivery Address
-                  if (_selectedMethod == 'ship_cod') ...[
+                  if (_selectedMethod == 'ship_cod' ||
+                      _selectedMethod == 'vnpay') ...[
                     const Text(
                       'Địa chỉ giao hàng',
                       style: TextStyle(fontWeight: FontWeight.bold),

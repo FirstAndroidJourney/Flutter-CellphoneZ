@@ -323,7 +323,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     shape: BoxShape.circle,
                   ),
                   padding: const EdgeInsets.all(10),
-                  child: Icon(
+                  child: const Icon(
                     Icons.logout,
                     color: cellphoneZRed,
                     size: 32,

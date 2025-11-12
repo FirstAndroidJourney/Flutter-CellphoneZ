@@ -65,11 +65,6 @@ int? _resolveAdminInitialIndex(Object? args) {
 
 Route<dynamic> generateRoute(RouteSettings settings) {
   switch (settings.name) {
-    case onbordingScreenRoute:
-      return _buildRoute(
-        settings: settings,
-        child: const OnBordingScreen(),
-      );
     case logInScreenRoute:
       return _buildRoute(
         settings: settings,
@@ -106,11 +101,6 @@ Route<dynamic> generateRoute(RouteSettings settings) {
         settings: settings,
         child: const DiscoverScreen(),
       );
-    case onSaleScreenRoute:
-      return _buildRoute(
-        settings: settings,
-        child: const OnSaleScreen(),
-      );
     case searchScreenRoute:
       return _buildRoute(
         settings: settings,
@@ -138,31 +128,6 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return _buildRoute(
         settings: settings,
         child: const UserInfoScreen(),
-      );
-    case notificationsScreenRoute:
-      return _buildRoute(
-        settings: settings,
-        child: const NotificationsScreen(),
-      );
-    case noNotificationScreenRoute:
-      return _buildRoute(
-        settings: settings,
-        child: const NoNotificationScreen(),
-      );
-    case enableNotificationScreenRoute:
-      return _buildRoute(
-        settings: settings,
-        child: const EnableNotificationScreen(),
-      );
-    case notificationOptionsScreenRoute:
-      return _buildRoute(
-        settings: settings,
-        child: const NotificationOptionsScreen(),
-      );
-    case ordersScreenRoute:
-      return _buildRoute(
-        settings: settings,
-        child: const OrdersScreen(),
       );
     case preferencesScreenRoute:
       return _buildRoute(
@@ -249,8 +214,8 @@ Route<dynamic> generateRoute(RouteSettings settings) {
         child: OrderHistoryScreen(userId: userId),
       );
     case storeLocatorScreenRoute:
-      final enableSelection = (settings.arguments as Map<String, dynamic>?)
-              ?['enableSelection'] as bool? ??
+      final enableSelection = (settings.arguments
+              as Map<String, dynamic>?)?['enableSelection'] as bool? ??
           true;
       return _buildRoute(
         settings: settings,
@@ -260,7 +225,7 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     default:
       return _buildRoute(
         settings: settings,
-        child: const OnBordingScreen(),
+        child: const HomeScreen(),
       );
   }
 }

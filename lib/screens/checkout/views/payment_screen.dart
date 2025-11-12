@@ -43,7 +43,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       ),
     );
 
-  if (result != null) {
+    if (result != null) {
       String addressText;
       if (result is Map && result.containsKey('address')) {
         addressText = result['address'] as String;
@@ -70,8 +70,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: bold ? const TextStyle(fontWeight: FontWeight.bold) : null),
-          Text(OrderCalculationService().formatPrice(amount), style: bold ? const TextStyle(fontWeight: FontWeight.bold) : null),
+          Text(label,
+              style:
+                  bold ? const TextStyle(fontWeight: FontWeight.bold) : null),
+          Text(OrderCalculationService().formatPrice(amount),
+              style:
+                  bold ? const TextStyle(fontWeight: FontWeight.bold) : null),
         ],
       ),
     );
@@ -128,7 +132,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ],
             ),
           ),
-
           const SizedBox(height: 16),
           Card(
             child: Padding(
@@ -136,7 +139,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Địa chỉ giao hàng', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('Địa chỉ giao hàng',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   Row(
                     children: [
@@ -148,7 +152,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  const Text('Sản phẩm', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('Sản phẩm',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   ...widget.items.map((item) => Padding(
                         padding: const EdgeInsets.symmetric(vertical: 6),
@@ -171,20 +176,26 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                 children: [
                                   Text(item.productName),
                                   const SizedBox(height: 4),
-                                  Text('Số lượng: ${item.quantity}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                  Text('Số lượng: ${item.quantity}',
+                                      style: const TextStyle(
+                                          fontSize: 12, color: Colors.grey)),
                                 ],
                               ),
                             ),
-                            Text(OrderCalculationService().formatPrice(item.totalPrice)),
+                            Text(OrderCalculationService()
+                                .formatPrice(item.totalPrice)),
                           ],
                         ),
                       )),
                   const SizedBox(height: 12),
-                  const Text('Tóm tắt đơn hàng', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('Tóm tắt đơn hàng',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
-                  if (widget.customerNote != null && widget.customerNote!.isNotEmpty) ...[
+                  if (widget.customerNote != null &&
+                      widget.customerNote!.isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    const Text('Ghi chú', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('Ghi chú',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 6),
                     Text(widget.customerNote!),
                     const Divider(),
@@ -192,7 +203,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   _buildSummaryRow('Tạm tính', _orderSummary.subtotal),
                   _buildSummaryRow('Thuế', _orderSummary.tax),
                   _buildSummaryRow('Phí vận chuyển', _orderSummary.shipping),
-                  if (_orderSummary.discount > 0) _buildSummaryRow('Giảm giá', -_orderSummary.discount),
+                  if (_orderSummary.discount > 0)
+                    _buildSummaryRow('Giảm giá', -_orderSummary.discount),
                   const Divider(),
                   _buildSummaryRow('Tổng', _orderSummary.total, bold: true),
                 ],
@@ -223,8 +235,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           const SizedBox(height: 8),
                           Text('Địa chỉ: $_deliveryAddress'),
                           const SizedBox(height: 8),
-                          Text('Tổng: ${OrderCalculationService().formatPrice(_orderSummary.total)}'),
-                          if (widget.customerNote != null && widget.customerNote!.isNotEmpty) ...[
+                          Text(
+                              'Tổng: ${OrderCalculationService().formatPrice(_orderSummary.total)}'),
+                          if (widget.customerNote != null &&
+                              widget.customerNote!.isNotEmpty) ...[
                             const SizedBox(height: 8),
                             const Text('Ghi chú:'),
                             Text(widget.customerNote!),
@@ -233,8 +247,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       ),
                     ),
                     actions: [
-                      TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Hủy')),
-                      ElevatedButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Xác nhận')),
+                      TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: const Text('Hủy')),
+                      ElevatedButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          child: const Text('Xác nhận')),
                     ],
                   ),
                 );
@@ -249,9 +267,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Cảm ơn bạn! Đơn hàng đã được đặt và sẽ được giao tận nơi.'),
+                          Text(
+                              'Cảm ơn bạn! Đơn hàng đã được đặt và sẽ được giao tận nơi.'),
                           SizedBox(height: 8),
-                          Text('Chúng tôi sẽ sớm liên hệ với bạn để xác nhận đơn hàng.'),
+                          Text(
+                              'Chúng tôi sẽ sớm liên hệ với bạn để xác nhận đơn hàng.'),
                         ],
                       ),
                       actions: [
@@ -277,7 +297,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
               // Placeholder for other payment methods
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Chức năng thanh toán chưa được triển khai')), 
+                const SnackBar(
+                    content: Text('Chức năng thanh toán chưa được triển khai')),
               );
             },
             child: const Text('Thanh toán', style: TextStyle(fontSize: 16)),

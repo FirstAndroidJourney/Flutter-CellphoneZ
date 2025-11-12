@@ -77,14 +77,14 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   if (_isLoading)
-                    SizedBox(
+                    const SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                   if (!_isLoading && _errorMessage != null)
                     IconButton(
-                      icon: Icon(Icons.refresh, size: 20),
+                      icon: const Icon(Icons.refresh, size: 20),
                       onPressed: _loadCategories,
                       tooltip: 'Retry',
                     ),
@@ -103,13 +103,13 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     children: [
                       Text(
                         _errorMessage!,
-                        style: TextStyle(color: Colors.red),
+                        style: const TextStyle(color: Colors.red),
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: _loadCategories,
-                        child: Text('Retry'),
+                        child: const Text('Retry'),
                       ),
                     ],
                   ),
@@ -120,7 +120,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 child: RefreshIndicator(
                   onRefresh: _loadCategories,
                   child: _categories.isEmpty
-                      ? Center(child: Text('No categories found'))
+                      ? const Center(child: Text('No categories found'))
                       : ListView.builder(
                           itemCount: _categories.length,
                           itemBuilder: (context, index) => ExpansionCategory(
