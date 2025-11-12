@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_animations/flutter_map_animations.dart';
 import 'package:latlong2/latlong.dart' as latlng;
 
 import '../../../components/map_attribution_badge.dart';
@@ -39,13 +40,14 @@ class StoreLocatorScreen extends StatefulWidget {
   State<StoreLocatorScreen> createState() => _StoreLocatorScreenState();
 }
 
-class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
+class _StoreLocatorScreenState extends State<StoreLocatorScreen>
+    with TickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
-  final MapController _mapController = MapController();
   final ExternalNavigationService _navigationService =
       ExternalNavigationService();
   final PageController _storeSliderController =
       PageController(viewportFraction: 0.88);
+  late final AnimatedMapController _animatedMapController;
 
   Timer? _searchDebounce;
   bool _isAnimatingSlider = false;
@@ -54,6 +56,11 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
   @override
   void initState() {
     super.initState();
+    _animatedMapController = AnimatedMapController(
+      vsync: this,
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeInOut,
+    );
     if (widget.initialSelection != null) {
       _searchController.text = widget.initialSelection!.name;
     }
@@ -64,6 +71,7 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
     _searchDebounce?.cancel();
     _searchController.dispose();
     _storeSliderController.dispose();
+    _animatedMapController.dispose();
     super.dispose();
   }
 
@@ -96,7 +104,7 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
                 if (target != null) {
                   final targetPoint =
                       latlng.LatLng(target.latitude, target.longitude);
-                  _mapController.move(targetPoint, 14);
+                  _animatedMapController.animateTo(dest: targetPoint, zoom: 14);
                 }
                 _syncSliderWithHighlight(state);
               },
@@ -537,7 +545,7 @@ class _StoreLocatorScreenState extends State<StoreLocatorScreen> {
     return Stack(
       children: [
         FlutterMap(
-          mapController: _mapController,
+          mapController: _animatedMapController.mapController,
           options: MapOptions(
             center: center,
             zoom: 12,
