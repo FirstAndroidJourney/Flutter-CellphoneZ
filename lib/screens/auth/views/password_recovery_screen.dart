@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shop/constants.dart';
 import 'package:shop/repository/auth_repository.dart';
+import 'package:shop/screens/auth/views/password_reset_otp_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class PasswordRecoveryScreen extends StatefulWidget {
   const PasswordRecoveryScreen({super.key});
@@ -225,20 +227,53 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
     });
 
     try {
-      await _authRepository.resetPassword(_email!);
+      debugPrint('📧 Đang gửi OTP đến email: $_email');
+
+      // Gửi OTP qua email
+      await _authRepository.resendOTP(
+        email: _email!,
+        type: OtpType.recovery,
+      );
+
+      debugPrint('✅ OTP đã được gửi đến: $_email');
+
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-              'Reset link sent! Please check $_email to continue the process.'),
+          content:
+              Text('Mã OTP đã được gửi đến $_email. Vui lòng kiểm tra email!'),
+          backgroundColor: successColor,
+        ),
+      );
+
+      // Navigate to OTP screen
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PasswordResetOtpScreen(email: _email!),
         ),
       );
     } catch (e) {
+      debugPrint('❌ Lỗi khi gửi OTP: $e');
       if (!mounted) return;
+
+      String errorMessage = 'Không thể gửi mã OTP';
+
+      if (e.toString().contains('over_email_send_rate_limit')) {
+        errorMessage =
+            'Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau 1 phút.';
+      } else if (e.toString().contains('rate limit')) {
+        errorMessage = 'Vui lòng đợi một chút trước khi gửi lại.';
+      } else if (e.toString().contains('User not found')) {
+        errorMessage = 'Email không tồn tại trong hệ thống.';
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Unable to send reset link: ${e.toString()}'),
-          backgroundColor: Colors.red,
+          content: Text(errorMessage),
+          backgroundColor: cellphoneZRed,
+          duration: const Duration(seconds: 4),
         ),
       );
     } finally {

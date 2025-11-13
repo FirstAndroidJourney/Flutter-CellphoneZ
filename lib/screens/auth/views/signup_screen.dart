@@ -288,34 +288,49 @@ class _SignUpScreenState extends State<SignUpScreen> {
     });
 
     try {
-      // Call AuthRepository directly to create account
-      await _authRepository.signUp(
+      debugPrint('🚀 Đang gửi request đăng ký với email: $_email');
+      debugPrint('📧 Email redirect to: cellphonez://verify-email');
+
+      // Gửi OTP qua email (signUp với emailRedirectTo sẽ tự động gửi OTP)
+      final response = await _authRepository.signUp(
         email: _email!,
         password: _password!,
         data: {
           'name': _fullName,
           'email': _email,
         },
+        emailRedirectTo: 'cellphonez://verify-email',
       );
 
-      // Show success message
+      debugPrint('✅ SignUp Response: ${response.user?.id}');
+      debugPrint(
+          '📧 Email confirmation sent: ${response.user?.emailConfirmedAt}');
+      debugPrint('🔐 User confirmed: ${response.user?.confirmedAt}');
+
       if (mounted) {
+        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Đăng ký thành công! Chào mừng đến với CellphoneZ!'),
+            content:
+                Text('Đã gửi mã OTP đến email của bạn. Vui lòng kiểm tra!'),
             backgroundColor: successColor,
             duration: Duration(seconds: 3),
           ),
         );
 
-        // Navigate to main screen
-        Navigator.pushNamedAndRemoveUntil(
+        // Navigate to OTP verification screen
+        Navigator.pushNamed(
           context,
-          entryPointScreenRoute,
-          (route) => false,
+          otpVerificationScreenRoute,
+          arguments: {
+            'email': _email!,
+            'password': _password!,
+            'fullName': _fullName!,
+          },
         );
       }
     } catch (e) {
+      debugPrint('❌ SignUp Error: $e');
       String errorMessage = 'Đăng ký thất bại. Vui lòng thử lại.';
 
       // Handle specific errors

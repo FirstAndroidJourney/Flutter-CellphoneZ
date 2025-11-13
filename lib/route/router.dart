@@ -75,6 +75,16 @@ Route<dynamic> generateRoute(RouteSettings settings) {
         settings: settings,
         child: const SignUpScreen(),
       );
+    case otpVerificationScreenRoute:
+      final args = settings.arguments as Map<String, dynamic>?;
+      return _buildRoute(
+        settings: settings,
+        child: OTPVerificationScreen(
+          email: args?['email'] ?? '',
+          password: args?['password'] ?? '',
+          fullName: args?['fullName'] ?? '',
+        ),
+      );
     case passwordRecoveryScreenRoute:
       return _buildRoute(
         settings: settings,
