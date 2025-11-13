@@ -206,7 +206,50 @@ final imageUrl = supabase.storage
     .getPublicUrl(fileName);
 ```
 
-## 8. Testing
+## 8. Email Templates Configuration (Quan trọng!)
+
+### Cấu hình OTP Email cho Password Reset
+
+Để gửi OTP thay vì Magic Link khi reset password:
+
+1. Vào **Supabase Dashboard** → **Authentication** → **Email Templates**
+
+2. Chọn template **"Reset Password"**
+
+3. Thay đổi nội dung email để hiển thị OTP:
+
+```html
+<h2>Reset Your Password</h2>
+<p>You have requested to reset your password. Use the OTP code below:</p>
+<h1 style="font-size: 32px; letter-spacing: 5px;">{{ .Token }}</h1>
+<p>This code will expire in 60 minutes.</p>
+<p>If you didn't request this, please ignore this email.</p>
+```
+
+4. **XÓA hoặc comment out** đoạn magic link để tránh nhầm lẫn:
+```html
+<!-- <a href="{{ .ConfirmationURL }}">Reset Password</a> -->
+```
+
+5. Tương tự với template **"Confirm Signup"** nếu dùng OTP:
+
+```html
+<h2>Confirm your signup</h2>
+<p>Use this OTP code to confirm your email:</p>
+<h1 style="font-size: 32px; letter-spacing: 5px;">{{ .Token }}</h1>
+<p>This code will expire in 60 minutes.</p>
+```
+
+### Tắt Email Confirmations (Optional)
+
+Nếu muốn user login ngay không cần confirm email:
+
+1. Vào **Authentication** → **Settings** 
+2. Tắt **"Enable email confirmations"**
+
+**Lưu ý**: Flow hiện tại đã dùng `signInWithOtp` với `shouldCreateUser: false` để gửi OTP cho reset password, giống như flow sign up.
+
+## 9. Testing
 
 Để test services, bạn có thể mock repositories:
 

@@ -1,6 +1,7 @@
 const String preferredLanuageScreenRoute = "preferred_language";
 const String logInScreenRoute = "login";
 const String signUpScreenRoute = "signup";
+const String otpVerificationScreenRoute = "otp_verification";
 const String profileSetupScreenRoute = "profile_setup";
 const String signUpVerificationScreenRoute = "signup_verification";
 const String passwordRecoveryScreenRoute = "password_recovery";

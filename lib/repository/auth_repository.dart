@@ -17,11 +17,13 @@ class AuthRepository {
     required String email,
     required String password,
     Map<String, dynamic>? data,
+    String? emailRedirectTo,
   }) async {
     return _client.auth.signUp(
       email: email,
       password: password,
       data: data,
+      emailRedirectTo: emailRedirectTo,
     );
   }
 
@@ -41,9 +43,37 @@ class AuthRepository {
     await _client.auth.signOut();
   }
 
-  // Reset password
+  // Reset password - Send OTP
   Future<void> resetPassword(String email) async {
-    await _client.auth.resetPasswordForEmail(email);
+    await _client.auth.signInWithOtp(
+      email: email,
+      shouldCreateUser: false,
+    );
+  }
+
+  // Verify OTP for email
+  Future<AuthResponse> verifyOTP({
+    required String email,
+    required String token,
+    required OtpType type,
+  }) async {
+    return _client.auth.verifyOTP(
+      email: email,
+      token: token,
+      type: type,
+    );
+  }
+
+  // Resend OTP
+  Future<void> resendOTP({
+    required String email,
+    required OtpType type,
+  }) async {
+    // For recovery, use signInWithOtp like signup
+    await _client.auth.signInWithOtp(
+      email: email,
+      shouldCreateUser: false,
+    );
   }
 
   // Update user
